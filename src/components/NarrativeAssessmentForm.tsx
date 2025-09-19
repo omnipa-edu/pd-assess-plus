@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { FileText, Target, TrendingUp, MessageCircle, Lightbulb } from "lucide-react";
+import VoiceRecorder from "@/components/VoiceRecorder";
 
 interface Resident {
   id: string;
@@ -182,7 +183,14 @@ const NarrativeAssessmentForm = ({ resident }: NarrativeAssessmentFormProps) => 
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="strengths">Key Strengths</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="strengths">Key Strengths</Label>
+                <VoiceRecorder 
+                  onTranscription={(text) => 
+                    setFormData({...formData, strengths: formData.strengths + (formData.strengths ? ' ' : '') + text})
+                  }
+                />
+              </div>
               <Textarea
                 id="strengths"
                 placeholder="What does the resident do exceptionally well? Provide specific examples and evidence..."
@@ -193,7 +201,14 @@ const NarrativeAssessmentForm = ({ resident }: NarrativeAssessmentFormProps) => 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="growth">Areas for Growth</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="growth">Areas for Growth</Label>
+                <VoiceRecorder 
+                  onTranscription={(text) => 
+                    setFormData({...formData, areasForGrowth: formData.areasForGrowth + (formData.areasForGrowth ? ' ' : '') + text})
+                  }
+                />
+              </div>
               <Textarea
                 id="growth"
                 placeholder="What areas need development? Be specific and constructive..."
@@ -205,7 +220,14 @@ const NarrativeAssessmentForm = ({ resident }: NarrativeAssessmentFormProps) => 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="examples">Specific Examples</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="examples">Specific Examples</Label>
+              <VoiceRecorder 
+                onTranscription={(text) => 
+                  setFormData({...formData, specificExamples: formData.specificExamples + (formData.specificExamples ? ' ' : '') + text})
+                }
+              />
+            </div>
             <Textarea
               id="examples"
               placeholder="Provide concrete examples of performance, critical incidents, or memorable interactions that illustrate your assessment..."
@@ -286,7 +308,14 @@ const NarrativeAssessmentForm = ({ resident }: NarrativeAssessmentFormProps) => 
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="recommendations">Recommendations for Improvement</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="recommendations">Recommendations for Improvement</Label>
+              <VoiceRecorder 
+                onTranscription={(text) => 
+                  setFormData({...formData, recommendationsForImprovement: formData.recommendationsForImprovement + (formData.recommendationsForImprovement ? ' ' : '') + text})
+                }
+              />
+            </div>
             <Textarea
               id="recommendations"
               placeholder="Specific, actionable recommendations for addressing areas of growth..."
@@ -297,7 +326,14 @@ const NarrativeAssessmentForm = ({ resident }: NarrativeAssessmentFormProps) => 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="plan">Learning and Development Plan</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="plan">Learning and Development Plan</Label>
+              <VoiceRecorder 
+                onTranscription={(text) => 
+                  setFormData({...formData, developmentPlan: formData.developmentPlan + (formData.developmentPlan ? ' ' : '') + text})
+                }
+              />
+            </div>
             <Textarea
               id="plan"
               placeholder="Outline specific learning objectives, activities, resources, and timelines for development..."
