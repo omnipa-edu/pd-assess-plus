@@ -41,12 +41,38 @@ const EPAObservationForm = ({ resident }: EPAObservationFormProps) => {
   const { toast } = useToast();
 
   const epas = [
-    { value: "1.1", label: "EPA 1.1 - History and Physical Examination" },
-    { value: "1.2", label: "EPA 1.2 - Diagnostic Reasoning" },
-    { value: "2.1", label: "EPA 2.1 - Treatment Planning" },
-    { value: "2.2", label: "EPA 2.2 - Procedure Performance" },
-    { value: "3.1", label: "EPA 3.1 - Patient Care Coordination" },
-    { value: "3.2", label: "EPA 3.2 - Interprofessional Collaboration" }
+    { value: "1.1", label: "EPA 1.1 - Assess the patient with ENT-HNS complaints" },
+    { value: "1.2", label: "EPA 1.2 - Provide initial clinical assessment, investigation and development of a management plan for patients with acute upper airway obstruction" },
+    { value: "2.1", label: "EPA 2.1 - Draining a peritonsillar abscess" },
+    { value: "2.2", label: "EPA 2.2 - Assess and provide basic management for patients with epistaxis" },
+    { value: "2.3", label: "EPA 2.3 - Assess and provide initial management for uncomplicated adult and pediatric patients with adenotonsillar disease" },
+    { value: "2.4", label: "EPA 2.4 - Assess and provide initial management for patients with hearing loss" },
+    { value: "3.1", label: "EPA 3.1 - Perform primary skin closure to face and neck" },
+    { value: "3.2", label: "EPA 3.2 - Assess and participate in the care of patients with maxillofacial trauma" },
+    { value: "3.3", label: "EPA 3.3 - Provide basic airway management for patients with normal airway anatomy" },
+    { value: "3.4", label: "EPA 3.4 - Identify patients presenting with anticipated difficult airway and prepare for initial management options" },
+    { value: "4.1", label: "EPA 4.1 - Provide postoperative management" },
+    { value: "4.2", label: "EPA 4.2 - Manage inpatient surgical service" },
+    { value: "5.1", label: "EPA 5.1 - Assess and manage patients with non-neoplastic salivary disorders" },
+    { value: "5.2", label: "EPA 5.2 - Assess patients with dysphagia" },
+    { value: "5.3", label: "EPA 5.3 - Assess and manage patients with sleep disordered breathing" },
+    { value: "5.4", label: "EPA 5.4 - Assess patients with facial paralysis, and provide recommendations for non-surgical and surgical treatment options" },
+    { value: "6.1", label: "EPA 6.1 - Assess and manage pediatric patients with acute otitis media and otitis media with effusion" },
+    { value: "6.2", label: "EPA 6.2 - Assess and manage patients presenting with rhinosinusitis" },
+    { value: "6.3", label: "EPA 6.3 - Assess and manage patients presenting with a sinonasal mass" },
+    { value: "6.4", label: "EPA 6.4 - Assess and manage patients with nasal obstruction/septal deformity" },
+    { value: "6.5", label: "EPA 6.5 - Assess and manage patients with chronic airway obstruction" },
+    { value: "7.1", label: "EPA 7.1 - Assess patients with dysphonia" },
+    { value: "7.2", label: "EPA 7.2 - Assess and manage patients with mucosal squamous cell carcinoma of the head and neck" },
+    { value: "8.1", label: "EPA 8.1 - Assess and manage patients with disorders of the thyroid glands" },
+    { value: "8.2", label: "EPA 8.2 - Assess and manage patients with disorders of the parathyroid glands" },
+    { value: "8.3", label: "EPA 8.3 - Assess and manage patients with neoplastic disorders of the salivary glands" },
+    { value: "9.1", label: "EPA 9.1 - Assess and manage patients with head and neck surgical defects" },
+    { value: "9.2", label: "EPA 9.2 - Assess and manage patients with benign or malignant skin lesions of the head and neck" },
+    { value: "10.1", label: "EPA 10.1 - Assess patients with tinnitus and providing initial management" },
+    { value: "10.2", label: "EPA 10.2 - Assess patients with hearing loss and provide initial management plan" },
+    { value: "10.3", label: "EPA 10.3 - Assess patients with vertigo and provide initial management plan" },
+    { value: "11.1", label: "EPA 11.1 - Provide after-hours call to ENT-HNS practice" }
   ];
 
   const oScoreOptions = [
