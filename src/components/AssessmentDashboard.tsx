@@ -10,9 +10,10 @@ import NarrativeAssessmentForm from "@/components/NarrativeAssessmentForm";
 
 interface AssessmentDashboardProps {
   onBack: () => void;
+  defaultTab?: 'epa-observation' | 'direct-observation' | 'narrative';
 }
 
-const AssessmentDashboard = ({ onBack }: AssessmentDashboardProps) => {
+const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: AssessmentDashboardProps) => {
   const [selectedResident, setSelectedResident] = useState<string | null>(null);
 
   const residents = [
@@ -88,7 +89,7 @@ const AssessmentDashboard = ({ onBack }: AssessmentDashboardProps) => {
         </header>
 
         <main className="container mx-auto px-6 py-8">
-          <Tabs defaultValue="epa-observation" className="w-full">
+          <Tabs defaultValue={defaultTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3 bg-secondary">
               <TabsTrigger value="epa-observation" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 EPA Observation

@@ -18,6 +18,7 @@ import NewAssessmentDialog from "@/components/NewAssessmentDialog";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<'dashboard' | 'new-assessment'>('dashboard');
+  const [selectedAssessmentType, setSelectedAssessmentType] = useState<'epa-observation' | 'direct-observation' | 'narrative'>('epa-observation');
   const [showNewAssessment, setShowNewAssessment] = useState(false);
 
   const stats = [
@@ -79,7 +80,7 @@ const Index = () => {
   ];
 
   if (currentView === 'new-assessment') {
-    return <AssessmentDashboard onBack={() => setCurrentView('dashboard')} />;
+    return <AssessmentDashboard onBack={() => setCurrentView('dashboard')} defaultTab={selectedAssessmentType} />;
   }
 
   return (
@@ -149,7 +150,10 @@ const Index = () => {
               <Button 
                 variant="outline" 
                 className="w-full justify-start h-12 border-border hover:bg-primary-light"
-                onClick={() => setCurrentView('new-assessment')}
+                onClick={() => {
+                  setSelectedAssessmentType('epa-observation');
+                  setCurrentView('new-assessment');
+                }}
               >
                 <ClipboardList className="w-4 h-4 mr-3 text-primary" />
                 EPA Observation
@@ -157,6 +161,10 @@ const Index = () => {
               <Button 
                 variant="outline" 
                 className="w-full justify-start h-12 border-border hover:bg-accent-light"
+                onClick={() => {
+                  setSelectedAssessmentType('direct-observation');
+                  setCurrentView('new-assessment');
+                }}
               >
                 <FileText className="w-4 h-4 mr-3 text-accent" />
                 Direct Observation
@@ -164,6 +172,10 @@ const Index = () => {
               <Button 
                 variant="outline" 
                 className="w-full justify-start h-12 border-border hover:bg-secondary"
+                onClick={() => {
+                  setSelectedAssessmentType('narrative');
+                  setCurrentView('new-assessment');
+                }}
               >
                 <BookOpen className="w-4 h-4 mr-3 text-muted-foreground" />
                 Narrative Assessment
