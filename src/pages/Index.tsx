@@ -254,6 +254,10 @@ const Index = () => {
       <NewAssessmentDialog 
         open={showNewAssessment} 
         onOpenChange={setShowNewAssessment}
+        onAssessmentSelect={(type) => {
+          setSelectedAssessmentType(type);
+          setCurrentView('new-assessment');
+        }}
       />
     </div>
   );

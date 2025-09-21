@@ -6,51 +6,58 @@ import { ClipboardList, Eye, FileText, Users, BookOpen, Stethoscope } from "luci
 interface NewAssessmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onAssessmentSelect: (type: 'epa-observation' | 'direct-observation' | 'narrative') => void;
 }
 
-const NewAssessmentDialog = ({ open, onOpenChange }: NewAssessmentDialogProps) => {
+const NewAssessmentDialog = ({ open, onOpenChange, onAssessmentSelect }: NewAssessmentDialogProps) => {
   const assessmentTypes = [
     {
       type: "EPA Observation",
       description: "Entrustable Professional Activity assessment with O score",
       icon: ClipboardList,
       color: "text-primary",
-      bgColor: "bg-primary-light"
+      bgColor: "bg-primary-light",
+      value: "epa-observation" as const
     },
     {
       type: "Direct Observation", 
       description: "Real-time supervision and feedback documentation",
       icon: Eye,
       color: "text-accent",
-      bgColor: "bg-accent-light"
+      bgColor: "bg-accent-light",
+      value: "direct-observation" as const
     },
     {
       type: "Narrative Assessment",
       description: "Qualitative performance evaluation and coaching",
       icon: FileText,
       color: "text-assessment-good",
-      bgColor: "bg-green-50"
+      bgColor: "bg-green-50",
+      value: "narrative" as const
     },
     {
       type: "Multi-Source Feedback",
       description: "360-degree assessment from multiple evaluators",
       icon: Users,
       color: "text-warning",
-      bgColor: "bg-yellow-50"
+      bgColor: "bg-yellow-50",
+      value: null
     },
     {
       type: "Procedure Assessment",
       description: "Technical skill evaluation with competency markers",
       icon: Stethoscope,
       color: "text-destructive",
-      bgColor: "bg-red-50"
+      bgColor: "bg-red-50",
+      value: null
     },
     {
       type: "ITER/ITAR",
       description: "In-training evaluation report for rotation assessment",
       icon: BookOpen,
       color: "text-muted-foreground",
-      bgColor: "bg-secondary"
+      bgColor: "bg-secondary",
+      value: null
     }
   ];
 
@@ -72,8 +79,10 @@ const NewAssessmentDialog = ({ open, onOpenChange }: NewAssessmentDialogProps) =
               key={index}
               className="hover:shadow-card transition-all duration-300 cursor-pointer border-border hover:border-primary/20"
               onClick={() => {
-                // Handle assessment type selection
-                onOpenChange(false);
+                if (assessment.value) {
+                  onAssessmentSelect(assessment.value);
+                  onOpenChange(false);
+                }
               }}
             >
               <CardHeader className="pb-4">
