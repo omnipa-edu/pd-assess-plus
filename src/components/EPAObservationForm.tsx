@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar, Clock, MapPin, User, Star, FileText, CheckCircle } from "lucide-react";
+import VoiceRecorder from "@/components/VoiceRecorder";
 
 interface Resident {
   id: string;
@@ -284,7 +285,10 @@ const EPAObservationForm = ({ resident }: EPAObservationFormProps) => {
       <CardContent className="space-y-6">
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="narrative">Narrative Observation</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="narrative">Narrative Observation</Label>
+              <VoiceRecorder onTranscription={(text) => setFormData({...formData, narrative: text})} />
+            </div>
             <Textarea
               id="narrative"
               placeholder="Describe specific behaviors observed, context, and performance details..."
@@ -295,7 +299,10 @@ const EPAObservationForm = ({ resident }: EPAObservationFormProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="strengths">Strengths Observed</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="strengths">Strengths Observed</Label>
+              <VoiceRecorder onTranscription={(text) => setFormData({...formData, strengths: text})} />
+            </div>
             <Textarea
               id="strengths"
               placeholder="What did the resident do well? Specific examples..."
@@ -306,7 +313,10 @@ const EPAObservationForm = ({ resident }: EPAObservationFormProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="improvements">Areas for Improvement</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="improvements">Areas for Improvement</Label>
+              <VoiceRecorder onTranscription={(text) => setFormData({...formData, areasForImprovement: text})} />
+            </div>
             <Textarea
               id="improvements"
               placeholder="What could be improved? Constructive feedback..."
@@ -317,7 +327,10 @@ const EPAObservationForm = ({ resident }: EPAObservationFormProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="actionPlan">Action Plan & Next Steps</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="actionPlan">Action Plan & Next Steps</Label>
+              <VoiceRecorder onTranscription={(text) => setFormData({...formData, actionPlan: text})} />
+            </div>
             <Textarea
               id="actionPlan"
               placeholder="Specific recommendations for future learning and development..."

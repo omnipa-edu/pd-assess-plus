@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, Clock, Target, MessageSquare } from "lucide-react";
+import VoiceRecorder from "@/components/VoiceRecorder";
 
 interface Resident {
   id: string;
@@ -242,7 +243,10 @@ const DirectObservationForm = ({ resident }: DirectObservationFormProps) => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="technical">Technical Skills</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="technical">Technical Skills</Label>
+                <VoiceRecorder onTranscription={(text) => setFormData({...formData, technicalSkills: text})} />
+              </div>
               <Textarea
                 id="technical" 
                 placeholder="Describe technical competence, procedures, skills demonstrated..."
@@ -253,7 +257,10 @@ const DirectObservationForm = ({ resident }: DirectObservationFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="communication">Communication</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="communication">Communication</Label>
+                <VoiceRecorder onTranscription={(text) => setFormData({...formData, communication: text})} />
+              </div>
               <Textarea
                 id="communication"
                 placeholder="Patient interaction, colleague communication, clarity..."
@@ -264,7 +271,10 @@ const DirectObservationForm = ({ resident }: DirectObservationFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="professionalism">Professionalism</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="professionalism">Professionalism</Label>
+                <VoiceRecorder onTranscription={(text) => setFormData({...formData, professionalism: text})} />
+              </div>
               <Textarea
                 id="professionalism"
                 placeholder="Professional behavior, ethics, patient respect..."
@@ -275,7 +285,10 @@ const DirectObservationForm = ({ resident }: DirectObservationFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="reasoning">Clinical Reasoning</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="reasoning">Clinical Reasoning</Label>
+                <VoiceRecorder onTranscription={(text) => setFormData({...formData, clinicalReasoning: text})} />
+              </div>
               <Textarea
                 id="reasoning"
                 placeholder="Decision-making process, diagnostic thinking, problem-solving..."
@@ -287,7 +300,10 @@ const DirectObservationForm = ({ resident }: DirectObservationFormProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="narrative">Overall Narrative</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="narrative">Overall Narrative</Label>
+              <VoiceRecorder onTranscription={(text) => setFormData({...formData, narrative: text})} />
+            </div>
             <Textarea
               id="narrative"
               placeholder="Comprehensive description of performance, context, and specific examples..."
@@ -311,7 +327,10 @@ const DirectObservationForm = ({ resident }: DirectObservationFormProps) => {
 
             {formData.verbalFeedbackGiven && (
               <div className="space-y-2">
-                <Label htmlFor="response">Resident Response to Feedback</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="response">Resident Response to Feedback</Label>
+                  <VoiceRecorder onTranscription={(text) => setFormData({...formData, residentResponse: text})} />
+                </div>
                 <Textarea
                   id="response"
                   placeholder="How did the resident respond to the feedback? Questions asked, understanding demonstrated..."
