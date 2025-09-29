@@ -14,16 +14,252 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      direct_observation_assessments: {
+        Row: {
+          areas_for_improvement: string | null
+          clinical_context: string | null
+          created_at: string | null
+          feedback: string | null
+          id: string
+          performance_rating: string | null
+          procedure_type: string
+          professionalism: string | null
+          student_id: string
+          supervisor_id: string | null
+          technical_skills: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          areas_for_improvement?: string | null
+          clinical_context?: string | null
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          performance_rating?: string | null
+          procedure_type: string
+          professionalism?: string | null
+          student_id: string
+          supervisor_id?: string | null
+          technical_skills?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          areas_for_improvement?: string | null
+          clinical_context?: string | null
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          performance_rating?: string | null
+          procedure_type?: string
+          professionalism?: string | null
+          student_id?: string
+          supervisor_id?: string | null
+          technical_skills?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direct_observation_assessments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_observation_assessments_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      epa_assessments: {
+        Row: {
+          clinical_setting: string | null
+          complexity: string | null
+          created_at: string | null
+          epa_number: string
+          feedback: string | null
+          id: string
+          observations: string | null
+          patient_demographics: string | null
+          rating: string | null
+          student_id: string
+          supervisor_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          clinical_setting?: string | null
+          complexity?: string | null
+          created_at?: string | null
+          epa_number: string
+          feedback?: string | null
+          id?: string
+          observations?: string | null
+          patient_demographics?: string | null
+          rating?: string | null
+          student_id: string
+          supervisor_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          clinical_setting?: string | null
+          complexity?: string | null
+          created_at?: string | null
+          epa_number?: string
+          feedback?: string | null
+          id?: string
+          observations?: string | null
+          patient_demographics?: string | null
+          rating?: string | null
+          student_id?: string
+          supervisor_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "epa_assessments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "epa_assessments_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      narrative_assessments: {
+        Row: {
+          areas_for_growth: string | null
+          assessment_period: string | null
+          clinical_context: string | null
+          created_at: string | null
+          id: string
+          overall_progression: string | null
+          recommendations: string | null
+          strengths: string | null
+          student_id: string
+          supervisor_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          areas_for_growth?: string | null
+          assessment_period?: string | null
+          clinical_context?: string | null
+          created_at?: string | null
+          id?: string
+          overall_progression?: string | null
+          recommendations?: string | null
+          strengths?: string | null
+          student_id: string
+          supervisor_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          areas_for_growth?: string | null
+          assessment_period?: string | null
+          clinical_context?: string | null
+          created_at?: string | null
+          id?: string
+          overall_progression?: string | null
+          recommendations?: string | null
+          strengths?: string | null
+          student_id?: string
+          supervisor_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "narrative_assessments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "narrative_assessments_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          program: string | null
+          student_id: string | null
+          updated_at: string | null
+          year_of_training: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          program?: string | null
+          student_id?: string | null
+          updated_at?: string | null
+          year_of_training?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          program?: string | null
+          student_id?: string | null
+          updated_at?: string | null
+          year_of_training?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "student" | "supervisor" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +386,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["student", "supervisor", "admin"],
+    },
   },
 } as const
