@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,15 +12,33 @@ import {
   Stethoscope,
   GraduationCap,
   FileText,
-  CheckCircle
+  CheckCircle,
+  LogOut,
+  Loader2
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import AssessmentDashboard from "@/components/AssessmentDashboard";
 import NewAssessmentDialog from "@/components/NewAssessmentDialog";
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { user, hasRole, signOut, loading } = useAuth();
   const [currentView, setCurrentView] = useState<'dashboard' | 'new-assessment'>('dashboard');
   const [selectedAssessmentType, setSelectedAssessmentType] = useState<'epa-observation' | 'direct-observation' | 'narrative'>('epa-observation');
   const [showNewAssessment, setShowNewAssessment] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    } else if (!loading && user && hasRole('student')) {
+      navigate('/student');
+    }
+  }, [user, loading, hasRole, navigate]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   const stats = [
     {
@@ -79,6 +98,14 @@ const Index = () => {
     }
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   if (currentView === 'new-assessment') {
     return <AssessmentDashboard onBack={() => setCurrentView('dashboard')} defaultTab={selectedAssessmentType} />;
   }
@@ -108,6 +135,10 @@ const Index = () => {
               >
                 <Plus className="w-4 h-4 mr-2" />
                 New Assessment
+              </Button>
+              <Button variant="outline" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
               </Button>
             </div>
           </div>
