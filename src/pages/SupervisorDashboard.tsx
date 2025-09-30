@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,33 +13,18 @@ import {
   GraduationCap,
   FileText,
   CheckCircle,
-  LogOut,
-  Loader2
+  LogOut
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import AssessmentDashboard from "@/components/AssessmentDashboard";
 import NewAssessmentDialog from "@/components/NewAssessmentDialog";
 
-const Index = () => {
+const SupervisorDashboard = () => {
   const navigate = useNavigate();
-  const { user, hasRole, signOut, loading } = useAuth();
+  const { signOut } = useAuth();
   const [currentView, setCurrentView] = useState<'dashboard' | 'new-assessment'>('dashboard');
   const [selectedAssessmentType, setSelectedAssessmentType] = useState<'epa-observation' | 'direct-observation' | 'narrative'>('epa-observation');
   const [showNewAssessment, setShowNewAssessment] = useState(false);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth');
-    } else if (!loading && user) {
-      if (hasRole('student')) {
-        navigate('/student');
-      } else if (hasRole('supervisor')) {
-        navigate('/supervisor');
-      } else if (hasRole('admin')) {
-        navigate('/admin');
-      }
-    }
-  }, [user, loading, hasRole, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -48,7 +33,7 @@ const Index = () => {
 
   const stats = [
     {
-      title: "Active Residents",
+      title: "Active Learners",
       value: "24",
       change: "+2 this month",
       icon: Users,
@@ -104,14 +89,6 @@ const Index = () => {
     }
   ];
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
   if (currentView === 'new-assessment') {
     return <AssessmentDashboard onBack={() => setCurrentView('dashboard')} defaultTab={selectedAssessmentType} />;
   }
@@ -128,12 +105,12 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-foreground">WBA Tracker</h1>
-                <p className="text-sm text-muted-foreground">Workplace-Based Assessment Platform</p>
+                <p className="text-sm text-muted-foreground">Supervisor Dashboard</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <Badge variant="secondary" className="bg-primary-light text-primary">
-                Royal College CBD
+                Supervisor
               </Badge>
               <Button 
                 onClick={() => setShowNewAssessment(true)}
@@ -300,4 +277,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default SupervisorDashboard;
