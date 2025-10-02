@@ -146,48 +146,53 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card shadow-card">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center justify-center w-10 h-10 bg-gradient-primary rounded-lg">
-                <Shield className="w-6 h-6 text-white" />
+        <div className="container mx-auto px-4 md:px-6 py-3 md:py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-gradient-primary rounded-lg shrink-0">
+                <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">WBA Tracker</h1>
-                <p className="text-sm text-muted-foreground">Administrator Dashboard</p>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">WBA Tracker</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">Administrator Dashboard</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm font-medium text-foreground">{profile?.full_name}</p>
-                <p className="text-xs text-muted-foreground">{profile?.email}</p>
+            <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+              <div className="text-left sm:text-right flex-1 sm:flex-initial min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{profile?.full_name}</p>
+                <p className="text-xs text-muted-foreground hidden sm:block truncate">{profile?.email}</p>
               </div>
-              <Badge variant="secondary" className="bg-destructive text-destructive-foreground">
+              <Badge variant="secondary" className="bg-destructive text-destructive-foreground hidden sm:inline-flex shrink-0">
                 Administrator
               </Badge>
-              <Button variant="outline" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
+              <Button 
+                variant="outline" 
+                onClick={handleSignOut}
+                className="shrink-0"
+                size="sm"
+              >
+                <LogOut className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Sign Out</span>
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-8">
+      <main className="container mx-auto px-4 md:px-6 py-6 md:py-8">
         {/* Statistics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
           {stats.map((stat, index) => (
             <Card key={index} className="bg-gradient-card shadow-card border-0 hover:shadow-elevated transition-all duration-300">
-              <CardContent className="p-6">
+              <CardContent className="p-4 md:p-6">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                    <p className="text-3xl font-bold text-foreground mt-1">{stat.value}</p>
-                    <p className="text-xs text-success mt-1">{stat.change}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{stat.title}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-foreground mt-1">{stat.value}</p>
+                    <p className="text-xs text-success mt-1 truncate">{stat.change}</p>
                   </div>
-                  <div className={`p-3 rounded-lg bg-primary-light ${stat.color}`}>
-                    <stat.icon className="w-6 h-6" />
+                  <div className={`p-2 sm:p-3 rounded-lg bg-primary-light ${stat.color} shrink-0 ml-2`}>
+                    <stat.icon className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                 </div>
               </CardContent>
@@ -196,22 +201,22 @@ const AdminDashboard = () => {
         </div>
 
         {/* Management Cards */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-4">System Management</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mb-6 md:mb-8">
+          <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3 md:mb-4">System Management</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {managementCards.map((card, index) => (
               <Card key={index} className="bg-gradient-card shadow-card border-0 hover:shadow-elevated transition-all duration-300">
-                <CardHeader>
-                  <div className="flex items-center space-x-3 mb-2">
-                    <div className={`p-3 rounded-lg ${card.color}`}>
-                      <card.icon className="w-6 h-6 text-white" />
+                <CardHeader className="pb-3 md:pb-6">
+                  <div className="flex items-center space-x-2 sm:space-x-3 mb-2">
+                    <div className={`p-2 sm:p-3 rounded-lg ${card.color} shrink-0`}>
+                      <card.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     </div>
-                    <CardTitle className="text-lg">{card.title}</CardTitle>
+                    <CardTitle className="text-base sm:text-lg">{card.title}</CardTitle>
                   </div>
-                  <CardDescription>{card.description}</CardDescription>
+                  <CardDescription className="text-xs sm:text-sm">{card.description}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <Button className="w-full" variant="outline">
+                <CardContent className="pt-0">
+                  <Button className="w-full min-h-[44px]" variant="outline" size="sm">
                     {card.action}
                   </Button>
                 </CardContent>
@@ -222,24 +227,24 @@ const AdminDashboard = () => {
 
         {/* Recent Activity */}
         <Card className="bg-gradient-card shadow-card border-0">
-          <CardHeader>
-            <CardTitle className="text-foreground">Recent System Activity</CardTitle>
-            <CardDescription>Latest actions across the platform</CardDescription>
+          <CardHeader className="pb-3 md:pb-6">
+            <CardTitle className="text-foreground text-lg md:text-xl">Recent System Activity</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">Latest actions across the platform</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {[
                 { action: "New user registered", user: "Dr. Sarah Chen", time: "2 hours ago", type: "success" },
                 { action: "Role updated", user: "Dr. Michael Rodriguez", time: "4 hours ago", type: "info" },
                 { action: "Assessment submitted", user: "Dr. Emily Watson", time: "6 hours ago", type: "success" },
                 { action: "System backup completed", user: "System", time: "12 hours ago", type: "info" }
               ].map((activity, index) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-background rounded-lg border border-border">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-foreground">{activity.action}</h4>
-                    <p className="text-sm text-muted-foreground">{activity.user} • {activity.time}</p>
+                <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 md:p-4 bg-background rounded-lg border border-border">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-foreground text-sm md:text-base">{activity.action}</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">{activity.user} • {activity.time}</p>
                   </div>
-                  <Badge variant={activity.type === 'success' ? 'default' : 'secondary'}>
+                  <Badge variant={activity.type === 'success' ? 'default' : 'secondary'} className="self-start sm:self-center shrink-0">
                     {activity.type}
                   </Badge>
                 </div>
