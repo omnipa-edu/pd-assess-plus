@@ -11,18 +11,60 @@ import {
   LogOut,
   UserPlus,
   BarChart3,
-  FileCheck
+  FileCheck,
+  AlertTriangle
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { signOut, profile } = useAuth();
+  const { signOut, profile, hasRole, loading } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
   };
+
+  // Check if user has admin role
+  if (!loading && !hasRole('admin')) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Card className="max-w-md w-full mx-4">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="p-4 bg-destructive/10 rounded-full">
+                <AlertTriangle className="w-12 h-12 text-destructive" />
+              </div>
+            </div>
+            <CardTitle className="text-2xl">Access Denied</CardTitle>
+            <CardDescription>
+              You don't have permission to access this page. This area is restricted to administrators only.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <Button onClick={() => navigate('/')} className="w-full">
+              Return to Dashboard
+            </Button>
+            <Button variant="outline" onClick={handleSignOut} className="w-full">
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const stats = [
     {
