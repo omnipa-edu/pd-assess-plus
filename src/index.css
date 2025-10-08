@@ -152,7 +152,12 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-200;
+  }
+  
+  /* Smooth theme transitions (respects prefers-reduced-motion) */
+  html {
+    @apply transition-colors duration-200;
   }
 
   /* Accessibility: Enhanced focus styles */

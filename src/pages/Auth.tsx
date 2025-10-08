@@ -149,7 +149,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 dark:to-primary/10 p-4 transition-colors duration-200">
       {/* Skip to main content */}
       <a
         href="#auth-card"
@@ -164,7 +164,7 @@ const Auth = () => {
         transition={{ duration: 0.3 }}
         className="w-full max-w-md"
       >
-        <Card id="auth-card" className="shadow-xl">
+        <Card id="auth-card" className="shadow-xl dark:shadow-2xl dark:shadow-primary/5 transition-shadow duration-200">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold">
               {content.auth.title}
