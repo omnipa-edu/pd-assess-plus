@@ -286,17 +286,7 @@ export type Database = {
       }
     }
     Views: {
-      recent_phi_access: {
-        Row: {
-          action: string | null
-          created_at: string | null
-          table_name: string | null
-          user_email: string | null
-          user_name: string | null
-          user_role: Database["public"]["Enums"]["app_role"] | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       anonymize_old_assessments: {
@@ -306,6 +296,17 @@ export type Database = {
       generate_student_id: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_recent_phi_access: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action: string
+          created_at: string
+          table_name: string
+          user_email: string
+          user_name: string
+          user_role: string
+        }[]
       }
       has_role: {
         Args: {
