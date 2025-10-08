@@ -250,6 +250,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_student_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
