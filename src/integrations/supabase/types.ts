@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string
+          table_name: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id: string
+          table_name: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       direct_observation_assessments: {
         Row: {
           areas_for_improvement: string | null
@@ -247,9 +286,23 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      recent_phi_access: {
+        Row: {
+          action: string | null
+          created_at: string | null
+          table_name: string | null
+          user_email: string | null
+          user_name: string | null
+          user_role: Database["public"]["Enums"]["app_role"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      anonymize_old_assessments: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       generate_student_id: {
         Args: Record<PropertyKey, never>
         Returns: string
