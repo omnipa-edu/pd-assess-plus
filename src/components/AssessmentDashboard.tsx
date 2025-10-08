@@ -14,9 +14,9 @@ interface AssessmentDashboardProps {
 }
 
 const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: AssessmentDashboardProps) => {
-  const [selectedResident, setSelectedResident] = useState<string | null>(null);
+  const [selectedAssociate, setSelectedAssociate] = useState<string | null>(null);
 
-  const residents = [
+  const associates = [
     {
       id: "1",
       name: "Dr. Sarah Chen",
@@ -58,31 +58,30 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
     }
   };
 
-  if (selectedResident) {
-    const resident = residents.find(r => r.id === selectedResident);
+  if (selectedAssociate) {
+    const associate = associates.find(r => r.id === selectedAssociate);
     return (
       <div className="min-h-screen bg-background">
         <header className="border-b bg-card shadow-card">
           <div className="container mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setSelectedResident(null)}
-                  className="hover:bg-primary-light"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Residents
+              <Button 
+                variant="ghost" 
+                onClick={() => setSelectedAssociate(null)}
+                size="sm"
+              >
+                  Back to Physician Associates
                 </Button>
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">{resident?.name}</h1>
+                  <h1 className="text-2xl font-bold text-foreground">{associate?.name}</h1>
                   <p className="text-sm text-muted-foreground">
-                    {resident?.program} • {resident?.year} • Supervisor: {resident?.supervisor}
+                    {associate?.program} • {associate?.year} • Supervisor: {associate?.supervisor}
                   </p>
                 </div>
               </div>
-              <Badge className={getStatusColor(resident?.status || "")}>
-                {resident?.status}
+              <Badge className={getStatusColor(associate?.status || "")}>
+                {associate?.status}
               </Badge>
             </div>
           </div>
@@ -103,15 +102,15 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
             </TabsList>
 
             <TabsContent value="epa-observation" className="mt-6">
-              <EPAObservationForm resident={resident!} />
+              <EPAObservationForm associate={associate!} />
             </TabsContent>
-
-            <TabsContent value="direct-observation" className="mt-6">
-              <DirectObservationForm resident={resident!} />
+            
+            <TabsContent value="direct-observation" className="space-y-4">
+              <DirectObservationForm associate={associate!} />
             </TabsContent>
-
-            <TabsContent value="narrative" className="mt-6">
-              <NarrativeAssessmentForm resident={resident!} />
+            
+            <TabsContent value="narrative" className="space-y-4">
+              <NarrativeAssessmentForm associate={associate!} />
             </TabsContent>
           </Tabs>
         </main>
@@ -135,7 +134,7 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-foreground">Assessment Center</h1>
-                <p className="text-sm text-muted-foreground">Select a resident to begin assessment</p>
+                <p className="text-sm text-muted-foreground">Select a physician associate to begin assessment</p>
               </div>
             </div>
           </div>
@@ -144,11 +143,11 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
 
       <main className="container mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {residents.map((resident) => (
+          {associates.map((associate) => (
             <Card 
-              key={resident.id} 
+              key={associate.id} 
               className="bg-gradient-card shadow-card border-0 hover:shadow-elevated transition-all duration-300 cursor-pointer"
-              onClick={() => setSelectedResident(resident.id)}
+              onClick={() => setSelectedAssociate(associate.id)}
             >
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -157,12 +156,12 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
                       <User className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">{resident.name}</CardTitle>
-                      <CardDescription>{resident.program}</CardDescription>
+                      <CardTitle className="text-lg">{associate.name}</CardTitle>
+                      <CardDescription>{associate.program}</CardDescription>
                     </div>
                   </div>
-                  <Badge className={getStatusColor(resident.status)}>
-                    {resident.status}
+                  <Badge className={getStatusColor(associate.status)}>
+                    {associate.status}
                   </Badge>
                 </div>
               </CardHeader>
@@ -171,25 +170,25 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Training Year:</span>
-                    <span className="font-semibold text-foreground">{resident.year}</span>
+                    <span className="font-semibold text-foreground">{associate.year}</span>
                   </div>
                   
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Supervisor:</span>
-                    <span className="font-semibold text-foreground">{resident.supervisor}</span>
+                    <span className="font-semibold text-foreground">{associate.supervisor}</span>
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Recent Avg Score:</span>
                     <div className="flex items-center space-x-1">
                       <Star className="w-4 h-4 text-assessment-good fill-current" />
-                      <span className="font-semibold text-foreground">{resident.recentScore}</span>
+                      <span className="font-semibold text-foreground">{associate.recentScore}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Assessments:</span>
-                    <span className="font-semibold text-foreground">{resident.assessmentsCount}</span>
+                    <span className="font-semibold text-foreground">{associate.assessmentsCount}</span>
                   </div>
 
                   <Button className="w-full mt-4 bg-gradient-primary hover:opacity-90">

@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { FileText, Target, TrendingUp, MessageCircle, Lightbulb } from "lucide-react";
 import VoiceRecorder from "@/components/VoiceRecorder";
 
-interface Resident {
+interface PhysicianAssociate {
   id: string;
   name: string;
   program: string;
@@ -19,10 +19,10 @@ interface Resident {
 }
 
 interface NarrativeAssessmentFormProps {
-  resident: Resident;
+  associate: PhysicianAssociate;
 }
 
-const NarrativeAssessmentForm = ({ resident }: NarrativeAssessmentFormProps) => {
+const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) => {
   const [formData, setFormData] = useState({
     assessmentType: "",
     date: "",
@@ -66,7 +66,7 @@ const NarrativeAssessmentForm = ({ resident }: NarrativeAssessmentFormProps) => 
   const handleSubmit = () => {
     toast({
       title: "Narrative Assessment Submitted",
-      description: `Comprehensive assessment for ${resident.name} has been documented.`,
+      description: `Comprehensive assessment for ${associate.name} has been documented.`,
     });
   };
 
@@ -174,7 +174,7 @@ const NarrativeAssessmentForm = ({ resident }: NarrativeAssessmentFormProps) => 
             <Label htmlFor="performance">Overall Performance Summary</Label>
             <Textarea
               id="performance"
-              placeholder="Provide a comprehensive overview of the resident's performance during this period. Include specific examples, patterns observed, and contextual factors..."
+              placeholder="Provide a comprehensive overview of the physician associate's performance during this period. Include specific examples, patterns observed, and contextual factors..."
               value={formData.performanceDescription}
               onChange={(e) => setFormData({...formData, performanceDescription: e.target.value})}
               className="min-h-[120px] bg-background border-border"
@@ -193,7 +193,7 @@ const NarrativeAssessmentForm = ({ resident }: NarrativeAssessmentFormProps) => 
               </div>
               <Textarea
                 id="strengths"
-                placeholder="What does the resident do exceptionally well? Provide specific examples and evidence..."
+                placeholder="What does the physician associate do exceptionally well? Provide specific examples and evidence..."
                 value={formData.strengths}
                 onChange={(e) => setFormData({...formData, strengths: e.target.value})}
                 className="min-h-[100px] bg-background border-border"

@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Calendar, Clock, MapPin, User, Star, FileText, CheckCircle } from "lucide-react";
 import VoiceRecorder from "@/components/VoiceRecorder";
 
-interface Resident {
+interface PhysicianAssociate {
   id: string;
   name: string;
   program: string;
@@ -21,10 +21,10 @@ interface Resident {
 }
 
 interface EPAObservationFormProps {
-  resident: Resident;
+  associate: PhysicianAssociate;
 }
 
-const EPAObservationForm = ({ resident }: EPAObservationFormProps) => {
+const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     epaNumber: "",
@@ -97,7 +97,7 @@ const EPAObservationForm = ({ resident }: EPAObservationFormProps) => {
   const handleSubmit = () => {
     toast({
       title: "Assessment Submitted Successfully",
-      description: `EPA observation for ${resident.name} has been recorded.`,
+      description: `EPA observation for ${associate.name} has been recorded.`,
     });
   };
 
@@ -305,7 +305,7 @@ const EPAObservationForm = ({ resident }: EPAObservationFormProps) => {
             </div>
             <Textarea
               id="strengths"
-              placeholder="What did the resident do well? Specific examples..."
+              placeholder="What did the physician associate do well? Specific examples..."
               value={formData.strengths}
               onChange={(e) => setFormData({...formData, strengths: e.target.value})}
               className="min-h-[80px] bg-background border-border"
@@ -370,8 +370,8 @@ const EPAObservationForm = ({ resident }: EPAObservationFormProps) => {
             <div className="flex items-center space-x-4">
               <User className="w-5 h-5 text-primary" />
               <div>
-                <h3 className="font-semibold text-foreground">{resident.name}</h3>
-                <p className="text-sm text-muted-foreground">{resident.program} • {resident.year}</p>
+                <h3 className="font-semibold text-foreground">{associate.name}</h3>
+                <p className="text-sm text-muted-foreground">{associate.program} • {associate.year}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">

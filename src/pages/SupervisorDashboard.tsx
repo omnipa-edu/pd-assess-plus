@@ -106,7 +106,7 @@ const SupervisorDashboard = () => {
 
   const recentActivity = [
     {
-      resident: "Dr. Sarah Chen",
+      associate: "Dr. Sarah Chen",
       activity: "EPA 1.1 Assessment",
       supervisor: "Dr. Johnson",
       score: "4 - Independent (just in case)",
@@ -114,7 +114,7 @@ const SupervisorDashboard = () => {
       status: "completed"
     },
     {
-      resident: "Dr. Michael Rodriguez",
+      associate: "Dr. Michael Rodriguez",
       activity: "Direct Observation",
       supervisor: "Dr. Smith",
       score: "3 - Intermittent prompting",
@@ -122,7 +122,7 @@ const SupervisorDashboard = () => {
       status: "completed"
     },
     {
-      resident: "Dr. Emily Watson",
+      associate: "Dr. Emily Watson",
       activity: "Procedure Assessment",
       supervisor: "Dr. Brown",
       score: "5 - Complete independence",
@@ -254,7 +254,7 @@ const SupervisorDashboard = () => {
                   <div key={index} className="flex items-center justify-between p-4 bg-background rounded-lg border border-border">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
-                        <h4 className="font-semibold text-foreground">{activity.resident}</h4>
+                        <h4 className="font-semibold text-foreground">{activity.associate}</h4>
                         <Badge variant="outline" className="text-xs">
                           {activity.activity}
                         </Badge>

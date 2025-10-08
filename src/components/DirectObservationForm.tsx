@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, Clock, Target, MessageSquare } from "lucide-react";
 import VoiceRecorder from "@/components/VoiceRecorder";
 
-interface Resident {
+interface PhysicianAssociate {
   id: string;
   name: string;
   program: string;
@@ -20,10 +20,10 @@ interface Resident {
 }
 
 interface DirectObservationFormProps {
-  resident: Resident;
+  associate: PhysicianAssociate;
 }
 
-const DirectObservationForm = ({ resident }: DirectObservationFormProps) => {
+const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
   const [formData, setFormData] = useState({
     activity: "",
     setting: "",
@@ -38,7 +38,7 @@ const DirectObservationForm = ({ resident }: DirectObservationFormProps) => {
     clinicalReasoning: "",
     narrative: "",
     verbalFeedbackGiven: false,
-    residentResponse: ""
+    associateResponse: ""
   });
   const { toast } = useToast();
 
@@ -76,7 +76,7 @@ const DirectObservationForm = ({ resident }: DirectObservationFormProps) => {
   const handleSubmit = () => {
     toast({
       title: "Direct Observation Submitted",
-      description: `Assessment for ${resident.name} has been recorded successfully.`,
+      description: `Assessment for ${associate.name} has been recorded successfully.`,
     });
   };
 
@@ -321,21 +321,21 @@ const DirectObservationForm = ({ resident }: DirectObservationFormProps) => {
                 onCheckedChange={(checked) => setFormData({...formData, verbalFeedbackGiven: !!checked})}
               />
               <Label htmlFor="feedback" className="cursor-pointer">
-                Verbal feedback was provided to the resident
+                Verbal feedback was provided to the physician associate
               </Label>
             </div>
 
             {formData.verbalFeedbackGiven && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="response">Resident Response to Feedback</Label>
-                  <VoiceRecorder onTranscription={(text) => setFormData({...formData, residentResponse: text})} />
+                  <Label htmlFor="response">Physician Associate Response to Feedback</Label>
+                  <VoiceRecorder onTranscription={(text) => setFormData({...formData, associateResponse: text})} />
                 </div>
                 <Textarea
                   id="response"
-                  placeholder="How did the resident respond to the feedback? Questions asked, understanding demonstrated..."
-                  value={formData.residentResponse}
-                  onChange={(e) => setFormData({...formData, residentResponse: e.target.value})}
+                  placeholder="How did the physician associate respond to the feedback? Questions asked, understanding demonstrated..."
+                  value={formData.associateResponse}
+                  onChange={(e) => setFormData({...formData, associateResponse: e.target.value})}
                   className="min-h-[60px] bg-background border-border"
                 />
               </div>
