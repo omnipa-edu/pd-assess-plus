@@ -102,6 +102,13 @@ export const content = {
       linkExpired: "That link has expired. Try sending a new one.",
       generic: "Something went wrong. Please try again."
     }
+  },
+  theme: {
+    toggleLabel: 'Toggle theme',
+    light: 'Light',
+    dark: 'Dark',
+    system: 'System',
+    systemDescription: 'Use system preference'
   }
 } as const;
 

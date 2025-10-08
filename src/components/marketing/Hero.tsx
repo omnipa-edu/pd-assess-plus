@@ -10,11 +10,11 @@ interface HeroProps {
 
 export const Hero = ({ onGetStarted, onLearnMore }: HeroProps) => {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 pt-20 pb-16 md:pt-32 md:pb-24">
+    <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 dark:to-primary/10 pt-20 pb-16 md:pt-32 md:pb-24 transition-colors duration-200">
       {/* Background decoration */}
-      <div className="absolute inset-0 bg-grid-slate-900/[0.04] bg-[size:32px_32px]" aria-hidden="true" />
-      <div className="absolute top-0 right-0 -mt-10 -mr-10 h-96 w-96 rounded-full bg-primary/10 blur-3xl" aria-hidden="true" />
-      <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-96 w-96 rounded-full bg-accent/10 blur-3xl" aria-hidden="true" />
+      <div className="absolute inset-0 bg-grid-slate-900/[0.04] dark:bg-grid-slate-100/[0.02] bg-[size:32px_32px]" aria-hidden="true" />
+      <div className="absolute top-0 right-0 -mt-10 -mr-10 h-96 w-96 rounded-full bg-primary/10 dark:bg-primary/20 blur-3xl" aria-hidden="true" />
+      <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-96 w-96 rounded-full bg-accent/10 dark:bg-accent/20 blur-3xl" aria-hidden="true" />
       
       <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
@@ -83,8 +83,8 @@ export const Hero = ({ onGetStarted, onLearnMore }: HeroProps) => {
             transition={{ duration: 0.4, delay: 0.4 }}
             className="mt-16"
           >
-            <div className="relative mx-auto max-w-3xl rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 p-8 shadow-2xl ring-1 ring-black/5">
-              <div className="aspect-video rounded-lg bg-background/50 backdrop-blur-sm flex items-center justify-center">
+            <div className="relative mx-auto max-w-3xl rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 dark:from-primary/30 dark:to-accent/30 p-8 shadow-2xl ring-1 ring-black/5 dark:ring-white/10 transition-colors duration-200">
+              <div className="aspect-video rounded-lg bg-background/50 dark:bg-background/70 backdrop-blur-sm flex items-center justify-center">
                 <p className="text-sm text-muted-foreground">Platform Preview</p>
               </div>
             </div>

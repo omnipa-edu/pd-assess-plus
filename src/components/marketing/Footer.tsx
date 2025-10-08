@@ -1,11 +1,12 @@
 import { Stethoscope } from 'lucide-react';
 import { content } from '@/content/strings';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 export const Footer = () => {
   return (
-    <footer className="border-t bg-card">
+    <footer className="border-t bg-card transition-colors duration-200">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
           {/* Brand */}
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-primary to-primary/70 rounded-lg">
@@ -18,7 +19,7 @@ export const Footer = () => {
           </div>
 
           {/* Links */}
-          <nav className="flex flex-wrap gap-6 md:justify-end" aria-label="Footer">
+          <nav className="flex flex-wrap gap-6 md:justify-center" aria-label="Footer">
             {content.landing.footer.links.map((link) => (
               <a
                 key={link.label}
@@ -29,6 +30,11 @@ export const Footer = () => {
               </a>
             ))}
           </nav>
+          
+          {/* Theme Toggle */}
+          <div className="flex justify-start md:justify-end">
+            <ThemeToggle />
+          </div>
         </div>
 
         {/* Copyright */}

@@ -26,7 +26,7 @@ const item = {
 
 export const Features = () => {
   return (
-    <section className="py-16 md:py-24 bg-background" id="features">
+    <section className="py-16 md:py-24 bg-background transition-colors duration-200" id="features">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -54,9 +54,9 @@ export const Features = () => {
             const Icon = iconMap[feature.icon as keyof typeof iconMap];
             return (
               <motion.div key={index} variants={item}>
-                <Card className="h-full border-2 hover:border-primary/50 transition-all duration-200 hover:shadow-lg group">
+                <Card className="h-full border-2 hover:border-primary/50 dark:hover:border-primary/60 transition-all duration-200 hover:shadow-lg dark:hover:shadow-primary/10 group">
                   <CardContent className="p-6">
-                    <div className="mb-4 inline-flex items-center justify-center rounded-lg bg-primary/10 p-3 group-hover:bg-primary/20 transition-colors duration-200">
+                    <div className="mb-4 inline-flex items-center justify-center rounded-lg bg-primary/10 dark:bg-primary/20 p-3 group-hover:bg-primary/20 dark:group-hover:bg-primary/30 transition-colors duration-200">
                       <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
                     </div>
                     <h3 className="text-xl font-semibold text-foreground mb-2">

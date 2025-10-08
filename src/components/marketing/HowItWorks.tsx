@@ -21,7 +21,7 @@ const item = {
 
 export const HowItWorks = () => {
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-br from-primary/5 to-accent/5" id="how-it-works">
+    <section className="py-16 md:py-24 bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10 transition-colors duration-200" id="how-it-works">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -57,7 +57,7 @@ export const HowItWorks = () => {
                 <div className="flex-shrink-0">
                   <motion.div
                     whileHover={{ scale: 1.05, rotate: 3 }}
-                    className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/70 shadow-lg flex items-center justify-center"
+                    className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/70 dark:from-primary/90 dark:to-primary shadow-lg flex items-center justify-center"
                   >
                     <Icon className="w-8 h-8 text-primary-foreground" aria-hidden="true" />
                     <span className="absolute -top-2 -right-2 w-8 h-8 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-sm font-bold shadow">
