@@ -1,16 +1,17 @@
 import { Stethoscope } from 'lucide-react';
-import { content } from '@/content/strings';
+
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { content } from '@/content/strings';
 
 export const Footer = () => {
   return (
     <footer className="border-t bg-card transition-colors duration-200">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+      <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-3">
           {/* Brand */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-primary to-primary/70 rounded-lg">
-              <Stethoscope className="w-6 h-6 text-primary-foreground" aria-hidden="true" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/70">
+              <Stethoscope className="h-6 w-6 text-primary-foreground" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-foreground">WBA Tracker</h3>
@@ -24,7 +25,7 @@ export const Footer = () => {
               <a
                 key={link.label}
                 href={link.href}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+                className="text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground"
               >
                 {link.label}
               </a>
@@ -38,7 +39,7 @@ export const Footer = () => {
         </div>
 
         {/* Copyright */}
-        <div className="mt-8 pt-8 border-t">
+        <div className="mt-8 border-t pt-8">
           <p className="text-center text-sm text-muted-foreground">
             {content.landing.footer.copyright}
           </p>

@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+
 import { Eye, EyeOff } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { content } from '@/content/strings';
 
 interface PasswordInputProps {
@@ -72,7 +74,7 @@ export const PasswordInput = ({
       {/* Password strength indicator */}
       {showStrength && value.length > 0 && strength && (
         <div className="space-y-1" role="status" aria-live="polite">
-          <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
             <div
               className={`h-full transition-all duration-300 ${strength.color}`}
               style={{ width: strength.width }}

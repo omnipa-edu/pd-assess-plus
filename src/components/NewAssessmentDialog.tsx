@@ -1,7 +1,9 @@
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ClipboardList, Eye, FileText, Users, BookOpen, Stethoscope } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClipboardList, Eye, FileText, Users, BookOpen, Stethoscope } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 
 interface NewAssessmentDialogProps {
   open: boolean;
@@ -73,11 +75,11 @@ const NewAssessmentDialog = ({ open, onOpenChange, onAssessmentSelect }: NewAsse
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {assessmentTypes.map((assessment, index) => (
             <Card 
               key={index}
-              className="hover:shadow-card transition-all duration-300 cursor-pointer border-border hover:border-primary/20"
+              className="cursor-pointer border-border transition-all duration-300 hover:border-primary/20 hover:shadow-card"
               onClick={() => {
                 if (assessment.value) {
                   onAssessmentSelect(assessment.value);
@@ -87,8 +89,8 @@ const NewAssessmentDialog = ({ open, onOpenChange, onAssessmentSelect }: NewAsse
             >
               <CardHeader className="pb-4">
                 <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg ${assessment.bgColor}`}>
-                    <assessment.icon className={`w-5 h-5 ${assessment.color}`} />
+                  <div className={`rounded-lg p-2 ${assessment.bgColor}`}>
+                    <assessment.icon className={`h-5 w-5 ${assessment.color}`} />
                   </div>
                   <CardTitle className="text-lg">{assessment.type}</CardTitle>
                 </div>
@@ -99,7 +101,7 @@ const NewAssessmentDialog = ({ open, onOpenChange, onAssessmentSelect }: NewAsse
                 </CardDescription>
                 <Button 
                   variant="outline" 
-                  className="w-full mt-4 border-border hover:bg-primary-light hover:border-primary"
+                  className="mt-4 w-full border-border hover:border-primary hover:bg-primary-light"
                 >
                   Start Assessment
                 </Button>
@@ -108,27 +110,27 @@ const NewAssessmentDialog = ({ open, onOpenChange, onAssessmentSelect }: NewAsse
           ))}
         </div>
 
-        <div className="mt-6 p-4 bg-gradient-assessment rounded-lg border border-primary/20">
-          <h4 className="font-semibold text-foreground mb-2">RX-OCR Process Reminder</h4>
+        <div className="mt-6 rounded-lg border border-primary/20 bg-gradient-assessment p-4">
+          <h4 className="mb-2 font-semibold text-foreground">RX-OCR Process Reminder</h4>
           <div className="grid grid-cols-5 gap-2 text-xs text-muted-foreground">
             <div className="text-center">
-              <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold mx-auto mb-1">R</div>
+              <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary font-bold text-white">R</div>
               <span>Record Setup</span>
             </div>
             <div className="text-center">
-              <div className="w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center font-bold mx-auto mb-1">X</div>
+              <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-accent font-bold text-white">X</div>
               <span>Experience</span>
             </div>
             <div className="text-center">
-              <div className="w-8 h-8 bg-assessment-good text-white rounded-full flex items-center justify-center font-bold mx-auto mb-1">O</div>
+              <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-assessment-good font-bold text-white">O</div>
               <span>Observe</span>
             </div>
             <div className="text-center">
-              <div className="w-8 h-8 bg-warning text-white rounded-full flex items-center justify-center font-bold mx-auto mb-1">C</div>
+              <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-warning font-bold text-white">C</div>
               <span>Coach</span>
             </div>
             <div className="text-center">
-              <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold mx-auto mb-1">R</div>
+              <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary font-bold text-white">R</div>
               <span>Record Results</span>
             </div>
           </div>

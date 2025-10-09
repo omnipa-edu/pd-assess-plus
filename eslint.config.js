@@ -59,8 +59,7 @@ export default tseslint.config(
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
-        project: true, // Auto-detect tsconfig.json
-        tsconfigRootDir: import.meta.dirname,
+        // project: true, // Disabled due to tsconfig project references
         ecmaVersion: 2022,
         sourceType: 'module',
         ecmaFeatures: { jsx: true },

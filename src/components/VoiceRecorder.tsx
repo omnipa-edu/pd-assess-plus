@@ -1,7 +1,9 @@
 import React, { useState, useRef, useCallback } from 'react';
+
+import { Mic, MicOff, Square } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { Mic, MicOff, Square } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface VoiceRecorderProps {
@@ -138,7 +140,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, isDisabl
           size="sm"
           className="flex items-center space-x-1"
         >
-          <Mic className="w-4 h-4" />
+          <Mic className="h-4 w-4" />
           <span>{isProcessing ? 'Processing...' : 'Start Recording'}</span>
         </Button>
       ) : (
@@ -146,16 +148,16 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onTranscription, isDisabl
           onClick={stopRecording}
           variant="destructive"
           size="sm"
-          className="flex items-center space-x-1 animate-pulse"
+          className="flex animate-pulse items-center space-x-1"
         >
-          <Square className="w-4 h-4" />
+          <Square className="h-4 w-4" />
           <span>Stop Recording</span>
         </Button>
       )}
       
       {isRecording && (
         <div className="flex items-center space-x-1 text-sm text-red-600">
-          <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
+          <div className="h-2 w-2 animate-pulse rounded-full bg-red-600" />
           <span>Recording...</span>
         </div>
       )}

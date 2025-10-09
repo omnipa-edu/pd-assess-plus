@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { FileText, Target, TrendingUp, MessageCircle, Lightbulb } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { FileText, Target, TrendingUp, MessageCircle, Lightbulb } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import VoiceRecorder from "@/components/VoiceRecorder";
+import { useToast } from "@/hooks/use-toast";
+
 
 interface PhysicianAssociate {
   id: string;
@@ -73,20 +76,20 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
   return (
     <div className="space-y-6">
       {/* Assessment Context */}
-      <Card className="bg-gradient-card shadow-card border-0">
+      <Card className="border-0 bg-gradient-card shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center text-foreground">
-            <FileText className="w-5 h-5 mr-2 text-primary" />
+            <FileText className="mr-2 h-5 w-5 text-primary" />
             Assessment Context
           </CardTitle>
           <CardDescription>Define the scope and context of this narrative assessment</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="type">Assessment Type</Label>
               <Select value={formData.assessmentType} onValueChange={(value) => setFormData({...formData, assessmentType: value})}>
-                <SelectTrigger className="bg-background border-border">
+                <SelectTrigger className="border-border bg-background">
                   <SelectValue placeholder="Select assessment type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -106,7 +109,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData({...formData, date: e.target.value})}
-                className="bg-background border-border"
+                className="border-border bg-background"
               />
             </div>
 
@@ -117,7 +120,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
                 placeholder="e.g., 4 weeks, 1 rotation, 6 months"
                 value={formData.duration}
                 onChange={(e) => setFormData({...formData, duration: e.target.value})}
-                className="bg-background border-border"
+                className="border-border bg-background"
               />
             </div>
           </div>
@@ -129,18 +132,18 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
               placeholder="Describe the clinical settings, patient types, complexity of cases, learning opportunities..."
               value={formData.context}
               onChange={(e) => setFormData({...formData, context: e.target.value})}
-              className="min-h-[80px] bg-background border-border"
+              className="min-h-[80px] border-border bg-background"
             />
           </div>
 
           <div className="space-y-4">
             <Label className="text-base font-semibold">Competencies Addressed</Label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               {competencies.map((competency) => (
                 <Badge
                   key={competency}
                   variant={formData.competenciesAddressed.includes(competency) ? "default" : "outline"}
-                  className={`cursor-pointer p-2 justify-center ${
+                  className={`cursor-pointer justify-center p-2 ${
                     formData.competenciesAddressed.includes(competency) 
                       ? "bg-primary text-primary-foreground" 
                       : "hover:bg-primary-light"
@@ -161,10 +164,10 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
       </Card>
 
       {/* Performance Description */}
-      <Card className="bg-gradient-card shadow-card border-0">
+      <Card className="border-0 bg-gradient-card shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center text-foreground">
-            <Target className="w-5 h-5 mr-2 text-accent" />
+            <Target className="mr-2 h-5 w-5 text-accent" />
             Performance Description
           </CardTitle>
           <CardDescription>Comprehensive narrative of observed performance</CardDescription>
@@ -177,11 +180,11 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
               placeholder="Provide a comprehensive overview of the physician associate's performance during this period. Include specific examples, patterns observed, and contextual factors..."
               value={formData.performanceDescription}
               onChange={(e) => setFormData({...formData, performanceDescription: e.target.value})}
-              className="min-h-[120px] bg-background border-border"
+              className="min-h-[120px] border-border bg-background"
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="strengths">Key Strengths</Label>
@@ -196,7 +199,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
                 placeholder="What does the physician associate do exceptionally well? Provide specific examples and evidence..."
                 value={formData.strengths}
                 onChange={(e) => setFormData({...formData, strengths: e.target.value})}
-                className="min-h-[100px] bg-background border-border"
+                className="min-h-[100px] border-border bg-background"
               />
             </div>
 
@@ -214,7 +217,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
                 placeholder="What areas need development? Be specific and constructive..."
                 value={formData.areasForGrowth}
                 onChange={(e) => setFormData({...formData, areasForGrowth: e.target.value})}
-                className="min-h-[100px] bg-background border-border"
+                className="min-h-[100px] border-border bg-background"
               />
             </div>
           </div>
@@ -233,23 +236,23 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
               placeholder="Provide concrete examples of performance, critical incidents, or memorable interactions that illustrate your assessment..."
               value={formData.specificExamples}
               onChange={(e) => setFormData({...formData, specificExamples: e.target.value})}
-              className="min-h-[100px] bg-background border-border"
+              className="min-h-[100px] border-border bg-background"
             />
           </div>
         </CardContent>
       </Card>
 
       {/* Competency-Specific Comments */}
-      <Card className="bg-gradient-card shadow-card border-0">
+      <Card className="border-0 bg-gradient-card shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center text-foreground">
-            <MessageCircle className="w-5 h-5 mr-2 text-success" />
+            <MessageCircle className="mr-2 h-5 w-5 text-success" />
             Competency-Specific Observations
           </CardTitle>
           <CardDescription>Detailed comments on key competency areas</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="behavioral">Behavioral Observations</Label>
               <Textarea
@@ -257,7 +260,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
                 placeholder="Describe specific behaviors, attitudes, and professional conduct observed..."
                 value={formData.behavioralObservations}
                 onChange={(e) => setFormData({...formData, behavioralObservations: e.target.value})}
-                className="min-h-[80px] bg-background border-border"
+                className="min-h-[80px] border-border bg-background"
               />
             </div>
 
@@ -268,7 +271,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
                 placeholder="Comment on diagnostic thinking, problem-solving approach, decision-making process..."
                 value={formData.clinicalReasoningComments}
                 onChange={(e) => setFormData({...formData, clinicalReasoningComments: e.target.value})}
-                className="min-h-[80px] bg-background border-border"
+                className="min-h-[80px] border-border bg-background"
               />
             </div>
 
@@ -279,7 +282,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
                 placeholder="Patient communication, colleague interaction, documentation quality..."
                 value={formData.communicationComments}
                 onChange={(e) => setFormData({...formData, communicationComments: e.target.value})}
-                className="min-h-[80px] bg-background border-border"
+                className="min-h-[80px] border-border bg-background"
               />
             </div>
 
@@ -290,7 +293,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
                 placeholder="Professional behavior, ethics, reliability, teamwork..."
                 value={formData.professionalismComments}
                 onChange={(e) => setFormData({...formData, professionalismComments: e.target.value})}
-                className="min-h-[80px] bg-background border-border"
+                className="min-h-[80px] border-border bg-background"
               />
             </div>
           </div>
@@ -298,10 +301,10 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
       </Card>
 
       {/* Development Plan */}
-      <Card className="bg-gradient-card shadow-card border-0">
+      <Card className="border-0 bg-gradient-card shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center text-foreground">
-            <TrendingUp className="w-5 h-5 mr-2 text-warning" />
+            <TrendingUp className="mr-2 h-5 w-5 text-warning" />
             Development Plan
           </CardTitle>
           <CardDescription>Forward-looking recommendations and action items</CardDescription>
@@ -321,7 +324,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
               placeholder="Specific, actionable recommendations for addressing areas of growth..."
               value={formData.recommendationsForImprovement}
               onChange={(e) => setFormData({...formData, recommendationsForImprovement: e.target.value})}
-              className="min-h-[100px] bg-background border-border"
+              className="min-h-[100px] border-border bg-background"
             />
           </div>
 
@@ -339,7 +342,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
               placeholder="Outline specific learning objectives, activities, resources, and timelines for development..."
               value={formData.developmentPlan}
               onChange={(e) => setFormData({...formData, developmentPlan: e.target.value})}
-              className="min-h-[100px] bg-background border-border"
+              className="min-h-[100px] border-border bg-background"
             />
           </div>
 
@@ -350,7 +353,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
               placeholder="What follow-up assessments, meetings, or check-ins are recommended?"
               value={formData.followUpRequired}
               onChange={(e) => setFormData({...formData, followUpRequired: e.target.value})}
-              className="min-h-[80px] bg-background border-border"
+              className="min-h-[80px] border-border bg-background"
             />
           </div>
 
@@ -360,7 +363,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
               className="bg-gradient-primary hover:opacity-90"
               disabled={!formData.assessmentType || !formData.performanceDescription}
             >
-              <Lightbulb className="w-4 h-4 mr-2" />
+              <Lightbulb className="mr-2 h-4 w-4" />
               Submit Narrative Assessment
             </Button>
           </div>

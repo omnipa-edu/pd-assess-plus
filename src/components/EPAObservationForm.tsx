@@ -1,16 +1,19 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { Calendar, Clock, MapPin, User, Star, FileText, CheckCircle } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
-import { Calendar, Clock, MapPin, User, Star, FileText, CheckCircle } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import VoiceRecorder from "@/components/VoiceRecorder";
+import { useToast } from "@/hooks/use-toast";
+
 
 interface PhysicianAssociate {
   id: string;
@@ -102,20 +105,20 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
   };
 
   const renderStep1 = () => (
-    <Card className="bg-gradient-card shadow-card border-0">
+    <Card className="border-0 bg-gradient-card shadow-card">
       <CardHeader>
         <CardTitle className="flex items-center text-foreground">
-          <FileText className="w-5 h-5 mr-2 text-primary" />
+          <FileText className="mr-2 h-5 w-5 text-primary" />
           Step 1: Record Setup (R)
         </CardTitle>
         <CardDescription>Document the assessment parameters and context</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="epa">EPA Selection</Label>
             <Select value={formData.epaNumber} onValueChange={(value) => setFormData({...formData, epaNumber: value})}>
-              <SelectTrigger className="bg-background border-border">
+              <SelectTrigger className="border-border bg-background">
                 <SelectValue placeholder="Select EPA to assess" />
               </SelectTrigger>
               <SelectContent>
@@ -131,7 +134,7 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
           <div className="space-y-2">
             <Label htmlFor="setting">Clinical Setting</Label>
             <Select value={formData.setting} onValueChange={(value) => setFormData({...formData, setting: value})}>
-              <SelectTrigger className="bg-background border-border">
+              <SelectTrigger className="border-border bg-background">
                 <SelectValue placeholder="Select setting" />
               </SelectTrigger>
               <SelectContent>
@@ -152,7 +155,7 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
               type="date"
               value={formData.date}
               onChange={(e) => setFormData({...formData, date: e.target.value})}
-              className="bg-background border-border"
+              className="border-border bg-background"
             />
           </div>
 
@@ -163,7 +166,7 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
               type="time"
               value={formData.time}
               onChange={(e) => setFormData({...formData, time: e.target.value})}
-              className="bg-background border-border"
+              className="border-border bg-background"
             />
           </div>
 
@@ -175,7 +178,7 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
               placeholder="e.g., 30"
               value={formData.duration}
               onChange={(e) => setFormData({...formData, duration: e.target.value})}
-              className="bg-background border-border"
+              className="border-border bg-background"
             />
           </div>
         </div>
@@ -194,10 +197,10 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
   );
 
   const renderStep2 = () => (
-    <Card className="bg-gradient-card shadow-card border-0">
+    <Card className="border-0 bg-gradient-card shadow-card">
       <CardHeader>
         <CardTitle className="flex items-center text-foreground">
-          <MapPin className="w-5 h-5 mr-2 text-accent" />
+          <MapPin className="mr-2 h-5 w-5 text-accent" />
           Step 2: Experience (X) & Observe (O)
         </CardTitle>
         <CardDescription>Rate the supervision level and document observation</CardDescription>
@@ -211,12 +214,12 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
             className="space-y-3"
           >
             {oScoreOptions.map((option) => (
-              <div key={option.value} className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:bg-secondary/50">
+              <div key={option.value} className="flex items-center space-x-3 rounded-lg border border-border p-3 hover:bg-secondary/50">
                 <RadioGroupItem value={option.value} id={option.value} />
                 <div className="flex-1">
                   <Label htmlFor={option.value} className="cursor-pointer">
                     <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${option.color}`}></div>
+                      <div className={`h-3 w-3 rounded-full ${option.color}`} />
                       <span className="font-medium">{option.label}</span>
                     </div>
                   </Label>
@@ -230,12 +233,12 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
 
         <div className="space-y-4">
           <Label className="text-base font-semibold">CanMEDS Roles Observed</Label>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {canmedsRoles.map((role) => (
               <Badge
                 key={role}
                 variant={formData.canmedsRoles.includes(role) ? "default" : "outline"}
-                className={`cursor-pointer p-2 justify-center ${
+                className={`cursor-pointer justify-center p-2 ${
                   formData.canmedsRoles.includes(role) 
                     ? "bg-primary text-primary-foreground" 
                     : "hover:bg-primary-light"
@@ -274,10 +277,10 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
   );
 
   const renderStep3 = () => (
-    <Card className="bg-gradient-card shadow-card border-0">
+    <Card className="border-0 bg-gradient-card shadow-card">
       <CardHeader>
         <CardTitle className="flex items-center text-foreground">
-          <CheckCircle className="w-5 h-5 mr-2 text-success" />
+          <CheckCircle className="mr-2 h-5 w-5 text-success" />
           Step 3: Coach (C) & Record (R)
         </CardTitle>
         <CardDescription>Provide feedback and document the assessment</CardDescription>
@@ -294,7 +297,7 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
               placeholder="Describe specific behaviors observed, context, and performance details..."
               value={formData.narrative}
               onChange={(e) => setFormData({...formData, narrative: e.target.value})}
-              className="min-h-[100px] bg-background border-border"
+              className="min-h-[100px] border-border bg-background"
             />
           </div>
 
@@ -308,7 +311,7 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
               placeholder="What did the physician associate do well? Specific examples..."
               value={formData.strengths}
               onChange={(e) => setFormData({...formData, strengths: e.target.value})}
-              className="min-h-[80px] bg-background border-border"
+              className="min-h-[80px] border-border bg-background"
             />
           </div>
 
@@ -322,7 +325,7 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
               placeholder="What could be improved? Constructive feedback..."
               value={formData.areasForImprovement}
               onChange={(e) => setFormData({...formData, areasForImprovement: e.target.value})}
-              className="min-h-[80px] bg-background border-border"
+              className="min-h-[80px] border-border bg-background"
             />
           </div>
 
@@ -336,7 +339,7 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
               placeholder="Specific recommendations for future learning and development..."
               value={formData.actionPlan}
               onChange={(e) => setFormData({...formData, actionPlan: e.target.value})}
-              className="min-h-[80px] bg-background border-border"
+              className="min-h-[80px] border-border bg-background"
             />
           </div>
         </div>
@@ -364,11 +367,11 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
   return (
     <div className="space-y-6">
       {/* Progress Indicator */}
-      <Card className="bg-gradient-assessment shadow-card border-0">
+      <Card className="border-0 bg-gradient-assessment shadow-card">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <User className="w-5 h-5 text-primary" />
+              <User className="h-5 w-5 text-primary" />
               <div>
                 <h3 className="font-semibold text-foreground">{associate.name}</h3>
                 <p className="text-sm text-muted-foreground">{associate.program} • {associate.year}</p>
@@ -378,7 +381,7 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
               {[1, 2, 3].map((step) => (
                 <div
                   key={step}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
                     currentStep >= step
                       ? "bg-primary text-primary-foreground"
                       : "bg-secondary text-secondary-foreground"

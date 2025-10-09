@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { motion } from 'framer-motion';
-import { useAuth } from '@/hooks/useAuth';
+import { Loader2, Mail, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+import { MagicLinkForm } from '@/components/auth/MagicLinkForm';
+import { PasswordInput } from '@/components/auth/PasswordInput';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2, Mail, CheckCircle } from 'lucide-react';
-import { PasswordInput } from '@/components/auth/PasswordInput';
-import { MagicLinkForm } from '@/components/auth/MagicLinkForm';
 import { content } from '@/content/strings';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -149,11 +151,11 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 dark:to-primary/10 p-4 transition-colors duration-200">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4 transition-colors duration-200 dark:to-primary/10">
       {/* Skip to main content */}
       <a
         href="#auth-card"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
       >
         Skip to sign in
       </a>
@@ -164,7 +166,7 @@ const Auth = () => {
         transition={{ duration: 0.3 }}
         className="w-full max-w-md"
       >
-        <Card id="auth-card" className="shadow-xl dark:shadow-2xl dark:shadow-primary/5 transition-shadow duration-200">
+        <Card id="auth-card" className="shadow-xl transition-shadow duration-200 dark:shadow-2xl dark:shadow-primary/5">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold">
               {content.auth.title}
@@ -175,7 +177,7 @@ const Auth = () => {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsList className="mb-6 grid w-full grid-cols-2">
                 <TabsTrigger value="login">{content.auth.tabs.signIn}</TabsTrigger>
                 <TabsTrigger value="signup">{content.auth.tabs.createAccount}</TabsTrigger>
               </TabsList>
@@ -307,7 +309,7 @@ const Auth = () => {
                       </svg>
                       {content.auth.oauth.google}
                     </Button>
-                    <p className="text-xs text-muted-foreground text-center mt-2">
+                    <p className="mt-2 text-center text-xs text-muted-foreground">
                       {content.auth.oauth.helper}
                     </p>
                   </>
@@ -435,15 +437,15 @@ const Auth = () => {
                   </svg>
                   {content.auth.oauth.google}
                 </Button>
-                <p className="text-xs text-muted-foreground text-center mt-2">
+                <p className="mt-2 text-center text-xs text-muted-foreground">
                   {content.auth.oauth.helper}
                 </p>
               </TabsContent>
             </Tabs>
 
             {/* Footer */}
-            <div className="mt-6 pt-6 border-t">
-              <p className="text-xs text-center text-muted-foreground">
+            <div className="mt-6 border-t pt-6">
+              <p className="text-center text-xs text-muted-foreground">
                 {content.auth.footer}
               </p>
             </div>

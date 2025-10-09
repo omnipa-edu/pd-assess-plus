@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
+
+import { Loader2, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Assessment {
   id: string;
@@ -75,7 +77,7 @@ const StudentDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
@@ -83,14 +85,14 @@ const StudentDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="mx-auto max-w-6xl space-y-6">
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">My Assessments</h1>
             <p className="text-muted-foreground">Welcome back, {profile?.full_name || 'Student'}</p>
           </div>
           <Button variant="outline" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4 mr-2" />
+            <LogOut className="mr-2 h-4 w-4" />
             Sign Out
           </Button>
         </div>
@@ -135,7 +137,7 @@ const StudentDashboard = () => {
               epaAssessments.map((assessment) => (
                 <Card key={assessment.id}>
                   <CardHeader>
-                    <div className="flex justify-between items-start">
+                    <div className="flex items-start justify-between">
                       <CardTitle>EPA {assessment.epa_number}</CardTitle>
                       <Badge>{assessment.rating}</Badge>
                     </div>
@@ -167,7 +169,7 @@ const StudentDashboard = () => {
               directObservations.map((assessment) => (
                 <Card key={assessment.id}>
                   <CardHeader>
-                    <div className="flex justify-between items-start">
+                    <div className="flex items-start justify-between">
                       <CardTitle>{assessment.procedure_type}</CardTitle>
                       <Badge>{assessment.performance_rating}</Badge>
                     </div>

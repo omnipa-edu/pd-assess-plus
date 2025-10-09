@@ -1,9 +1,11 @@
 import { useState } from 'react';
+
 import { motion } from 'framer-motion';
+import { Mail, CheckCircle, Loader2 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Mail, CheckCircle, Loader2 } from 'lucide-react';
 import { content } from '@/content/strings';
 
 interface MagicLinkFormProps {
@@ -39,7 +41,7 @@ export const MagicLinkForm = ({ onSendMagicLink }: MagicLinkFormProps) => {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.2 }}
-        className="text-center py-8"
+        className="py-8 text-center"
       >
         <motion.div
           initial={{ scale: 0 }}
@@ -52,10 +54,10 @@ export const MagicLinkForm = ({ onSendMagicLink }: MagicLinkFormProps) => {
           </div>
         </motion.div>
         
-        <h3 className="text-lg font-semibold text-foreground mb-2">
+        <h3 className="mb-2 text-lg font-semibold text-foreground">
           {content.auth.magicLink.confirmation}
         </h3>
-        <p className="text-muted-foreground mb-6">
+        <p className="mb-6 text-muted-foreground">
           {content.auth.magicLink.confirmationDesc}
         </p>
         

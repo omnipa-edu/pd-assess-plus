@@ -1,15 +1,17 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { Eye, Clock, Target, MessageSquare } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
-import { Eye, Clock, Target, MessageSquare } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import VoiceRecorder from "@/components/VoiceRecorder";
+import { useToast } from "@/hooks/use-toast";
 
 interface PhysicianAssociate {
   id: string;
@@ -83,20 +85,20 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
   return (
     <div className="space-y-6">
       {/* Observation Setup */}
-      <Card className="bg-gradient-card shadow-card border-0">
+      <Card className="border-0 bg-gradient-card shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center text-foreground">
-            <Eye className="w-5 h-5 mr-2 text-primary" />
+            <Eye className="mr-2 h-5 w-5 text-primary" />
             Direct Observation Setup
           </CardTitle>
           <CardDescription>Document the observation context and parameters</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="activity">Activity Observed</Label>
               <Select value={formData.activity} onValueChange={(value) => setFormData({...formData, activity: value})}>
-                <SelectTrigger className="bg-background border-border">
+                <SelectTrigger className="border-border bg-background">
                   <SelectValue placeholder="Select activity" />
                 </SelectTrigger>
                 <SelectContent>
@@ -112,7 +114,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
             <div className="space-y-2">
               <Label htmlFor="setting">Clinical Setting</Label>
               <Select value={formData.setting} onValueChange={(value) => setFormData({...formData, setting: value})}>
-                <SelectTrigger className="bg-background border-border">
+                <SelectTrigger className="border-border bg-background">
                   <SelectValue placeholder="Select setting" />
                 </SelectTrigger>
                 <SelectContent>
@@ -132,7 +134,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData({...formData, date: e.target.value})}
-                className="bg-background border-border"
+                className="border-border bg-background"
               />
             </div>
 
@@ -144,7 +146,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                 placeholder="e.g., 45"
                 value={formData.duration}
                 onChange={(e) => setFormData({...formData, duration: e.target.value})}
-                className="bg-background border-border"
+                className="border-border bg-background"
               />
             </div>
           </div>
@@ -174,10 +176,10 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
       </Card>
 
       {/* Supervision Assessment */}
-      <Card className="bg-gradient-card shadow-card border-0">
+      <Card className="border-0 bg-gradient-card shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center text-foreground">
-            <Target className="w-5 h-5 mr-2 text-accent" />
+            <Target className="mr-2 h-5 w-5 text-accent" />
             Performance Assessment
           </CardTitle>
           <CardDescription>Rate the level of supervision required</CardDescription>
@@ -191,12 +193,12 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
               className="space-y-3"
             >
               {oScoreOptions.map((option) => (
-                <div key={option.value} className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:bg-secondary/50">
+                <div key={option.value} className="flex items-center space-x-3 rounded-lg border border-border p-3 hover:bg-secondary/50">
                   <RadioGroupItem value={option.value} id={`score-${option.value}`} />
                   <div className="flex-1">
                     <Label htmlFor={`score-${option.value}`} className="cursor-pointer">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-3 h-3 rounded-full ${option.color}`}></div>
+                        <div className={`h-3 w-3 rounded-full ${option.color}`} />
                         <span className="font-medium">{option.label}</span>
                       </div>
                     </Label>
@@ -208,7 +210,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
 
           <div className="space-y-4">
             <Label className="text-base font-semibold">Competencies Observed</Label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               {competencies.map((competency) => (
                 <div key={competency} className="flex items-center space-x-2">
                   <Checkbox
@@ -221,7 +223,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                       setFormData({...formData, competenciesObserved: newCompetencies});
                     }}
                   />
-                  <Label htmlFor={competency} className="text-sm cursor-pointer">
+                  <Label htmlFor={competency} className="cursor-pointer text-sm">
                     {competency}
                   </Label>
                 </div>
@@ -232,16 +234,16 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
       </Card>
 
       {/* Detailed Assessment */}
-      <Card className="bg-gradient-card shadow-card border-0">
+      <Card className="border-0 bg-gradient-card shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center text-foreground">
-            <MessageSquare className="w-5 h-5 mr-2 text-success" />
+            <MessageSquare className="mr-2 h-5 w-5 text-success" />
             Detailed Observation
           </CardTitle>
           <CardDescription>Provide specific feedback in key areas</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="technical">Technical Skills</Label>
@@ -252,7 +254,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                 placeholder="Describe technical competence, procedures, skills demonstrated..."
                 value={formData.technicalSkills}
                 onChange={(e) => setFormData({...formData, technicalSkills: e.target.value})}
-                className="min-h-[80px] bg-background border-border"
+                className="min-h-[80px] border-border bg-background"
               />
             </div>
 
@@ -266,7 +268,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                 placeholder="Patient interaction, colleague communication, clarity..."
                 value={formData.communication}
                 onChange={(e) => setFormData({...formData, communication: e.target.value})}
-                className="min-h-[80px] bg-background border-border"
+                className="min-h-[80px] border-border bg-background"
               />
             </div>
 
@@ -280,7 +282,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                 placeholder="Professional behavior, ethics, patient respect..."
                 value={formData.professionalism}
                 onChange={(e) => setFormData({...formData, professionalism: e.target.value})}
-                className="min-h-[80px] bg-background border-border"
+                className="min-h-[80px] border-border bg-background"
               />
             </div>
 
@@ -294,7 +296,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                 placeholder="Decision-making process, diagnostic thinking, problem-solving..."
                 value={formData.clinicalReasoning}
                 onChange={(e) => setFormData({...formData, clinicalReasoning: e.target.value})}
-                className="min-h-[80px] bg-background border-border"
+                className="min-h-[80px] border-border bg-background"
               />
             </div>
           </div>
@@ -309,7 +311,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
               placeholder="Comprehensive description of performance, context, and specific examples..."
               value={formData.narrative}
               onChange={(e) => setFormData({...formData, narrative: e.target.value})}
-              className="min-h-[100px] bg-background border-border"
+              className="min-h-[100px] border-border bg-background"
             />
           </div>
 
@@ -336,7 +338,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                   placeholder="How did the physician associate respond to the feedback? Questions asked, understanding demonstrated..."
                   value={formData.associateResponse}
                   onChange={(e) => setFormData({...formData, associateResponse: e.target.value})}
-                  className="min-h-[60px] bg-background border-border"
+                  className="min-h-[60px] border-border bg-background"
                 />
               </div>
             )}

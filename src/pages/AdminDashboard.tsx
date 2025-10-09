@@ -1,7 +1,3 @@
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { 
   Users, 
   Shield, 
@@ -14,6 +10,11 @@ import {
   FileCheck,
   AlertTriangle
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 
 const AdminDashboard = () => {
@@ -29,11 +30,11 @@ const AdminDashboard = () => {
   if (!loading && !hasRole('admin')) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <Card className="max-w-md w-full mx-4">
+        <Card className="mx-4 w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="p-4 bg-destructive/10 rounded-full">
-                <AlertTriangle className="w-12 h-12 text-destructive" />
+            <div className="mb-4 flex justify-center">
+              <div className="rounded-full bg-destructive/10 p-4">
+                <AlertTriangle className="h-12 w-12 text-destructive" />
               </div>
             </div>
             <CardTitle className="text-2xl">Access Denied</CardTitle>
@@ -41,12 +42,12 @@ const AdminDashboard = () => {
               You don't have permission to access this page. This area is restricted to administrators only.
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-center space-y-4">
+          <CardContent className="space-y-4 text-center">
             <Button onClick={() => navigate('/')} className="w-full">
               Return to Dashboard
             </Button>
             <Button variant="outline" onClick={handleSignOut} className="w-full">
-              <LogOut className="h-4 w-4 mr-2" />
+              <LogOut className="mr-2 h-4 w-4" />
               Sign Out
             </Button>
           </CardContent>
@@ -59,7 +60,7 @@ const AdminDashboard = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-primary" />
           <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
@@ -146,23 +147,23 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card shadow-card">
-        <div className="container mx-auto px-4 md:px-6 py-3 md:py-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+        <div className="container mx-auto px-4 py-3 md:px-6 md:py-4">
+          <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center sm:gap-0">
             <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-gradient-primary rounded-lg shrink-0">
-                <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-primary sm:h-10 sm:w-10">
+                <Shield className="h-5 w-5 text-white sm:h-6 sm:w-6" />
               </div>
               <div>
-                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">WBA Tracker</h1>
-                <p className="text-xs sm:text-sm text-muted-foreground">Administrator Dashboard</p>
+                <h1 className="text-lg font-bold text-foreground sm:text-xl md:text-2xl">WBA Tracker</h1>
+                <p className="text-xs text-muted-foreground sm:text-sm">Administrator Dashboard</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
-              <div className="text-left sm:text-right flex-1 sm:flex-initial min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{profile?.full_name}</p>
-                <p className="text-xs text-muted-foreground hidden sm:block truncate">{profile?.email}</p>
+            <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-4">
+              <div className="min-w-0 flex-1 text-left sm:flex-initial sm:text-right">
+                <p className="truncate text-sm font-medium text-foreground">{profile?.full_name}</p>
+                <p className="hidden truncate text-xs text-muted-foreground sm:block">{profile?.email}</p>
               </div>
-              <Badge variant="secondary" className="bg-destructive text-destructive-foreground hidden sm:inline-flex shrink-0">
+              <Badge variant="secondary" className="hidden shrink-0 bg-destructive text-destructive-foreground sm:inline-flex">
                 Administrator
               </Badge>
               <Button 
@@ -179,20 +180,20 @@ const AdminDashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 md:px-6 py-6 md:py-8">
+      <main className="container mx-auto px-4 py-6 md:px-6 md:py-8">
         {/* Statistics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+        <div className="mb-6 grid grid-cols-1 gap-4 md:mb-8 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
           {stats.map((stat, index) => (
-            <Card key={index} className="bg-gradient-card shadow-card border-0 hover:shadow-elevated transition-all duration-300">
+            <Card key={index} className="border-0 bg-gradient-card shadow-card transition-all duration-300 hover:shadow-elevated">
               <CardContent className="p-4 md:p-6">
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{stat.title}</p>
-                    <p className="text-2xl sm:text-3xl font-bold text-foreground mt-1">{stat.value}</p>
-                    <p className="text-xs text-success mt-1 truncate">{stat.change}</p>
+                    <p className="truncate text-xs font-medium text-muted-foreground sm:text-sm">{stat.title}</p>
+                    <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">{stat.value}</p>
+                    <p className="mt-1 truncate text-xs text-success">{stat.change}</p>
                   </div>
-                  <div className={`p-2 sm:p-3 rounded-lg bg-primary-light ${stat.color} shrink-0 ml-2`}>
-                    <stat.icon className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <div className={`rounded-lg bg-primary-light p-2 sm:p-3 ${stat.color} ml-2 shrink-0`}>
+                    <stat.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
                 </div>
               </CardContent>
@@ -202,21 +203,21 @@ const AdminDashboard = () => {
 
         {/* Management Cards */}
         <div className="mb-6 md:mb-8">
-          <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3 md:mb-4">System Management</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <h2 className="mb-3 text-xl font-bold text-foreground md:mb-4 md:text-2xl">System Management</h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
             {managementCards.map((card, index) => (
-              <Card key={index} className="bg-gradient-card shadow-card border-0 hover:shadow-elevated transition-all duration-300">
+              <Card key={index} className="border-0 bg-gradient-card shadow-card transition-all duration-300 hover:shadow-elevated">
                 <CardHeader className="pb-3 md:pb-6">
-                  <div className="flex items-center space-x-2 sm:space-x-3 mb-2">
-                    <div className={`p-2 sm:p-3 rounded-lg ${card.color} shrink-0`}>
-                      <card.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <div className="mb-2 flex items-center space-x-2 sm:space-x-3">
+                    <div className={`rounded-lg p-2 sm:p-3 ${card.color} shrink-0`}>
+                      <card.icon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
                     </div>
                     <CardTitle className="text-base sm:text-lg">{card.title}</CardTitle>
                   </div>
                   <CardDescription className="text-xs sm:text-sm">{card.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <Button className="w-full min-h-[44px]" variant="outline" size="sm">
+                  <Button className="min-h-[44px] w-full" variant="outline" size="sm">
                     {card.action}
                   </Button>
                 </CardContent>
@@ -226,9 +227,9 @@ const AdminDashboard = () => {
         </div>
 
         {/* Recent Activity */}
-        <Card className="bg-gradient-card shadow-card border-0">
+        <Card className="border-0 bg-gradient-card shadow-card">
           <CardHeader className="pb-3 md:pb-6">
-            <CardTitle className="text-foreground text-lg md:text-xl">Recent System Activity</CardTitle>
+            <CardTitle className="text-lg text-foreground md:text-xl">Recent System Activity</CardTitle>
             <CardDescription className="text-xs sm:text-sm">Latest actions across the platform</CardDescription>
           </CardHeader>
           <CardContent>
@@ -239,12 +240,12 @@ const AdminDashboard = () => {
                 { action: "Assessment submitted", user: "Dr. Emily Watson", time: "6 hours ago", type: "success" },
                 { action: "System backup completed", user: "System", time: "12 hours ago", type: "info" }
               ].map((activity, index) => (
-                <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 md:p-4 bg-background rounded-lg border border-border">
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-foreground text-sm md:text-base">{activity.action}</h4>
-                    <p className="text-xs sm:text-sm text-muted-foreground truncate">{activity.user} • {activity.time}</p>
+                <div key={index} className="flex flex-col justify-between gap-2 rounded-lg border border-border bg-background p-3 sm:flex-row sm:items-center md:p-4">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm font-semibold text-foreground md:text-base">{activity.action}</h4>
+                    <p className="truncate text-xs text-muted-foreground sm:text-sm">{activity.user} • {activity.time}</p>
                   </div>
-                  <Badge variant={activity.type === 'success' ? 'default' : 'secondary'} className="self-start sm:self-center shrink-0">
+                  <Badge variant={activity.type === 'success' ? 'default' : 'secondary'} className="shrink-0 self-start sm:self-center">
                     {activity.type}
                   </Badge>
                 </div>

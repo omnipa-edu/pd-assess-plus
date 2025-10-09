@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { ArrowLeft, User, Calendar, FileText, Star } from "lucide-react";
-import EPAObservationForm from "@/components/EPAObservationForm";
+
 import DirectObservationForm from "@/components/DirectObservationForm";
+import EPAObservationForm from "@/components/EPAObservationForm";
 import NarrativeAssessmentForm from "@/components/NarrativeAssessmentForm";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface AssessmentDashboardProps {
   onBack: () => void;
@@ -129,7 +131,7 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
                 onClick={onBack}
                 className="hover:bg-primary-light"
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Dashboard
               </Button>
               <div>
@@ -142,18 +144,18 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
       </header>
 
       <main className="container mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {associates.map((associate) => (
             <Card 
               key={associate.id} 
-              className="bg-gradient-card shadow-card border-0 hover:shadow-elevated transition-all duration-300 cursor-pointer"
+              className="cursor-pointer border-0 bg-gradient-card shadow-card transition-all duration-300 hover:shadow-elevated"
               onClick={() => setSelectedAssociate(associate.id)}
             >
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center">
-                      <User className="w-6 h-6 text-white" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-primary">
+                      <User className="h-6 w-6 text-white" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">{associate.name}</CardTitle>
@@ -181,7 +183,7 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Recent Avg Score:</span>
                     <div className="flex items-center space-x-1">
-                      <Star className="w-4 h-4 text-assessment-good fill-current" />
+                      <Star className="h-4 w-4 fill-current text-assessment-good" />
                       <span className="font-semibold text-foreground">{associate.recentScore}</span>
                     </div>
                   </div>
@@ -191,8 +193,8 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
                     <span className="font-semibold text-foreground">{associate.assessmentsCount}</span>
                   </div>
 
-                  <Button className="w-full mt-4 bg-gradient-primary hover:opacity-90">
-                    <FileText className="w-4 h-4 mr-2" />
+                  <Button className="mt-4 w-full bg-gradient-primary hover:opacity-90">
+                    <FileText className="mr-2 h-4 w-4" />
                     Start Assessment
                   </Button>
                 </div>

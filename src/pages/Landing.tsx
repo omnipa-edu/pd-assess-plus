@@ -1,10 +1,12 @@
-import { useNavigate } from 'react-router-dom';
-import { Hero } from '@/components/marketing/Hero';
-import { Features } from '@/components/marketing/Features';
-import { HowItWorks } from '@/components/marketing/HowItWorks';
-import { Footer } from '@/components/marketing/Footer';
-import { useAuth } from '@/hooks/useAuth';
 import { useEffect } from 'react';
+
+import { useNavigate } from 'react-router-dom';
+
+import { Features } from '@/components/marketing/Features';
+import { Footer } from '@/components/marketing/Footer';
+import { Hero } from '@/components/marketing/Hero';
+import { HowItWorks } from '@/components/marketing/HowItWorks';
+import { useAuth } from '@/hooks/useAuth';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -35,7 +37,7 @@ const Landing = () => {
       {/* Skip to main content link for accessibility */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
       >
         Skip to main content
       </a>
