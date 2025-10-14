@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { MagicLinkForm } from '@/components/auth/MagicLinkForm';
 import { PasswordInput } from '@/components/auth/PasswordInput';
+import { RoleSelector } from '@/components/auth/RoleSelector';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
