@@ -195,76 +195,76 @@ const AdminDashboard = () => {
           <TabsContent value="overview" className="space-y-6">
             {/* Statistics Grid */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
-          {stats.map((stat, index) => (
-            <Card key={index} className="border-0 bg-gradient-card shadow-card transition-all duration-300 hover:shadow-elevated">
-              <CardContent className="p-4 md:p-6">
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-medium text-muted-foreground sm:text-sm">{stat.title}</p>
-                    <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">{stat.value}</p>
-                    <p className="mt-1 truncate text-xs text-success">{stat.change}</p>
-                  </div>
-                  <div className={`rounded-lg bg-primary-light p-2 sm:p-3 ${stat.color} ml-2 shrink-0`}>
-                    <stat.icon className="h-5 w-5 sm:h-6 sm:w-6" />
-                  </div>
+              {stats.map((stat, index) => (
+                <Card key={index} className="border-0 bg-gradient-card shadow-card transition-all duration-300 hover:shadow-elevated">
+                  <CardContent className="p-4 md:p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-medium text-muted-foreground sm:text-sm">{stat.title}</p>
+                        <p className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">{stat.value}</p>
+                        <p className="mt-1 truncate text-xs text-success">{stat.change}</p>
+                      </div>
+                      <div className={`rounded-lg bg-primary-light p-2 sm:p-3 ${stat.color} ml-2 shrink-0`}>
+                        <stat.icon className="h-5 w-5 sm:h-6 sm:w-6" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Management Cards */}
+            <div>
+              <h2 className="mb-3 text-xl font-bold text-foreground md:mb-4 md:text-2xl">System Management</h2>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
+                {managementCards.map((card, index) => (
+                  <Card key={index} className="border-0 bg-gradient-card shadow-card transition-all duration-300 hover:shadow-elevated">
+                    <CardHeader className="pb-3 md:pb-6">
+                      <div className="mb-2 flex items-center space-x-2 sm:space-x-3">
+                        <div className={`rounded-lg p-2 sm:p-3 ${card.color} shrink-0`}>
+                          <card.icon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
+                        </div>
+                        <CardTitle className="text-base sm:text-lg">{card.title}</CardTitle>
+                      </div>
+                      <CardDescription className="text-xs sm:text-sm">{card.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <Button className="min-h-[44px] w-full" variant="outline" size="sm">
+                        {card.action}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Recent Activity */}
+            <Card className="border-0 bg-gradient-card shadow-card">
+              <CardHeader className="pb-3 md:pb-6">
+                <CardTitle className="text-lg text-foreground md:text-xl">Recent System Activity</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">Latest actions across the platform</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 md:space-y-4">
+                  {[
+                    { action: "New user registered", user: "Dr. Sarah Chen", time: "2 hours ago", type: "success" },
+                    { action: "Role updated", user: "Dr. Michael Rodriguez", time: "4 hours ago", type: "info" },
+                    { action: "Assessment submitted", user: "Dr. Emily Watson", time: "6 hours ago", type: "success" },
+                    { action: "System backup completed", user: "System", time: "12 hours ago", type: "info" }
+                  ].map((activity, index) => (
+                    <div key={index} className="flex flex-col justify-between gap-2 rounded-lg border border-border bg-background p-3 sm:flex-row sm:items-center md:p-4">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-sm font-semibold text-foreground md:text-base">{activity.action}</h4>
+                        <p className="truncate text-xs text-muted-foreground sm:text-sm">{activity.user} • {activity.time}</p>
+                      </div>
+                      <Badge variant={activity.type === 'success' ? 'default' : 'secondary'} className="shrink-0 self-start sm:self-center">
+                        {activity.type}
+                      </Badge>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
-
-        {/* Management Cards */}
-        <div className="mb-6 md:mb-8">
-          <h2 className="mb-3 text-xl font-bold text-foreground md:mb-4 md:text-2xl">System Management</h2>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
-            {managementCards.map((card, index) => (
-              <Card key={index} className="border-0 bg-gradient-card shadow-card transition-all duration-300 hover:shadow-elevated">
-                <CardHeader className="pb-3 md:pb-6">
-                  <div className="mb-2 flex items-center space-x-2 sm:space-x-3">
-                    <div className={`rounded-lg p-2 sm:p-3 ${card.color} shrink-0`}>
-                      <card.icon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
-                    </div>
-                    <CardTitle className="text-base sm:text-lg">{card.title}</CardTitle>
-                  </div>
-                  <CardDescription className="text-xs sm:text-sm">{card.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <Button className="min-h-[44px] w-full" variant="outline" size="sm">
-                    {card.action}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <Card className="border-0 bg-gradient-card shadow-card">
-          <CardHeader className="pb-3 md:pb-6">
-            <CardTitle className="text-lg text-foreground md:text-xl">Recent System Activity</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Latest actions across the platform</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 md:space-y-4">
-              {[
-                { action: "New user registered", user: "Dr. Sarah Chen", time: "2 hours ago", type: "success" },
-                { action: "Role updated", user: "Dr. Michael Rodriguez", time: "4 hours ago", type: "info" },
-                { action: "Assessment submitted", user: "Dr. Emily Watson", time: "6 hours ago", type: "success" },
-                { action: "System backup completed", user: "System", time: "12 hours ago", type: "info" }
-              ].map((activity, index) => (
-                <div key={index} className="flex flex-col justify-between gap-2 rounded-lg border border-border bg-background p-3 sm:flex-row sm:items-center md:p-4">
-                  <div className="min-w-0 flex-1">
-                    <h4 className="text-sm font-semibold text-foreground md:text-base">{activity.action}</h4>
-                    <p className="truncate text-xs text-muted-foreground sm:text-sm">{activity.user} • {activity.time}</p>
-                  </div>
-                  <Badge variant={activity.type === 'success' ? 'default' : 'secondary'} className="shrink-0 self-start sm:self-center">
-                    {activity.type}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
           </TabsContent>
 
           {/* User Roles Tab */}
