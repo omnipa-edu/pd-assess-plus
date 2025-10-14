@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
+
 import { ArrowRight, Sparkles } from 'lucide-react';
 
+import { PlatformPreview } from '@/components/marketing/PlatformPreview';
 import { Button } from '@/components/ui/button';
 import { content } from '@/content/strings';
 
@@ -77,17 +79,15 @@ export const Hero = ({ onGetStarted, onLearnMore }: HeroProps) => {
             </Button>
           </motion.div>
 
-          {/* Visual element placeholder */}
+          {/* Platform preview mockup */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.4 }}
             className="mt-16"
           >
-            <div className="relative mx-auto max-w-3xl rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 p-8 shadow-2xl ring-1 ring-black/5 transition-colors duration-200 dark:from-primary/30 dark:to-accent/30 dark:ring-white/10">
-              <div className="flex aspect-video items-center justify-center rounded-lg bg-background/50 backdrop-blur-sm dark:bg-background/70">
-                <p className="text-sm text-muted-foreground">Platform Preview</p>
-              </div>
+            <div className="relative mx-auto max-w-3xl rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 p-6 md:p-8 shadow-2xl ring-1 ring-black/5 transition-colors duration-200 dark:from-primary/30 dark:to-accent/30 dark:ring-white/10">
+              <PlatformPreview />
             </div>
           </motion.div>
         </div>
