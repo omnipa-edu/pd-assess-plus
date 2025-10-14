@@ -1,8 +1,8 @@
 import { useState } from 'react';
 
+import { Shield, LogOut, Search, Filter, Settings, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import { Shield, LogOut, Search, Filter, Settings, BarChart3 } from 'lucide-react';
 
 import { DepartmentCard } from '@/components/dashboard/DepartmentCard';
 import { Badge } from '@/components/ui/badge';

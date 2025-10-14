@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { CheckCircle, Loader2, Shield, UserCheck, GraduationCap, XCircle, Clock } from 'lucide-react';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -12,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import type { UserRole, RoleRequest } from '@/lib/roleManagement';
 import {

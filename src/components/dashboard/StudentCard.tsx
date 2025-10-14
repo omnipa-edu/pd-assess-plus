@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-
 import { GraduationCap, TrendingUp, Activity, Calendar } from 'lucide-react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -73,15 +72,15 @@ export function StudentCard({
         <CardHeader className="pb-3">
           <div className="flex items-start gap-3">
             <Avatar className={`h-12 w-12 ring-2 ${getOScoreRing(averageOScore)}`}>
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+              <AvatarFallback className="bg-primary/10 font-semibold text-primary">
                 {getInitials(name)}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold truncate">{name}</h3>
-                  <p className="text-xs text-muted-foreground truncate">{email}</p>
+                  <h3 className="truncate font-semibold">{name}</h3>
+                  <p className="truncate text-xs text-muted-foreground">{email}</p>
                 </div>
                 <Badge className={`${getOScoreColor(averageOScore)} shrink-0`}>
                   {averageOScore.toFixed(1)}
@@ -112,7 +111,7 @@ export function StudentCard({
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 gap-3 pt-2 border-t">
+          <div className="grid grid-cols-2 gap-3 border-t pt-2">
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-muted-foreground" />
               <div>

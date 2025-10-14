@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { UserRoleManagement } from "@/components/admin/UserRoleManagement";
 import { RoleRequestManagement } from "@/components/admin/RoleRequestManagement";
+import { UserRoleManagement } from "@/components/admin/UserRoleManagement";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -185,7 +185,7 @@ const AdminDashboard = () => {
 
       <main className="container mx-auto px-4 py-6 md:px-6 md:py-8">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-3 lg:inline-grid lg:w-auto">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">User Roles</TabsTrigger>
             <TabsTrigger value="requests">Role Requests</TabsTrigger>

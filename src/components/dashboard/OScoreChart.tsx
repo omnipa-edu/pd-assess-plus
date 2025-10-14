@@ -32,7 +32,7 @@ export function OScoreChart({ score, size = 'md', showLabel = true }: OScoreChar
     <div className="flex flex-col items-center gap-2">
       <div className="relative" style={{ width: container, height: container }}>
         {/* Background circle */}
-        <svg className="transform -rotate-90" width={container} height={container}>
+        <svg className="-rotate-90 transform" width={container} height={container}>
           <circle
             cx={container / 2}
             cy={container / 2}

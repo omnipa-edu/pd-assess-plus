@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-
 import { ArrowRight, Sparkles } from 'lucide-react';
 
 import { PlatformPreview } from '@/components/marketing/PlatformPreview';
@@ -86,7 +85,7 @@ export const Hero = ({ onGetStarted, onLearnMore }: HeroProps) => {
             transition={{ duration: 0.4, delay: 0.4 }}
             className="mt-16"
           >
-            <div className="relative mx-auto max-w-3xl rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 p-6 md:p-8 shadow-2xl ring-1 ring-black/5 transition-colors duration-200 dark:from-primary/30 dark:to-accent/30 dark:ring-white/10">
+            <div className="relative mx-auto max-w-3xl rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 p-6 shadow-2xl ring-1 ring-black/5 transition-colors duration-200 dark:from-primary/30 dark:to-accent/30 dark:ring-white/10 md:p-8">
               <PlatformPreview />
             </div>
           </motion.div>

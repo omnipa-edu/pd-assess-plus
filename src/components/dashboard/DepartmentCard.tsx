@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-
 import { Building2, TrendingUp, Users, Activity } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -62,7 +61,7 @@ export function DepartmentCard({
               </div>
               <div>
                 <CardTitle className="text-base">{name}</CardTitle>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="mt-1 text-xs text-muted-foreground">
                   {studentCount} {studentCount === 1 ? 'Student' : 'Students'}
                 </p>
               </div>
@@ -85,7 +84,7 @@ export function DepartmentCard({
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 gap-3 pt-2 border-t">
+          <div className="grid grid-cols-2 gap-3 border-t pt-2">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground" />
               <div>

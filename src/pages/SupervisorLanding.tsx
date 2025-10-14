@@ -1,8 +1,8 @@
 import { useState } from 'react';
 
+import { Stethoscope, LogOut, Plus, Search, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import { Stethoscope, LogOut, Plus, Search, Filter } from 'lucide-react';
 
 import { StudentCard } from '@/components/dashboard/StudentCard';
 import { Badge } from '@/components/ui/badge';
