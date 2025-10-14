@@ -23,7 +23,12 @@ const Auth = () => {
   const [showMagicLink, setShowMagicLink] = useState(false);
   
   const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '' });
+  const [signupData, setSignupData] = useState({ 
+    email: '', 
+    password: '', 
+    fullName: '', 
+    role: 'student' as 'student' | 'supervisor' | 'admin' 
+  });
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
@@ -97,7 +102,7 @@ const Auth = () => {
 
     setLoading(true);
 
-    const { error } = await signUp(signupData.email, signupData.password, signupData.fullName);
+    const { error } = await signUp(signupData.email, signupData.password, signupData.fullName, signupData.role);
     
     if (error) {
       toast({
@@ -386,6 +391,14 @@ const Auth = () => {
                         {passwordError}
                       </p>
                     )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <RoleSelector
+                      value={signupData.role}
+                      onChange={(role) => setSignupData({ ...signupData, role })}
+                      disabled={loading}
+                    />
                   </div>
 
                   <Button

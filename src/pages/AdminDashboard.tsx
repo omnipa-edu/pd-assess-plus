@@ -12,9 +12,12 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { UserRoleManagement } from "@/components/admin/UserRoleManagement";
+import { RoleRequestManagement } from "@/components/admin/RoleRequestManagement";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 
 const AdminDashboard = () => {
@@ -181,8 +184,17 @@ const AdminDashboard = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 md:px-6 md:py-8">
-        {/* Statistics Grid */}
-        <div className="mb-6 grid grid-cols-1 gap-4 md:mb-8 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="users">User Roles</TabsTrigger>
+            <TabsTrigger value="requests">Role Requests</TabsTrigger>
+          </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            {/* Statistics Grid */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
           {stats.map((stat, index) => (
             <Card key={index} className="border-0 bg-gradient-card shadow-card transition-all duration-300 hover:shadow-elevated">
               <CardContent className="p-4 md:p-6">
@@ -253,6 +265,18 @@ const AdminDashboard = () => {
             </div>
           </CardContent>
         </Card>
+          </TabsContent>
+
+          {/* User Roles Tab */}
+          <TabsContent value="users">
+            <UserRoleManagement />
+          </TabsContent>
+
+          {/* Role Requests Tab */}
+          <TabsContent value="requests">
+            <RoleRequestManagement />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
