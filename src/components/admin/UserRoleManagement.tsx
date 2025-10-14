@@ -21,10 +21,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import type { UserRole ,
+import {
   assignUserRole,
   removeUserRole,
   getUsersWithRoles,
+  type UserRole,
   type UserWithRoles,
 } from '@/lib/roleManagement';
 
