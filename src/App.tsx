@@ -9,12 +9,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "./components/theme/ThemeProvider";
 import { AuthProvider } from "./hooks/useAuth";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLanding from "./pages/AdminLanding";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import StudentDashboard from "./pages/StudentDashboard";
 import SupervisorDashboard from "./pages/SupervisorDashboard";
+import SupervisorLanding from "./pages/SupervisorLanding";
 
 const queryClient = new QueryClient();
 
