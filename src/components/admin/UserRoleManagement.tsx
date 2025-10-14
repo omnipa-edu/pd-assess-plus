@@ -25,9 +25,8 @@ import {
   assignUserRole,
   removeUserRole,
   getUsersWithRoles,
-  type UserRole,
-  type UserWithRoles,
 } from '@/lib/roleManagement';
+import type { UserRole, UserWithRoles } from '@/lib/roleManagement';
 
 const roleIcons = {
   student: GraduationCap,

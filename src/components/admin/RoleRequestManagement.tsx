@@ -18,9 +18,8 @@ import {
   approveRoleRequest,
   rejectRoleRequest,
   getPendingRoleRequests,
-  type UserRole,
-  type RoleRequest,
 } from '@/lib/roleManagement';
+import type { UserRole, RoleRequest } from '@/lib/roleManagement';
 
 const roleIcons = {
   student: GraduationCap,
