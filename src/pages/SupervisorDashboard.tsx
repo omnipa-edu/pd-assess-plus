@@ -152,20 +152,26 @@ const SupervisorDashboard = () => {
                 <p className="text-sm text-muted-foreground">Supervisor Dashboard</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="bg-primary-light text-primary">
-                Supervisor
-              </Badge>
+            <div className="flex items-center gap-2 md:gap-4">
+              <Button 
+                variant="outline"
+                onClick={() => navigate('/supervisor/students')}
+                size="sm"
+              >
+                <Users className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">My Students</span>
+              </Button>
               <Button 
                 onClick={() => setShowNewAssessment(true)}
                 className="bg-gradient-primary shadow-assessment hover:opacity-90"
+                size="sm"
               >
                 <Plus className="mr-2 h-4 w-4" />
-                New Assessment
+                <span className="hidden sm:inline">New</span> Assessment
               </Button>
-              <Button variant="outline" onClick={handleSignOut}>
+              <Button variant="outline" onClick={handleSignOut} size="sm">
                 <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
+                <span className="hidden md:inline">Sign Out</span>
               </Button>
             </div>
           </div>

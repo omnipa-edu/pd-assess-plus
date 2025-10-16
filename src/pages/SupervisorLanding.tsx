@@ -116,12 +116,12 @@ const SupervisorLanding = () => {
                 <p className="text-sm text-muted-foreground">Supervisor Dashboard</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3">
               <div className="hidden text-right md:block">
                 <p className="text-sm font-medium text-foreground">{profile?.full_name}</p>
                 <p className="text-xs text-muted-foreground">{profile?.email}</p>
               </div>
-              <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
+              <Badge variant="secondary" className="hidden md:inline-flex bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
                 Supervisor
               </Badge>
               <Button
@@ -129,9 +129,9 @@ const SupervisorLanding = () => {
                 className="bg-primary text-primary-foreground shadow hover:opacity-90"
               >
                 <Plus className="mr-2 h-4 w-4" />
-                New Assessment
+                <span className="hidden sm:inline">Create</span> Assessment
               </Button>
-              <Button variant="outline" onClick={handleSignOut}>
+              <Button variant="outline" onClick={handleSignOut} size="sm">
                 <LogOut className="h-4 w-4 md:mr-2" />
                 <span className="hidden md:inline">Sign Out</span>
               </Button>
@@ -241,7 +241,7 @@ const SupervisorLanding = () => {
                   >
                     <StudentCard
                       {...student}
-                      onClick={() => navigate(`/student/${student.id}`)}
+                      onClick={() => navigate('/supervisor')}
                     />
                   </motion.div>
                 ))}
