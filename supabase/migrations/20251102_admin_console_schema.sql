@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS public.institutions (
   CONSTRAINT institutions_code_unique UNIQUE (code)
 );
 
-CREATE INDEX idx_institutions_code ON public.institutions(code);
-CREATE INDEX idx_institutions_name ON public.institutions(name);
+CREATE INDEX IF NOT EXISTS idx_institutions_code ON public.institutions(code);
+CREATE INDEX IF NOT EXISTS idx_institutions_name ON public.institutions(name);
 
 -- ============================================================================
 -- DEPARTMENTS
@@ -58,9 +58,9 @@ CREATE TABLE IF NOT EXISTS public.departments (
   CONSTRAINT departments_institution_code_unique UNIQUE (institution_id, code)
 );
 
-CREATE INDEX idx_departments_institution ON public.departments(institution_id);
-CREATE INDEX idx_departments_code ON public.departments(code);
-CREATE INDEX idx_departments_name ON public.departments(name);
+CREATE INDEX IF NOT EXISTS idx_departments_institution ON public.departments(institution_id);
+CREATE INDEX IF NOT EXISTS idx_departments_code ON public.departments(code);
+CREATE INDEX IF NOT EXISTS idx_departments_name ON public.departments(name);
 
 -- ============================================================================
 -- SPECIALTIES
@@ -80,8 +80,8 @@ CREATE TABLE IF NOT EXISTS public.specialties (
   CONSTRAINT specialties_code_unique UNIQUE (code)
 );
 
-CREATE INDEX idx_specialties_code ON public.specialties(code);
-CREATE INDEX idx_specialties_active ON public.specialties(is_active);
+CREATE INDEX IF NOT EXISTS idx_specialties_code ON public.specialties(code);
+CREATE INDEX IF NOT EXISTS idx_specialties_active ON public.specialties(is_active);
 
 -- ============================================================================
 -- EPAs (Entrustable Professional Activities)
@@ -105,10 +105,10 @@ CREATE TABLE IF NOT EXISTS public.epas (
   CONSTRAINT epas_specialty_code_unique UNIQUE (specialty_id, code)
 );
 
-CREATE INDEX idx_epas_specialty ON public.epas(specialty_id);
-CREATE INDEX idx_epas_code ON public.epas(code);
-CREATE INDEX idx_epas_status ON public.epas(status);
-CREATE INDEX idx_epas_ksa ON public.epas USING gin(ksa);
+CREATE INDEX IF NOT EXISTS idx_epas_specialty ON public.epas(specialty_id);
+CREATE INDEX IF NOT EXISTS idx_epas_code ON public.epas(code);
+CREATE INDEX IF NOT EXISTS idx_epas_status ON public.epas(status);
+CREATE INDEX IF NOT EXISTS idx_epas_ksa ON public.epas USING gin(ksa);
 
 -- ============================================================================
 -- AUDIT LOG
@@ -127,10 +127,10 @@ CREATE TABLE IF NOT EXISTS public.audit_log (
   CONSTRAINT audit_log_entity_check CHECK (char_length(entity) >= 2 AND char_length(entity) <= 50)
 );
 
-CREATE INDEX idx_audit_log_actor ON public.audit_log(actor_user_id);
-CREATE INDEX idx_audit_log_entity ON public.audit_log(entity, entity_id);
-CREATE INDEX idx_audit_log_created ON public.audit_log(created_at DESC);
-CREATE INDEX idx_audit_log_action ON public.audit_log(action);
+CREATE INDEX IF NOT EXISTS idx_audit_log_actor ON public.audit_log(actor_user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_entity ON public.audit_log(entity, entity_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_created ON public.audit_log(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_log_action ON public.audit_log(action);
 
 -- ============================================================================
 -- IMPORT MAPPING PRESETS
@@ -148,8 +148,8 @@ CREATE TABLE IF NOT EXISTS public.import_mapping_presets (
   CONSTRAINT import_mapping_presets_name_check CHECK (char_length(name) >= 2 AND char_length(name) <= 100)
 );
 
-CREATE INDEX idx_import_mapping_presets_entity ON public.import_mapping_presets(entity);
-CREATE INDEX idx_import_mapping_presets_created_by ON public.import_mapping_presets(created_by);
+CREATE INDEX IF NOT EXISTS idx_import_mapping_presets_entity ON public.import_mapping_presets(entity);
+CREATE INDEX IF NOT EXISTS idx_import_mapping_presets_created_by ON public.import_mapping_presets(created_by);
 
 -- ============================================================================
 -- UPDATE EXISTING TABLES
@@ -163,7 +163,7 @@ BEGIN
     WHERE table_name = 'profiles' AND column_name = 'department_id'
   ) THEN
     ALTER TABLE public.profiles ADD COLUMN department_id UUID REFERENCES public.departments(id) ON DELETE SET NULL;
-    CREATE INDEX idx_profiles_department ON public.profiles(department_id);
+    CREATE INDEX IF NOT EXISTS idx_profiles_department ON public.profiles(department_id);
   END IF;
 END $$;
 
@@ -175,7 +175,7 @@ BEGIN
     WHERE table_name = 'profiles' AND column_name = 'institution_id'
   ) THEN
     ALTER TABLE public.profiles ADD COLUMN institution_id UUID REFERENCES public.institutions(id) ON DELETE SET NULL;
-    CREATE INDEX idx_profiles_institution ON public.profiles(institution_id);
+    CREATE INDEX IF NOT EXISTS idx_profiles_institution ON public.profiles(institution_id);
   END IF;
 END $$;
 
@@ -191,18 +191,23 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_institutions_updated_at ON public.institutions;
 CREATE TRIGGER update_institutions_updated_at BEFORE UPDATE ON public.institutions
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_departments_updated_at ON public.departments;
 CREATE TRIGGER update_departments_updated_at BEFORE UPDATE ON public.departments
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_specialties_updated_at ON public.specialties;
 CREATE TRIGGER update_specialties_updated_at BEFORE UPDATE ON public.specialties
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_epas_updated_at ON public.epas;
 CREATE TRIGGER update_epas_updated_at BEFORE UPDATE ON public.epas
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_import_mapping_presets_updated_at ON public.import_mapping_presets;
 CREATE TRIGGER update_import_mapping_presets_updated_at BEFORE UPDATE ON public.import_mapping_presets
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
@@ -219,6 +224,7 @@ ALTER TABLE public.audit_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.import_mapping_presets ENABLE ROW LEVEL SECURITY;
 
 -- Institutions: Admin full access, others read-only
+DROP POLICY IF EXISTS institutions_admin_all ON public.institutions;
 CREATE POLICY institutions_admin_all ON public.institutions
   FOR ALL USING (
     EXISTS (
@@ -227,10 +233,12 @@ CREATE POLICY institutions_admin_all ON public.institutions
     )
   );
 
+DROP POLICY IF EXISTS institutions_read_all ON public.institutions;
 CREATE POLICY institutions_read_all ON public.institutions
   FOR SELECT USING (true);
 
 -- Departments: Admin full access, others read-only
+DROP POLICY IF EXISTS departments_admin_all ON public.departments;
 CREATE POLICY departments_admin_all ON public.departments
   FOR ALL USING (
     EXISTS (
@@ -239,10 +247,12 @@ CREATE POLICY departments_admin_all ON public.departments
     )
   );
 
+DROP POLICY IF EXISTS departments_read_all ON public.departments;
 CREATE POLICY departments_read_all ON public.departments
   FOR SELECT USING (true);
 
 -- Specialties: Admin full access, others read active only
+DROP POLICY IF EXISTS specialties_admin_all ON public.specialties;
 CREATE POLICY specialties_admin_all ON public.specialties
   FOR ALL USING (
     EXISTS (
@@ -251,10 +261,12 @@ CREATE POLICY specialties_admin_all ON public.specialties
     )
   );
 
+DROP POLICY IF EXISTS specialties_read_active ON public.specialties;
 CREATE POLICY specialties_read_active ON public.specialties
   FOR SELECT USING (is_active = true);
 
 -- EPAs: Admin full access, others read active only
+DROP POLICY IF EXISTS epas_admin_all ON public.epas;
 CREATE POLICY epas_admin_all ON public.epas
   FOR ALL USING (
     EXISTS (
@@ -263,10 +275,12 @@ CREATE POLICY epas_admin_all ON public.epas
     )
   );
 
+DROP POLICY IF EXISTS epas_read_active ON public.epas;
 CREATE POLICY epas_read_active ON public.epas
   FOR SELECT USING (status = 'active');
 
 -- Audit log: Admin read-only
+DROP POLICY IF EXISTS audit_log_admin_read ON public.audit_log;
 CREATE POLICY audit_log_admin_read ON public.audit_log
   FOR SELECT USING (
     EXISTS (
@@ -276,13 +290,16 @@ CREATE POLICY audit_log_admin_read ON public.audit_log
   );
 
 -- Audit log inserts via service role only (triggers/functions)
+DROP POLICY IF EXISTS audit_log_service_insert ON public.audit_log;
 CREATE POLICY audit_log_service_insert ON public.audit_log
   FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
 -- Import mapping presets: users can manage their own, admins see all
+DROP POLICY IF EXISTS import_mapping_presets_own ON public.import_mapping_presets;
 CREATE POLICY import_mapping_presets_own ON public.import_mapping_presets
   FOR ALL USING (created_by = auth.uid());
 
+DROP POLICY IF EXISTS import_mapping_presets_admin_all ON public.import_mapping_presets;
 CREATE POLICY import_mapping_presets_admin_all ON public.import_mapping_presets
   FOR ALL USING (
     EXISTS (
