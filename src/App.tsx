@@ -10,6 +10,8 @@ import { ThemeProvider } from "./components/theme/ThemeProvider";
 import { AuthProvider } from "./hooks/useAuth";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLanding from "./pages/AdminLanding";
+import AdminOverview from "./pages/admin/AdminOverview";
+import Institutions from "./pages/admin/Institutions";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Landing from "./pages/Landing";
@@ -35,8 +37,15 @@ const App = () => (
               <Route path="/student" element={<StudentDashboard />} />
               <Route path="/supervisor" element={<SupervisorDashboard />} />
               <Route path="/supervisor/students" element={<SupervisorLanding />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/overview" element={<AdminLanding />} />
+              
+              {/* NEW Admin Console Routes */}
+              <Route path="/admin" element={<AdminOverview />} />
+              <Route path="/admin/institutions" element={<Institutions />} />
+              
+              {/* Legacy Admin Routes (to be migrated) */}
+              <Route path="/admin/legacy" element={<AdminDashboard />} />
+              <Route path="/admin/departments" element={<AdminLanding />} />
+              
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
