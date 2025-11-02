@@ -5,11 +5,21 @@
 -- TYPE DEFINITIONS
 -- ============================================================================
 
--- EPA status enum
-CREATE TYPE epa_status AS ENUM ('draft', 'active', 'retired');
+-- EPA status enum (only create if it doesn't exist)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'epa_status') THEN
+    CREATE TYPE epa_status AS ENUM ('draft', 'active', 'retired');
+  END IF;
+END $$;
 
--- Audit action enum
-CREATE TYPE audit_action AS ENUM ('create', 'update', 'delete', 'import', 'bulk_update');
+-- Audit action enum (only create if it doesn't exist)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'audit_action') THEN
+    CREATE TYPE audit_action AS ENUM ('create', 'update', 'delete', 'import', 'bulk_update');
+  END IF;
+END $$;
 
 -- ============================================================================
 -- INSTITUTIONS
