@@ -155,6 +155,17 @@ CREATE INDEX IF NOT EXISTS idx_import_mapping_presets_created_by ON public.impor
 -- UPDATE EXISTING TABLES
 -- ============================================================================
 
+-- Ensure user_roles has unique constraint on user_id
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'user_roles_user_id_unique'
+  ) THEN
+    ALTER TABLE public.user_roles ADD CONSTRAINT user_roles_user_id_unique UNIQUE (user_id);
+  END IF;
+END $$;
+
 -- Add department_id to supervisors if not exists
 DO $$ 
 BEGIN
