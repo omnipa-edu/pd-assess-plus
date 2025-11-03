@@ -15,6 +15,7 @@ import Institutions from "./pages/admin/Institutions";
 import Departments from "./pages/admin/Departments";
 import Specialties from "./pages/admin/Specialties";
 import EPAs from "./pages/admin/EPAs";
+import Users from "./pages/admin/Users";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Landing from "./pages/Landing";
@@ -47,6 +48,7 @@ const App = () => (
               <Route path="/admin/departments" element={<Departments />} />
               <Route path="/admin/specialties" element={<Specialties />} />
               <Route path="/admin/epas" element={<EPAs />} />
+              <Route path="/admin/users" element={<Users />} />
               
               {/* Legacy Admin Routes (to be migrated) */}
               <Route path="/admin/legacy" element={<AdminDashboard />} />
