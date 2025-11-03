@@ -16,6 +16,8 @@ import Departments from "./pages/admin/Departments";
 import Specialties from "./pages/admin/Specialties";
 import EPAs from "./pages/admin/EPAs";
 import Users from "./pages/admin/Users";
+import Supervisors from "./pages/admin/Supervisors";
+import ActivityLog from "./pages/admin/ActivityLog";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Landing from "./pages/Landing";
@@ -49,6 +51,8 @@ const App = () => (
               <Route path="/admin/specialties" element={<Specialties />} />
               <Route path="/admin/epas" element={<EPAs />} />
               <Route path="/admin/users" element={<Users />} />
+              <Route path="/admin/supervisors" element={<Supervisors />} />
+              <Route path="/admin/activity" element={<ActivityLog />} />
               
               {/* Legacy Admin Routes (to be migrated) */}
               <Route path="/admin/legacy" element={<AdminDashboard />} />
