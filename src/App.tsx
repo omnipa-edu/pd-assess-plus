@@ -12,6 +12,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminLanding from "./pages/AdminLanding";
 import AdminOverview from "./pages/admin/AdminOverview";
 import Institutions from "./pages/admin/Institutions";
+import Departments from "./pages/admin/Departments";
+import Specialties from "./pages/admin/Specialties";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Landing from "./pages/Landing";
@@ -41,10 +43,12 @@ const App = () => (
               {/* NEW Admin Console Routes */}
               <Route path="/admin" element={<AdminOverview />} />
               <Route path="/admin/institutions" element={<Institutions />} />
+              <Route path="/admin/departments" element={<Departments />} />
+              <Route path="/admin/specialties" element={<Specialties />} />
               
               {/* Legacy Admin Routes (to be migrated) */}
               <Route path="/admin/legacy" element={<AdminDashboard />} />
-              <Route path="/admin/departments" element={<AdminLanding />} />
+              <Route path="/admin/departments-old" element={<AdminLanding />} />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
