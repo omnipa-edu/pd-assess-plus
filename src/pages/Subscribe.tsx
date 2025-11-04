@@ -74,13 +74,15 @@ const Subscribe = () => {
         setDiscount(result.discount_percent);
         setFreeAccess(result.free_access);
         
+        const accessMessage = result.free_access
+          ? result.free_duration_days
+            ? `You will get ${result.free_duration_days} days of free access`
+            : 'You will get lifetime free access'
+          : `${result.discount_percent}% discount applied`;
+        
         toast({
           title: 'Promo Code Valid!',
-          description: result.free_access
-            ? result.free_duration_days
-              ? `You'll get ${result.free_duration_days} days of free access`
-              : 'You'll get lifetime free access'
-            : `${result.discount_percent}% discount applied`,
+          description: accessMessage,
         });
       } else {
         setDiscount(0);
