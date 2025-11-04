@@ -69,6 +69,12 @@ const navigationSections = [
       { label: 'Import EPAs', href: '/admin/epas/import', icon: Upload },
     ]
   },
+  {
+    title: 'Billing',
+    items: [
+      { label: 'Promo Codes', href: '/admin/promo-codes', icon: Settings },
+    ]
+  },
 ];
 
 export const AdminLayout = ({ children }: AdminLayoutProps) => {

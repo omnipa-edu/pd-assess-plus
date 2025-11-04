@@ -19,9 +19,13 @@ import Users from "./pages/admin/Users";
 import Supervisors from "./pages/admin/Supervisors";
 import ActivityLog from "./pages/admin/ActivityLog";
 import ImportEPAs from "./pages/admin/ImportEPAs";
+import PromoCodes from "./pages/admin/PromoCodes";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Landing from "./pages/Landing";
+import Pricing from "./pages/Pricing";
+import Subscribe from "./pages/Subscribe";
+import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
 import StudentDashboard from "./pages/StudentDashboard";
 import SupervisorDashboard from "./pages/SupervisorDashboard";
@@ -39,6 +43,9 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Landing />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/subscribe" element={<Subscribe />} />
+              <Route path="/billing" element={<Billing />} />
               <Route path="/dashboard" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/student" element={<StudentDashboard />} />
@@ -55,6 +62,7 @@ const App = () => (
               <Route path="/admin/supervisors" element={<Supervisors />} />
               <Route path="/admin/activity" element={<ActivityLog />} />
               <Route path="/admin/epas/import" element={<ImportEPAs />} />
+              <Route path="/admin/promo-codes" element={<PromoCodes />} />
               
               {/* Legacy Admin Routes (to be migrated) */}
               <Route path="/admin/legacy" element={<AdminDashboard />} />
