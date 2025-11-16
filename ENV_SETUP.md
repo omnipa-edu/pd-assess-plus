@@ -54,3 +54,4 @@ OPENAI_API_KEY=sk-your-openai-key-here
 2. Create new secret key
 3. Copy and save securely
 
+

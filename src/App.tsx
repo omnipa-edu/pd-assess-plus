@@ -20,6 +20,10 @@ import Supervisors from "./pages/admin/Supervisors";
 import ActivityLog from "./pages/admin/ActivityLog";
 import ImportEPAs from "./pages/admin/ImportEPAs";
 import PromoCodes from "./pages/admin/PromoCodes";
+import CoachingManagement from "./pages/admin/CoachingManagement";
+import Calibration from "./pages/admin/Calibration";
+import Accreditation from "./pages/admin/Accreditation";
+import ReadinessAdmin from "./pages/admin/Readiness";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Landing from "./pages/Landing";
@@ -63,6 +67,10 @@ const App = () => (
               <Route path="/admin/activity" element={<ActivityLog />} />
               <Route path="/admin/epas/import" element={<ImportEPAs />} />
               <Route path="/admin/promo-codes" element={<PromoCodes />} />
+              <Route path="/admin/coaching" element={<CoachingManagement />} />
+              <Route path="/admin/readiness" element={<ReadinessAdmin />} />
+              <Route path="/admin/calibration" element={<Calibration />} />
+              <Route path="/admin/accreditation" element={<Accreditation />} />
               
               {/* Legacy Admin Routes (to be migrated) */}
               <Route path="/admin/legacy" element={<AdminDashboard />} />

@@ -41,7 +41,7 @@ const PRICING_TIERS: PricingTier[] = [
   {
     name: 'Standard',
     price: 29,
-    priceId: process.env.VITE_STRIPE_PRICE_STANDARD || 'price_standard',
+    priceId: import.meta.env.VITE_STRIPE_PRICE_STANDARD || 'price_standard',
     description: 'For individual supervisors and small teams',
     features: [
       'Unlimited assessments',
@@ -58,7 +58,7 @@ const PRICING_TIERS: PricingTier[] = [
   {
     name: 'Pro',
     price: 99,
-    priceId: process.env.VITE_STRIPE_PRICE_PRO || 'price_pro',
+    priceId: import.meta.env.VITE_STRIPE_PRICE_PRO || 'price_pro',
     description: 'For departments and larger programs',
     features: [
       'Everything in Standard',
@@ -285,4 +285,5 @@ const Pricing = () => {
 };
 
 export default Pricing;
+
 

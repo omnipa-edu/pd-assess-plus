@@ -1,14 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-import { Loader2, LogOut } from 'lucide-react';
+import { Loader2, LogOut, ClipboardList, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { EmptyState } from '@/components/ui/empty-state';
+import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
+import { CoachingCornerCard } from '@/components/coaching/CoachingCornerCard';
+import { DashboardGridSkeleton } from '@/components/ui/skeleton-loaders';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfileProgress } from '@/hooks/useProfileProgress';
+import { usePrimaryCoachingItem, useDismissCoaching } from '@/hooks/useCoachingCorner';
 import { supabase } from '@/integrations/supabase/client';
+import { content } from '@/content/strings';
+import ReadinessCard from '@/components/ReadinessCard';
+import { DEFAULT_READINESS } from '@/lib/readiness/config';
+import { computeEpaReadiness, EpaObservation } from '@/lib/readiness/calc';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface Assessment {
   id: string;
@@ -41,6 +52,17 @@ const StudentDashboard = () => {
   const [epaAssessments, setEpaAssessments] = useState<EPAAssessment[]>([]);
   const [directObservations, setDirectObservations] = useState<DirectObservationAssessment[]>([]);
   const [narratives, setNarratives] = useState<NarrativeAssessment[]>([]);
+  const { completeTask, isTaskCompleted } = useProfileProgress();
+  const [showOScoreDialog, setShowOScoreDialog] = useState(false);
+  const profileRef = useRef<HTMLDivElement | null>(null);
+  const epaSectionRef = useRef<HTMLDivElement | null>(null);
+  const [readinessData, setReadinessData] = useState<
+    { epaCode: string; percent: number; high: number; supCount: number; latestScore: number | null; latestAt: string | null }[]
+  >([]);
+  
+  // Coaching corner
+  const { item: coachingItem } = usePrimaryCoachingItem();
+  const dismissCoaching = useDismissCoaching();
 
   useEffect(() => {
     if (!user) {
@@ -63,6 +85,39 @@ const StudentDashboard = () => {
       if (epaData.data) setEpaAssessments(epaData.data);
       if (directData.data) setDirectObservations(directData.data);
       if (narrativeData.data) setNarratives(narrativeData.data);
+
+      // Auto-complete onboarding items based on data conditions
+      // 1) View first assessment: any EPA assessment present
+      if ((epaData.data?.length || 0) > 0 && !isTaskCompleted('view_first_assessment')) {
+        await completeTask('view_first_assessment');
+      }
+
+      // 2) Complete profile: program and year set
+      // profile is available from useAuth()
+      if (profile && (profile.program?.length || 0) > 0 && (profile.year_of_training?.length || 0) > 0) {
+        if (!isTaskCompleted('complete_profile')) {
+          await completeTask('complete_profile');
+        }
+      }
+
+      // compute readiness from EPA data
+      const observations: EpaObservation[] =
+        (epaData.data || []).map((a: EPAAssessment) => ({
+          epaCode: a.epa_number,
+          supervisorId: a.supervisor_id,
+          oscore: Number(a.rating) || null,
+          createdAt: a.created_at,
+        }));
+      const breakdowns = computeEpaReadiness(observations, DEFAULT_READINESS);
+      const mapped = breakdowns.map((b) => ({
+        epaCode: b.epaCode,
+        percent: Math.round(b.readiness * 100),
+        high: b.highScoreCount,
+        supCount: b.distinctSupervisors,
+        latestScore: b.latestScore,
+        latestAt: b.latestAt,
+      }));
+      setReadinessData(mapped);
     } catch (error) {
       console.error('Error fetching assessments:', error);
     } finally {
@@ -77,8 +132,10 @@ const StudentDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-6">
+        <div className="mx-auto max-w-6xl space-y-6">
+          <DashboardGridSkeleton cards={3} />
+        </div>
       </div>
     );
   }
@@ -97,8 +154,55 @@ const StudentDashboard = () => {
           </Button>
         </div>
 
+        {/* Onboarding Checklist */}
+        <OnboardingChecklist 
+          onTaskClick={(taskId) => {
+            if (taskId === 'complete_profile') {
+              profileRef.current?.scrollIntoView({ behavior: 'smooth' });
+            } else if (taskId === 'view_first_assessment') {
+              epaSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+            } else if (taskId === 'understand_oscore') {
+              setShowOScoreDialog(true);
+            }
+          }}
+        />
+
+        {/* Coaching Corner */}
+        <CoachingCornerCard 
+          item={coachingItem}
+          onDismiss={(id) => dismissCoaching.mutate(id)}
+        />
+
+        {/* Readiness Section */}
+        <div className="space-y-3">
+          <h2 className="text-xl font-semibold">Readiness</h2>
+          {readinessData.length === 0 ? (
+            <EmptyState
+              icon={ClipboardList}
+              title="No data yet"
+              description="Complete EPA assessments to see your readiness toward practice."
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {readinessData.map((r) => (
+                <ReadinessCard
+                  key={r.epaCode}
+                  title={`EPA ${r.epaCode}`}
+                  readinessPercent={r.percent}
+                  metrics={{
+                    highScore: { achieved: r.high, required: DEFAULT_READINESS.minCount },
+                    supervisors: { achieved: r.supCount, required: DEFAULT_READINESS.minSupervisors },
+                    latestScore: r.latestScore,
+                    latestAt: r.latestAt,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
         {profile && (
-          <Card>
+          <Card ref={profileRef}>
             <CardHeader>
               <CardTitle>Profile Information</CardTitle>
             </CardHeader>
@@ -126,13 +230,25 @@ const StudentDashboard = () => {
             <TabsTrigger value="narrative">Narrative Assessments</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="epa" className="space-y-4">
+          <TabsContent value="epa" className="space-y-4" ref={epaSectionRef}>
             {epaAssessments.length === 0 ? (
-              <Card>
-                <CardContent className="pt-6 text-center text-muted-foreground">
-                  No EPA assessments yet
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={ClipboardList}
+                title={content.emptyStates.assessments.student.title}
+                description={content.emptyStates.assessments.student.description}
+                primaryAction={{
+                  label: content.emptyStates.assessments.student.primaryCta,
+                  onClick: () => {
+                    // Navigate to help or documentation
+                  }
+                }}
+                secondaryAction={content.emptyStates.assessments.student.secondaryCta ? {
+                  label: content.emptyStates.assessments.student.secondaryCta,
+                  onClick: () => {
+                    // Show demo
+                  }
+                } : undefined}
+              />
             ) : (
               epaAssessments.map((assessment) => (
                 <Card key={assessment.id}>
@@ -160,11 +276,17 @@ const StudentDashboard = () => {
 
           <TabsContent value="direct" className="space-y-4">
             {directObservations.length === 0 ? (
-              <Card>
-                <CardContent className="pt-6 text-center text-muted-foreground">
-                  No direct observations yet
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={BookOpen}
+                title={content.emptyStates.assessments.student.title}
+                description={content.emptyStates.assessments.student.description}
+                primaryAction={{
+                  label: content.emptyStates.assessments.student.primaryCta,
+                  onClick: () => {
+                    // Navigate to help
+                  }
+                }}
+              />
             ) : (
               directObservations.map((assessment) => (
                 <Card key={assessment.id}>
@@ -192,11 +314,17 @@ const StudentDashboard = () => {
 
           <TabsContent value="narrative" className="space-y-4">
             {narratives.length === 0 ? (
-              <Card>
-                <CardContent className="pt-6 text-center text-muted-foreground">
-                  No narrative assessments yet
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={BookOpen}
+                title={content.emptyStates.assessments.student.title}
+                description={content.emptyStates.assessments.student.description}
+                primaryAction={{
+                  label: content.emptyStates.assessments.student.primaryCta,
+                  onClick: () => {
+                    // Navigate to help
+                  }
+                }}
+              />
             ) : (
               narratives.map((assessment) => (
                 <Card key={assessment.id}>
@@ -223,6 +351,29 @@ const StudentDashboard = () => {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* O-SCORE Info Dialog */}
+        <Dialog open={showOScoreDialog} onOpenChange={(open) => {
+          setShowOScoreDialog(open);
+          if (!open && !isTaskCompleted('understand_oscore')) {
+            completeTask('understand_oscore');
+          }
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Understanding O-SCORE</DialogTitle>
+              <DialogDescription>
+                O-SCOREs indicate observed readiness on a 1–5 scale. A score of 4+ typically
+                signals near-independent performance with minimal supervision required.
+                Your readiness combines score thresholds, supervisor mix, and recent activity.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="text-sm text-muted-foreground">
+              You can improve readiness by adding recent observations, achieving higher O-SCOREs,
+              and having feedback from multiple supervisors.
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

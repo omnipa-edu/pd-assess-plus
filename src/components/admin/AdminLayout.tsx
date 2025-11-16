@@ -16,7 +16,8 @@ import {
   X,
   LogOut,
   Home,
-  Settings
+  Settings,
+  Lightbulb
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
@@ -67,6 +68,12 @@ const navigationSections = [
     title: 'Data Management',
     items: [
       { label: 'Import EPAs', href: '/admin/epas/import', icon: Upload },
+    ]
+  },
+  {
+    title: 'Content',
+    items: [
+      { label: 'Coaching Corner', href: '/admin/coaching', icon: Lightbulb },
     ]
   },
   {

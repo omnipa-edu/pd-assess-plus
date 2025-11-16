@@ -3,7 +3,7 @@
  * Simplified CSV/TSV import wizard for bulk EPA import
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, FileText, CheckCircle, AlertCircle, Download } from 'lucide-react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
@@ -48,9 +48,9 @@ const ImportEPAs = () => {
   const navigate = useNavigate();
 
   // Load specialties on mount
-  useState(() => {
+  useEffect(() => {
     loadSpecialties();
-  });
+  }, []);
 
   const loadSpecialties = async () => {
     const { data } = await supabase
@@ -568,4 +568,5 @@ const ImportEPAs = () => {
 };
 
 export default ImportEPAs;
+
 

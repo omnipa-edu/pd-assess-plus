@@ -75,16 +75,14 @@ const Users = () => {
 
   const loadData = async () => {
     try {
-      const [usersResponse, institutionsResponse, departmentsResponse] = await Promise.all([
+      const [usersResponse, rolesResponse, institutionsResponse, departmentsResponse] = await Promise.all([
         supabase
           .from('profiles')
-          .select(`
-            *,
-            user_roles(role),
-            institutions(id, name),
-            departments(id, name, institution_id)
-          `)
+          .select('*')
           .order('created_at', { ascending: false }),
+        supabase
+          .from('user_roles')
+          .select('user_id, role'),
         supabase
           .from('institutions')
           .select('id, name')
@@ -95,31 +93,61 @@ const Users = () => {
           .order('name'),
       ]);
 
-      if (usersResponse.error) throw usersResponse.error;
-      if (institutionsResponse.error) throw institutionsResponse.error;
-      if (departmentsResponse.error) throw departmentsResponse.error;
+      if (usersResponse.error) {
+        console.error('Users query error:', usersResponse.error);
+        throw usersResponse.error;
+      }
+      if (rolesResponse.error) {
+        console.error('Roles query error:', rolesResponse.error);
+        throw rolesResponse.error;
+      }
+      if (institutionsResponse.error) {
+        console.error('Institutions query error:', institutionsResponse.error);
+        throw institutionsResponse.error;
+      }
+      if (departmentsResponse.error) {
+        console.error('Departments query error:', departmentsResponse.error);
+        throw departmentsResponse.error;
+      }
+
+      // Create a map of user roles for quick lookup
+      const rolesMap = new Map<string, string>();
+      (rolesResponse.data || []).forEach((roleRecord: any) => {
+        rolesMap.set(roleRecord.user_id, roleRecord.role);
+      });
 
       // Transform user data
-      const transformedUsers = (usersResponse.data || []).map((user: any) => ({
-        id: user.id,
-        email: user.email,
-        full_name: user.full_name,
-        role: user.user_roles?.[0]?.role || 'student',
-        institution_id: user.institution_id,
-        department_id: user.department_id,
-        created_at: user.created_at,
-        institutions: user.institutions,
-        departments: user.departments,
-      }));
+      const transformedUsers = (usersResponse.data || []).map((user: any) => {
+        // Handle institution and department lookups
+        const institution = user.institution_id 
+          ? institutionsResponse.data?.find(i => i.id === user.institution_id)
+          : null;
+        
+        const department = user.department_id
+          ? departmentsResponse.data?.find(d => d.id === user.department_id)
+          : null;
+
+        return {
+          id: user.id,
+          email: user.email,
+          full_name: user.full_name || 'Unknown',
+          role: rolesMap.get(user.id) || 'student',
+          institution_id: user.institution_id || null,
+          department_id: user.department_id || null,
+          created_at: user.created_at,
+          institutions: institution || null,
+          departments: department || null,
+        };
+      });
 
       setUsers(transformedUsers);
       setInstitutions(institutionsResponse.data || []);
       setDepartments(departmentsResponse.data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading data:', error);
       toast({
         title: 'Error',
-        description: 'Failed to load users',
+        description: error.message || 'Failed to load users',
         variant: 'destructive',
       });
     } finally {
@@ -655,4 +683,5 @@ const Users = () => {
 };
 
 export default Users;
+
 

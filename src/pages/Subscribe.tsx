@@ -26,12 +26,12 @@ const PLAN_DETAILS: Record<string, PlanDetails> = {
   standard: {
     name: 'Standard',
     price: 29,
-    priceId: process.env.VITE_STRIPE_PRICE_STANDARD || 'price_standard',
+    priceId: import.meta.env.VITE_STRIPE_PRICE_STANDARD || 'price_standard',
   },
   pro: {
     name: 'Pro',
     price: 99,
-    priceId: process.env.VITE_STRIPE_PRICE_PRO || 'price_pro',
+    priceId: import.meta.env.VITE_STRIPE_PRICE_PRO || 'price_pro',
   },
 };
 

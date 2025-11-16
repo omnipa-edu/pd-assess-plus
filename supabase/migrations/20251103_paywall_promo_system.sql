@@ -452,3 +452,4 @@ GRANT EXECUTE ON FUNCTION public.validate_promo_code TO authenticated;
 GRANT EXECUTE ON FUNCTION public.redeem_promo_code TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_subscription_status TO authenticated;
 
+

@@ -247,3 +247,4 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
   console.log(`Payment failed for customer ${customerId}`);
 }
 
+

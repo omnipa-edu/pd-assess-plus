@@ -17,10 +17,14 @@ import { useNavigate } from "react-router-dom";
 
 import AssessmentDashboard from "@/components/AssessmentDashboard";
 import NewAssessmentDialog from "@/components/NewAssessmentDialog";
+import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
+import { CoachingCornerCard } from "@/components/coaching/CoachingCornerCard";
+import { DashboardGridSkeleton } from "@/components/ui/skeleton-loaders";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
+import { usePrimaryCoachingItem, useDismissCoaching } from "@/hooks/useCoachingCorner";
 
 const SupervisorDashboard = () => {
   const navigate = useNavigate();
@@ -28,6 +32,10 @@ const SupervisorDashboard = () => {
   const [currentView, setCurrentView] = useState<'dashboard' | 'new-assessment'>('dashboard');
   const [selectedAssessmentType, setSelectedAssessmentType] = useState<'epa-observation' | 'direct-observation' | 'narrative'>('epa-observation');
   const [showNewAssessment, setShowNewAssessment] = useState(false);
+  
+  // Coaching corner
+  const { item: coachingItem } = usePrimaryCoachingItem();
+  const dismissCoaching = useDismissCoaching();
 
   const handleSignOut = async () => {
     await signOut();
@@ -66,10 +74,9 @@ const SupervisorDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-primary" />
-          <p className="text-muted-foreground">Loading...</p>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-6 py-8">
+          <DashboardGridSkeleton cards={4} />
         </div>
       </div>
     );
@@ -179,6 +186,27 @@ const SupervisorDashboard = () => {
       </header>
 
       <main className="container mx-auto px-6 py-8">
+        {/* Onboarding Checklist */}
+        <div className="mb-8">
+          <OnboardingChecklist 
+            onTaskClick={(taskId) => {
+              if (taskId === 'create_first_assessment') {
+                setShowNewAssessment(true);
+              } else if (taskId === 'add_student') {
+                navigate('/supervisor/students');
+              }
+            }}
+          />
+        </div>
+
+        {/* Coaching Corner */}
+        <div className="mb-8">
+          <CoachingCornerCard 
+            item={coachingItem}
+            onDismiss={(id) => dismissCoaching.mutate(id)}
+          />
+        </div>
+
         {/* Statistics Grid */}
         <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, index) => (

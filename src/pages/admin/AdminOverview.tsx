@@ -16,9 +16,12 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
+import { DashboardGridSkeleton } from '@/components/ui/skeleton-loaders';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 interface Stats {
   institutions: number;
@@ -30,6 +33,7 @@ interface Stats {
 }
 
 const AdminOverview = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<Stats>({
     institutions: 0,
     departments: 0,
@@ -131,6 +135,13 @@ const AdminOverview = () => {
       color: 'bg-primary text-primary-foreground'
     },
     {
+      title: 'Coaching Corner',
+      description: 'Create and manage coaching content for dashboards',
+      icon: Upload,
+      href: '/admin/coaching',
+      color: 'bg-amber-600 text-white dark:bg-amber-700'
+    },
+    {
       title: 'Add Specialty',
       description: 'Create a new medical specialty',
       icon: FileText,
@@ -157,6 +168,21 @@ const AdminOverview = () => {
               Manage users, organizations, and assessment frameworks
             </p>
           </div>
+
+          {/* Onboarding Checklist */}
+          <OnboardingChecklist 
+            onTaskClick={(taskId) => {
+              if (taskId === 'configure_institution') {
+                navigate('/admin/institutions');
+              } else if (taskId === 'import_epas') {
+                navigate('/admin/epas/import');
+              } else if (taskId === 'manage_users') {
+                navigate('/admin/users');
+              } else if (taskId === 'setup_promo_codes') {
+                navigate('/admin/promo-codes');
+              }
+            }}
+          />
 
           {/* Stats Grid */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
