@@ -64,7 +64,7 @@ export async function getAuditLog(entity: string, entityId?: string, limit = 50)
   try {
     let query = supabase
       .from('audit_log')
-      .select('*')
+      .select('id, actor_user_id, action, entity, entity_id, diff, metadata, created_at')
       .eq('entity', entity)
       .order('created_at', { ascending: false })
       .limit(limit);
@@ -94,7 +94,7 @@ export async function getRecentActivity(limit = 50) {
   try {
     const { data, error } = await supabase
       .from('audit_log')
-      .select('*')
+      .select('id, actor_user_id, action, entity, entity_id, diff, metadata, created_at')
       .order('created_at', { ascending: false})
       .limit(limit);
 

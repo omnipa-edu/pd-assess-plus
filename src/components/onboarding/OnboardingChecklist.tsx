@@ -3,14 +3,16 @@
  * Role-aware dismissible checklist for first-time users
  */
 import { useState } from 'react';
+
 import { X, CheckCircle2, Circle, ChevronDown, ChevronUp } from 'lucide-react';
+
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
+import { content } from '@/content/strings';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfileProgress } from '@/hooks/useProfileProgress';
-import { content } from '@/content/strings';
 import { cn } from '@/lib/utils';
 
 interface OnboardingChecklistProps {
@@ -108,17 +110,13 @@ export const OnboardingChecklist = ({ onTaskClick, className }: OnboardingCheckl
           {tasks.map((task) => {
             const isCompleted = isTaskCompleted(task.id);
             return (
-              <button
+              <div
                 key={task.id}
-                onClick={() => handleTaskClick(task.id)}
                 className={cn(
-                  "w-full text-left rounded-lg border p-3 transition-all",
+                  "w-full rounded-lg border p-3 text-left transition-all",
                   "hover:border-primary/50 hover:bg-accent/50",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                  isCompleted && "bg-accent/30 border-green-500/30 dark:border-green-500/50"
+                  isCompleted && "border-green-500/30 bg-accent/30 dark:border-green-500/50"
                 )}
-                aria-pressed={isCompleted}
-                aria-label={`${task.title}. ${isCompleted ? 'Completed' : 'Not completed'}`}
               >
                 <div className="flex items-start gap-3">
                   <div className="pt-0.5">
@@ -135,24 +133,21 @@ export const OnboardingChecklist = ({ onTaskClick, className }: OnboardingCheckl
                     )}
                   </div>
                   <div className="flex-1 space-y-1">
-                    <div className="font-medium text-sm">{task.title}</div>
+                    <div className="text-sm font-medium">{task.title}</div>
                     <div className="text-xs text-muted-foreground">{task.description}</div>
                   </div>
                   {!isCompleted && (
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      className="text-xs h-7"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleTaskClick(task.id);
-                      }}
+                      className="h-7 text-xs"
+                      onClick={() => handleTaskClick(task.id)}
                     >
                       {task.cta}
                     </Button>
                   )}
                 </div>
-              </button>
+              </div>
             );
           })}
         </CardContent>

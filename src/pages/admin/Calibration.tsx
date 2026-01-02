@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
+
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 
 type Row = {
   supervisorName: string;
@@ -24,10 +25,10 @@ const Calibration = () => {
   }, [specialty, epa, window]);
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="space-y-4 p-6">
       <h1 className="text-2xl font-semibold">Supervisor Calibration</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <Select value={specialty} onValueChange={setSpecialty}>
           <SelectTrigger><SelectValue placeholder="Specialty" /></SelectTrigger>
           <SelectContent>
@@ -55,11 +56,11 @@ const Calibration = () => {
         </CardHeader>
         <CardContent>
           {rows.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No data yet for the selected filters.</p>
+            <p className="text-sm text-muted-foreground">No data yet for the selected filters.</p>
           ) : (
             <div className="space-y-3">
               {rows.map((r) => (
-                <div key={r.supervisorName} className="flex items-center justify-between border rounded-md p-3">
+                <div key={r.supervisorName} className="flex items-center justify-between rounded-md border p-3">
                   <div className="space-y-1">
                     <div className="font-medium">{r.supervisorName}</div>
                     <div className="text-xs text-muted-foreground">

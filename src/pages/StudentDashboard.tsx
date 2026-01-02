@@ -1,25 +1,41 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 
 import { Loader2, LogOut, ClipboardList, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+import { AchievementDisplay } from '@/components/achievements/AchievementDisplay';
+import { EpaTrajectoryView } from '@/components/benchmarks/EpaTrajectoryView';
+import { CoachingCornerFeed } from '@/components/coaching/CoachingCornerFeed';
+import { GoalsDisplay } from '@/components/goals/GoalsDisplay';
+import { StreakDisplay } from '@/components/gamification/StreakDisplay';
+import { LearningPlanCard } from '@/components/learningPlans/LearningPlanCard';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
+import { LearnerPersonalizedPlan } from '@/components/personalization/LearnerPersonalizedPlan';
+import ReadinessCard from '@/components/ReadinessCard';
+import { AddWidgetsDrawer } from '@/components/dashboard/AddWidgetsDrawer';
+import { DashboardEditControls } from '@/components/dashboard/DashboardEditControls';
+import { DashboardGrid } from '@/components/dashboard/DashboardGrid';
+import { DashboardCustomizeSidebar } from '@/components/dashboard/DashboardCustomizeSidebar';
+import { CustomWidgetRenderer } from '@/components/dashboard/CustomWidgetRenderer';
+import { renderWidget } from '@/components/dashboard/widgets/registry';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { EmptyState } from '@/components/ui/empty-state';
-import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
-import { CoachingCornerCard } from '@/components/coaching/CoachingCornerCard';
-import { DashboardGridSkeleton } from '@/components/ui/skeleton-loaders';
-import { useAuth } from '@/hooks/useAuth';
-import { useProfileProgress } from '@/hooks/useProfileProgress';
-import { usePrimaryCoachingItem, useDismissCoaching } from '@/hooks/useCoachingCorner';
-import { supabase } from '@/integrations/supabase/client';
-import { content } from '@/content/strings';
-import ReadinessCard from '@/components/ReadinessCard';
-import { DEFAULT_READINESS } from '@/lib/readiness/config';
-import { computeEpaReadiness, EpaObservation } from '@/lib/readiness/calc';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { EmptyState } from '@/components/ui/empty-state';
+import { DashboardGridSkeleton } from '@/components/ui/skeleton-loaders';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { content } from '@/content/strings';
+import { useAuth } from '@/hooks/useAuth';
+import { useDashboardLayout } from '@/hooks/useDashboardLayout';
+import { useProfileProgress } from '@/hooks/useProfileProgress';
+import { useStudentAssessments } from '@/hooks/useStudentAssessments';
+import { supabase } from '@/integrations/supabase/client';
+import { computeEpaReadiness, type EpaObservation } from '@/lib/readiness/calc';
+import { DEFAULT_READINESS } from '@/lib/readiness/config';
+import type { WidgetId } from '@/lib/dashboard/types';
 
 interface Assessment {
   id: string;
@@ -48,86 +64,143 @@ interface NarrativeAssessment extends Assessment {
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [epaAssessments, setEpaAssessments] = useState<EPAAssessment[]>([]);
-  const [directObservations, setDirectObservations] = useState<DirectObservationAssessment[]>([]);
-  const [narratives, setNarratives] = useState<NarrativeAssessment[]>([]);
+  const { toast } = useToast();
   const { completeTask, isTaskCompleted } = useProfileProgress();
   const [showOScoreDialog, setShowOScoreDialog] = useState(false);
+  const [selectedEpaForBenchmark, setSelectedEpaForBenchmark] = useState<string | null>(null);
   const profileRef = useRef<HTMLDivElement | null>(null);
   const epaSectionRef = useRef<HTMLDivElement | null>(null);
-  const [readinessData, setReadinessData] = useState<
-    { epaCode: string; percent: number; high: number; supCount: number; latestScore: number | null; latestAt: string | null }[]
-  >([]);
   
-  // Coaching corner
-  const { item: coachingItem } = usePrimaryCoachingItem();
-  const dismissCoaching = useDismissCoaching();
+  // Dashboard layout customization
+  const dashboardLayout = useDashboardLayout({
+    dashboardType: 'learner',
+    userId: user?.id || '',
+  });
+
+  // Use React Query for assessments (cached and optimized)
+  const { data: assessmentsData, isLoading: loading } = useStudentAssessments();
+  const epaAssessments = assessmentsData?.epa || [];
+  const directObservations = assessmentsData?.direct || [];
+  const narratives = assessmentsData?.narrative || [];
+
+  // Memoize readiness calculation to avoid recomputation on every render
+  const readinessData = useMemo(() => {
+    if (epaAssessments.length === 0) return [];
+    
+    const observations: EpaObservation[] = epaAssessments.map((a: EPAAssessment) => ({
+      epaCode: a.epa_number,
+      supervisorId: a.supervisor_id,
+      oscore: Number(a.rating) || null,
+      createdAt: a.created_at,
+    }));
+    
+    const breakdowns = computeEpaReadiness(observations, DEFAULT_READINESS);
+    return breakdowns.map((b) => ({
+      epaCode: b.epaCode,
+      percent: Math.round(b.readiness * 100),
+      high: b.highScoreCount,
+      supCount: b.distinctSupervisors,
+      latestScore: b.latestScore,
+      latestAt: b.latestAt,
+    }));
+  }, [epaAssessments]);
 
   useEffect(() => {
     if (!user) {
       navigate('/auth');
       return;
     }
-    fetchAssessments();
-  }, [user, navigate]);
 
-  const fetchAssessments = async () => {
-    if (!user) return;
-
-    try {
-      const [epaData, directData, narrativeData] = await Promise.all([
-        supabase.from('epa_assessments').select('*').eq('student_id', user.id).order('created_at', { ascending: false }),
-        supabase.from('direct_observation_assessments').select('*').eq('student_id', user.id).order('created_at', { ascending: false }),
-        supabase.from('narrative_assessments').select('*').eq('student_id', user.id).order('created_at', { ascending: false })
-      ]);
-
-      if (epaData.data) setEpaAssessments(epaData.data);
-      if (directData.data) setDirectObservations(directData.data);
-      if (narrativeData.data) setNarratives(narrativeData.data);
-
-      // Auto-complete onboarding items based on data conditions
-      // 1) View first assessment: any EPA assessment present
-      if ((epaData.data?.length || 0) > 0 && !isTaskCompleted('view_first_assessment')) {
-        await completeTask('view_first_assessment');
-      }
-
-      // 2) Complete profile: program and year set
-      // profile is available from useAuth()
-      if (profile && (profile.program?.length || 0) > 0 && (profile.year_of_training?.length || 0) > 0) {
-        if (!isTaskCompleted('complete_profile')) {
-          await completeTask('complete_profile');
+    const handleOnboarding = async () => {
+      try {
+        // Auto-complete onboarding items based on data conditions
+        // 1) View first assessment: any EPA assessment present
+        if (epaAssessments.length > 0 && !isTaskCompleted('view_first_assessment')) {
+          await completeTask('view_first_assessment');
         }
-      }
 
-      // compute readiness from EPA data
-      const observations: EpaObservation[] =
-        (epaData.data || []).map((a: EPAAssessment) => ({
-          epaCode: a.epa_number,
-          supervisorId: a.supervisor_id,
-          oscore: Number(a.rating) || null,
-          createdAt: a.created_at,
-        }));
-      const breakdowns = computeEpaReadiness(observations, DEFAULT_READINESS);
-      const mapped = breakdowns.map((b) => ({
-        epaCode: b.epaCode,
-        percent: Math.round(b.readiness * 100),
-        high: b.highScoreCount,
-        supCount: b.distinctSupervisors,
-        latestScore: b.latestScore,
-        latestAt: b.latestAt,
-      }));
-      setReadinessData(mapped);
-    } catch (error) {
-      console.error('Error fetching assessments:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        // 2) Complete profile: program and year set
+        // profile is available from useAuth()
+        if (profile && (profile.program?.length || 0) > 0 && (profile.year_of_training?.length || 0) > 0) {
+          if (!isTaskCompleted('complete_profile')) {
+            await completeTask('complete_profile');
+          }
+        }
+      } catch (error) {
+        console.error('Error handling onboarding:', error);
+      }
+    };
+
+    handleOnboarding();
+  }, [user, epaAssessments, profile, completeTask, isTaskCompleted, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
+  };
+
+  // Handle saving layout
+  const handleSaveLayout = async () => {
+    try {
+      await dashboardLayout.saveLayout();
+      toast({
+        title: 'Dashboard saved',
+        description: 'Your dashboard layout has been saved successfully.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to save dashboard layout.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Render widget function that handles both registry and custom widgets
+  const renderWidgetContent = (widgetId: WidgetId, isCollapsed: boolean) => {
+    // Check if it's a custom widget that needs special handling
+    if (widgetId === 'readiness_cards' || widgetId === 'recent_assessments') {
+      return (
+        <CustomWidgetRenderer
+          widgetId={widgetId}
+          isCollapsed={isCollapsed}
+          readinessData={readinessData}
+          assessmentsData={assessmentsData}
+          onEpaClick={setSelectedEpaForBenchmark}
+          selectedEpa={selectedEpaForBenchmark}
+          profile={profile}
+          profileRef={profileRef}
+          epaSectionRef={epaSectionRef}
+        />
+      );
+    }
+
+    // Special handling for OnboardingChecklist (needs onTaskClick)
+    if (widgetId === 'onboarding_checklist') {
+      if (isCollapsed) return null;
+      return (
+        <OnboardingChecklist
+          className=""
+          onTaskClick={(taskId) => {
+            if (taskId === 'complete_profile') {
+              profileRef.current?.scrollIntoView({ behavior: 'smooth' });
+            } else if (taskId === 'view_first_assessment') {
+              epaSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+            } else if (taskId === 'understand_oscore') {
+              setShowOScoreDialog(true);
+            }
+          }}
+        />
+      );
+    }
+
+    // Use registry for standard widgets
+    return renderWidget(widgetId, {
+      widgetId,
+      isCollapsed,
+      onToggleCollapse: () => dashboardLayout.toggleWidgetCollapse(widgetId),
+      className: '',
+    });
   };
 
   if (loading) {
@@ -148,59 +221,68 @@ const StudentDashboard = () => {
             <h1 className="text-3xl font-bold">My Assessments</h1>
             <p className="text-muted-foreground">Welcome back, {profile?.full_name || 'Student'}</p>
           </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            {!dashboardLayout.isEditing && <NotificationCenter />}
+            <DashboardEditControls
+              isEditing={dashboardLayout.isEditing}
+              hasUnsavedChanges={dashboardLayout.hasUnsavedChanges}
+              isSaving={dashboardLayout.isSaving}
+              onStartEditing={dashboardLayout.startEditing}
+              onCancel={dashboardLayout.cancelEditing}
+              onSave={handleSaveLayout}
+              onReset={dashboardLayout.resetToDefault}
+            />
+            <Button variant="outline" onClick={handleSignOut}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
         </div>
 
-        {/* Onboarding Checklist */}
-        <OnboardingChecklist 
-          onTaskClick={(taskId) => {
-            if (taskId === 'complete_profile') {
-              profileRef.current?.scrollIntoView({ behavior: 'smooth' });
-            } else if (taskId === 'view_first_assessment') {
-              epaSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
-            } else if (taskId === 'understand_oscore') {
-              setShowOScoreDialog(true);
+        {/* Dashboard Customization Sidebar */}
+        <DashboardCustomizeSidebar
+          open={dashboardLayout.isEditing}
+          onOpenChange={(open) => {
+            if (!open) {
+              dashboardLayout.cancelEditing();
+            } else {
+              dashboardLayout.startEditing();
             }
           }}
+          widgets={dashboardLayout.layout.widgets}
+          onReorder={dashboardLayout.moveWidget}
+          onRemove={dashboardLayout.toggleWidgetVisibility}
+          onToggleVisibility={dashboardLayout.toggleWidgetVisibility}
+          onToggleCollapse={dashboardLayout.toggleWidgetCollapse}
+          onSetDefaultCollapsed={dashboardLayout.setDefaultCollapsed}
+          onSetSizePreset={dashboardLayout.setWidgetSizePreset}
+          onAddWidget={dashboardLayout.addWidget}
+          onSave={handleSaveLayout}
+          onCancel={dashboardLayout.cancelEditing}
+          onReset={dashboardLayout.resetToDefault}
+          hasUnsavedChanges={dashboardLayout.hasUnsavedChanges}
+          isSaving={dashboardLayout.isSaving}
+          dashboardType="learner"
+          aiSuggestions={dashboardLayout.aiSuggestions}
+          onApplyAISuggestion={dashboardLayout.applyAISuggestion}
         />
 
-        {/* Coaching Corner */}
-        <CoachingCornerCard 
-          item={coachingItem}
-          onDismiss={(id) => dismissCoaching.mutate(id)}
-        />
+        {/* Dashboard Grid with Customizable Layout */}
+        {dashboardLayout.isLoading ? (
+          <DashboardGridSkeleton cards={3} />
+        ) : (
+          <DashboardGrid
+            widgets={dashboardLayout.visibleWidgets}
+            isEditing={dashboardLayout.isEditing}
+            renderWidget={renderWidgetContent}
+            onReorder={dashboardLayout.moveWidget}
+            onRemove={dashboardLayout.toggleWidgetVisibility}
+            onToggleCollapse={dashboardLayout.toggleWidgetCollapse}
+            onSetDefaultCollapsed={dashboardLayout.setDefaultCollapsed}
+          />
+        )}
 
-        {/* Readiness Section */}
-        <div className="space-y-3">
-          <h2 className="text-xl font-semibold">Readiness</h2>
-          {readinessData.length === 0 ? (
-            <EmptyState
-              icon={ClipboardList}
-              title="No data yet"
-              description="Complete EPA assessments to see your readiness toward practice."
-            />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {readinessData.map((r) => (
-                <ReadinessCard
-                  key={r.epaCode}
-                  title={`EPA ${r.epaCode}`}
-                  readinessPercent={r.percent}
-                  metrics={{
-                    highScore: { achieved: r.high, required: DEFAULT_READINESS.minCount },
-                    supervisors: { achieved: r.supCount, required: DEFAULT_READINESS.minSupervisors },
-                    latestScore: r.latestScore,
-                    latestAt: r.latestAt,
-                  }}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
+        {/* Profile Card (always visible, not in widget system) */}
         {profile && (
           <Card ref={profileRef}>
             <CardHeader>
@@ -222,135 +304,6 @@ const StudentDashboard = () => {
             </CardContent>
           </Card>
         )}
-
-        <Tabs defaultValue="epa" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="epa">EPA Assessments</TabsTrigger>
-            <TabsTrigger value="direct">Direct Observations</TabsTrigger>
-            <TabsTrigger value="narrative">Narrative Assessments</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="epa" className="space-y-4" ref={epaSectionRef}>
-            {epaAssessments.length === 0 ? (
-              <EmptyState
-                icon={ClipboardList}
-                title={content.emptyStates.assessments.student.title}
-                description={content.emptyStates.assessments.student.description}
-                primaryAction={{
-                  label: content.emptyStates.assessments.student.primaryCta,
-                  onClick: () => {
-                    // Navigate to help or documentation
-                  }
-                }}
-                secondaryAction={content.emptyStates.assessments.student.secondaryCta ? {
-                  label: content.emptyStates.assessments.student.secondaryCta,
-                  onClick: () => {
-                    // Show demo
-                  }
-                } : undefined}
-              />
-            ) : (
-              epaAssessments.map((assessment) => (
-                <Card key={assessment.id}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <CardTitle>EPA {assessment.epa_number}</CardTitle>
-                      <Badge>{assessment.rating}</Badge>
-                    </div>
-                    <CardDescription>
-                      {new Date(assessment.created_at).toLocaleDateString()}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="text-sm font-medium">Feedback</p>
-                        <p className="text-sm text-muted-foreground">{assessment.feedback}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </TabsContent>
-
-          <TabsContent value="direct" className="space-y-4">
-            {directObservations.length === 0 ? (
-              <EmptyState
-                icon={BookOpen}
-                title={content.emptyStates.assessments.student.title}
-                description={content.emptyStates.assessments.student.description}
-                primaryAction={{
-                  label: content.emptyStates.assessments.student.primaryCta,
-                  onClick: () => {
-                    // Navigate to help
-                  }
-                }}
-              />
-            ) : (
-              directObservations.map((assessment) => (
-                <Card key={assessment.id}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <CardTitle>{assessment.procedure_type}</CardTitle>
-                      <Badge>{assessment.performance_rating}</Badge>
-                    </div>
-                    <CardDescription>
-                      {new Date(assessment.created_at).toLocaleDateString()}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="text-sm font-medium">Feedback</p>
-                        <p className="text-sm text-muted-foreground">{assessment.feedback}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </TabsContent>
-
-          <TabsContent value="narrative" className="space-y-4">
-            {narratives.length === 0 ? (
-              <EmptyState
-                icon={BookOpen}
-                title={content.emptyStates.assessments.student.title}
-                description={content.emptyStates.assessments.student.description}
-                primaryAction={{
-                  label: content.emptyStates.assessments.student.primaryCta,
-                  onClick: () => {
-                    // Navigate to help
-                  }
-                }}
-              />
-            ) : (
-              narratives.map((assessment) => (
-                <Card key={assessment.id}>
-                  <CardHeader>
-                    <CardTitle>Assessment Period: {assessment.assessment_period}</CardTitle>
-                    <CardDescription>
-                      {new Date(assessment.created_at).toLocaleDateString()}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-sm font-medium">Strengths</p>
-                        <p className="text-sm text-muted-foreground">{assessment.strengths}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Areas for Growth</p>
-                        <p className="text-sm text-muted-foreground">{assessment.areas_for_growth}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </TabsContent>
-        </Tabs>
 
         {/* O-SCORE Info Dialog */}
         <Dialog open={showOScoreDialog} onOpenChange={(open) => {

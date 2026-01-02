@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Accreditation = () => {
   const [range, setRange] = useState<string>('academic-year');
@@ -49,14 +50,14 @@ const Accreditation = () => {
   };
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="space-y-4 p-6">
       <h1 className="text-2xl font-semibold">Accreditation Pack</h1>
       <Card>
         <CardHeader>
           <CardTitle>Generate</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             <Select value={range} onValueChange={setRange}>
               <SelectTrigger><SelectValue placeholder="Date range" /></SelectTrigger>
               <SelectContent>
@@ -82,7 +83,7 @@ const Accreditation = () => {
               <a className="text-primary underline" href={downloadUrl}>
                 Download ZIP
               </a>
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className="mt-1 text-xs text-muted-foreground">
                 This report contains aggregated, de-identified program-level data.
               </div>
             </div>

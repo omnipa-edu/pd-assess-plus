@@ -14,7 +14,9 @@ describe('cn (className utility)', () => {
 
   it('should deduplicate conflicting Tailwind classes', () => {
     // twMerge should keep the last class when there's a conflict
+    // eslint-disable-next-line tailwindcss/no-contradicting-classname
     expect(cn('px-2', 'px-4')).toBe('px-4');
+    // eslint-disable-next-line tailwindcss/no-contradicting-classname
     expect(cn('text-red-500', 'text-blue-500')).toBe('text-blue-500');
   });
 

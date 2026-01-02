@@ -3,28 +3,13 @@
  * Simplified interface for managing coaching content
  */
 import { useState, useMemo } from 'react';
+
 import { Plus, Edit, Trash2, Eye, Power, PowerOff, Search } from 'lucide-react';
+
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
-import { CoachingEditor } from '@/components/coaching/CoachingEditor';
 import { CoachingCornerCard } from '@/components/coaching/CoachingCornerCard';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { CoachingEditor } from '@/components/coaching/CoachingEditor';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +20,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -232,7 +234,7 @@ const CoachingManagement = () => {
               </Select>
 
               {/* Search */}
-              <div className="relative flex-1 min-w-[200px]">
+              <div className="relative min-w-[200px] flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Search by title or content..."
@@ -347,7 +349,7 @@ const CoachingManagement = () => {
 
           {/* Editor Dialog */}
           <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen}>
-            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-h-[90vh] max-w-6xl overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
                   {editingItem ? 'Edit Coaching Content' : 'New Coaching Item'}

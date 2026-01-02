@@ -1,5 +1,6 @@
-import { computeCalibration } from '@/lib/calibration/calc';
 import { describe, it, expect } from 'vitest';
+
+import { computeCalibration } from '@/lib/calibration/calc';
 
 describe('computeCalibration', () => {
   it('labels more lenient and stricter correctly', () => {

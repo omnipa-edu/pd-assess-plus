@@ -4,10 +4,12 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+
 import { Loader2 } from 'lucide-react';
-import { isAdmin } from '@/lib/admin/guard';
+import { Navigate, useLocation } from 'react-router-dom';
+
 import { useToast } from '@/components/ui/use-toast';
+import { isAdmin } from '@/lib/admin/guard';
 
 interface ProtectedAdminRouteProps {
   children: React.ReactNode;

@@ -1,17 +1,24 @@
 import { useState } from "react";
 
-import { Eye, Clock, Target, MessageSquare } from "lucide-react";
+import { Eye, Target, MessageSquare } from "lucide-react";
 
+import { SmartFeedbackField } from "@/components/feedback/SmartFeedbackField";
+import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FormFieldError } from "@/components/ui/FormFieldError";
+import { FormSkeleton } from "@/components/ui/FormSkeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
+import { retry } from "@/lib/retry";
 
 interface PhysicianAssociate {
   id: string;
@@ -30,7 +37,8 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
     activity: "",
     setting: "",
     date: "",
-    duration: "",
+    observationTimeMinutes: "",
+    feedbackTimeMinutes: "",
     observationType: "",
     oScore: "",
     competenciesObserved: [] as string[],
@@ -42,7 +50,10 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
     verbalFeedbackGiven: false,
     associateResponse: ""
   });
+  const [submitting, setSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const activities = [
     "Patient History Taking",
@@ -75,15 +86,165 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
     { value: "5", label: "5 - Complete independence", color: "bg-assessment-excellent" }
   ];
 
-  const handleSubmit = () => {
-    toast({
-      title: "Direct Observation Submitted",
-      description: `Assessment for ${associate.name} has been recorded successfully.`,
-    });
+  const handleSubmit = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to submit assessments.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate form
+    const errors: Record<string, string> = {};
+    if (!formData.activity?.trim()) errors.activity = 'Activity is required';
+    if (!formData.setting?.trim()) errors.setting = 'Setting is required';
+    if (!formData.date?.trim()) errors.date = 'Date is required';
+    if (!formData.oScore?.trim()) errors.oScore = 'O-SCORE rating is required';
+    if (!formData.narrative?.trim()) errors.narrative = 'Narrative feedback is required';
+    
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      toast({
+        title: "Validation Error",
+        description: "Please fix the errors in the form.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setValidationErrors({});
+
+    try {
+      setSubmitting(true);
+      
+      // Combine feedback fields
+      const feedback = [
+        formData.narrative,
+        formData.technicalSkills && `Technical Skills: ${formData.technicalSkills}`,
+        formData.communication && `Communication: ${formData.communication}`,
+        formData.professionalism && `Professionalism: ${formData.professionalism}`,
+        formData.clinicalReasoning && `Clinical Reasoning: ${formData.clinicalReasoning}`,
+      ]
+        .filter(Boolean)
+        .join('\n\n');
+
+      // Save to database
+      // Build insert payload - conditionally include time tracking fields
+      const insertPayload: any = {
+        student_id: associate.id,
+        supervisor_id: user.id,
+        procedure_type: formData.activity,
+        clinical_context: formData.setting,
+        performance_rating: formData.oScore,
+        technical_skills: formData.technicalSkills || null,
+        professionalism: formData.professionalism || null,
+        feedback: feedback || null,
+        areas_for_improvement: formData.associateResponse || null,
+      };
+
+      // Only include time tracking fields if they have values
+      if (formData.observationTimeMinutes) {
+        const obsMinutes = parseInt(formData.observationTimeMinutes);
+        if (!isNaN(obsMinutes) && obsMinutes > 0) {
+          insertPayload.observation_time_minutes = obsMinutes;
+        }
+      }
+      if (formData.feedbackTimeMinutes) {
+        const feedbackMinutes = parseInt(formData.feedbackTimeMinutes);
+        if (!isNaN(feedbackMinutes) && feedbackMinutes > 0) {
+          insertPayload.feedback_time_minutes = feedbackMinutes;
+        }
+      }
+
+      // Use retry logic for critical assessment submission
+      let result = await retry(
+        async () => {
+          return await supabase
+            .from('direct_observation_assessments')
+            .insert(insertPayload)
+            .select()
+            .single();
+        },
+        { maxRetries: 2, initialDelay: 1000 }
+      );
+
+      // If error is about unknown columns, try without time tracking fields
+      if (result.error && (
+          result.error.message?.includes('observation_time_minutes') || 
+          result.error.message?.includes('feedback_time_minutes') ||
+          result.error.code === '42703' ||
+          result.error.message?.includes('column') && result.error.message?.includes('does not exist')
+        )) {
+        logger.warn('Time tracking columns not found, inserting without them. Please run the migration: 20250115_add_time_tracking_to_assessments.sql');
+        result = await retry(
+          async () => {
+            return await supabase
+              .from('direct_observation_assessments')
+              .insert({
+            student_id: associate.id,
+            supervisor_id: user.id,
+            procedure_type: formData.activity,
+            clinical_context: formData.setting,
+            performance_rating: formData.oScore,
+            technical_skills: formData.technicalSkills || null,
+            professionalism: formData.professionalism || null,
+            feedback: feedback || null,
+            areas_for_improvement: formData.associateResponse || null,
+          })
+          .select()
+          .single();
+          },
+          { maxRetries: 2, initialDelay: 1000 }
+        );
+      }
+
+      if (result.error) throw result.error;
+
+      // Database trigger will automatically create CME session
+      toast({
+        title: "Assessment Submitted Successfully",
+        description: `Direct observation for ${associate.name} has been recorded. CME time has been automatically logged.`,
+      });
+
+      // Reset form
+      setFormData({
+        activity: "",
+        setting: "",
+        date: "",
+        observationTimeMinutes: "",
+        feedbackTimeMinutes: "",
+        observationType: "",
+        oScore: "",
+        competenciesObserved: [],
+        technicalSkills: "",
+        communication: "",
+        professionalism: "",
+        clinicalReasoning: "",
+        narrative: "",
+        verbalFeedbackGiven: false,
+        associateResponse: ""
+      });
+    } catch (error: unknown) {
+      logger.error('Error submitting direct observation', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to submit assessment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+  if (submitting) {
+    return <FormSkeleton fields={8} />;
+  }
+
   return (
-    <div className="space-y-6">
+    <SectionErrorBoundary sectionName="Direct Observation Form">
+      <div className="space-y-6">
       {/* Observation Setup */}
       <Card className="border-0 bg-gradient-card shadow-card">
         <CardHeader>
@@ -97,7 +258,19 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="activity">Activity Observed</Label>
-              <Select value={formData.activity} onValueChange={(value) => setFormData({...formData, activity: value})}>
+              <Select 
+                value={formData.activity} 
+                onValueChange={(value) => {
+                  setFormData({...formData, activity: value});
+                  if (validationErrors.activity) {
+                    setValidationErrors(prev => {
+                      const next = { ...prev };
+                      delete next.activity;
+                      return next;
+                    });
+                  }
+                }}
+              >
                 <SelectTrigger className="border-border bg-background">
                   <SelectValue placeholder="Select activity" />
                 </SelectTrigger>
@@ -109,11 +282,24 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                   ))}
                 </SelectContent>
               </Select>
+              <FormFieldError error={validationErrors.activity} />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="setting">Clinical Setting</Label>
-              <Select value={formData.setting} onValueChange={(value) => setFormData({...formData, setting: value})}>
+              <Select 
+                value={formData.setting} 
+                onValueChange={(value) => {
+                  setFormData({...formData, setting: value});
+                  if (validationErrors.setting) {
+                    setValidationErrors(prev => {
+                      const next = { ...prev };
+                      delete next.setting;
+                      return next;
+                    });
+                  }
+                }}
+              >
                 <SelectTrigger className="border-border bg-background">
                   <SelectValue placeholder="Select setting" />
                 </SelectTrigger>
@@ -125,6 +311,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                   <SelectItem value="or">Operating Room</SelectItem>
                 </SelectContent>
               </Select>
+              <FormFieldError error={validationErrors.setting} />
             </div>
 
             <div className="space-y-2">
@@ -133,21 +320,49 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                 id="date"
                 type="date"
                 value={formData.date}
-                onChange={(e) => setFormData({...formData, date: e.target.value})}
+              onChange={(e) => {
+                setFormData({...formData, date: e.target.value});
+                if (validationErrors.date) {
+                  setValidationErrors(prev => {
+                    const next = { ...prev };
+                    delete next.date;
+                    return next;
+                  });
+                }
+              }}
+              className="border-border bg-background"
+            />
+            <FormFieldError error={validationErrors.date} />
+          </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="observationTimeMinutes">Observation Time (minutes)</Label>
+              <Input 
+                id="observationTimeMinutes"
+                type="number"
+                min="0"
+                max="1440"
+                placeholder="e.g., 30"
+                value={formData.observationTimeMinutes}
+                onChange={(e) => setFormData({...formData, observationTimeMinutes: e.target.value})}
                 className="border-border bg-background"
               />
+              <p className="text-xs text-muted-foreground">Time spent directly observing the student</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="duration">Duration (minutes)</Label>
+              <Label htmlFor="feedbackTimeMinutes">Feedback Time (minutes)</Label>
               <Input 
-                id="duration"
+                id="feedbackTimeMinutes"
                 type="number"
-                placeholder="e.g., 45"
-                value={formData.duration}
-                onChange={(e) => setFormData({...formData, duration: e.target.value})}
+                min="0"
+                max="1440"
+                placeholder="e.g., 15"
+                value={formData.feedbackTimeMinutes}
+                onChange={(e) => setFormData({...formData, feedbackTimeMinutes: e.target.value})}
                 className="border-border bg-background"
               />
+              <p className="text-xs text-muted-foreground">Time spent providing feedback and coaching</p>
             </div>
           </div>
 
@@ -206,6 +421,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                 </div>
               ))}
             </RadioGroup>
+            <FormFieldError error={validationErrors.oScore} />
           </div>
 
           <div className="space-y-4">
@@ -249,12 +465,16 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                 <Label htmlFor="technical">Technical Skills</Label>
                 <VoiceRecorder onTranscription={(text) => setFormData({...formData, technicalSkills: text})} />
               </div>
-              <Textarea
-                id="technical" 
-                placeholder="Describe technical competence, procedures, skills demonstrated..."
+              <SmartFeedbackField
                 value={formData.technicalSkills}
-                onChange={(e) => setFormData({...formData, technicalSkills: e.target.value})}
-                className="min-h-[80px] border-border bg-background"
+                onChange={(value) => setFormData({...formData, technicalSkills: value})}
+                placeholder="Describe technical competence, procedures, skills demonstrated..."
+                minHeight="80px"
+                className="border-border bg-background"
+                context={{
+                  encounterType: formData.activity,
+                }}
+                textareaProps={{ id: "technical" }}
               />
             </div>
 
@@ -263,12 +483,16 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                 <Label htmlFor="communication">Communication</Label>
                 <VoiceRecorder onTranscription={(text) => setFormData({...formData, communication: text})} />
               </div>
-              <Textarea
-                id="communication"
-                placeholder="Patient interaction, colleague communication, clarity..."
+              <SmartFeedbackField
                 value={formData.communication}
-                onChange={(e) => setFormData({...formData, communication: e.target.value})}
-                className="min-h-[80px] border-border bg-background"
+                onChange={(value) => setFormData({...formData, communication: value})}
+                placeholder="Patient interaction, colleague communication, clarity..."
+                minHeight="80px"
+                className="border-border bg-background"
+                context={{
+                  encounterType: formData.activity,
+                }}
+                textareaProps={{ id: "communication" }}
               />
             </div>
 
@@ -277,12 +501,16 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                 <Label htmlFor="professionalism">Professionalism</Label>
                 <VoiceRecorder onTranscription={(text) => setFormData({...formData, professionalism: text})} />
               </div>
-              <Textarea
-                id="professionalism"
-                placeholder="Professional behavior, ethics, patient respect..."
+              <SmartFeedbackField
                 value={formData.professionalism}
-                onChange={(e) => setFormData({...formData, professionalism: e.target.value})}
-                className="min-h-[80px] border-border bg-background"
+                onChange={(value) => setFormData({...formData, professionalism: value})}
+                placeholder="Professional behavior, ethics, patient respect..."
+                minHeight="80px"
+                className="border-border bg-background"
+                context={{
+                  encounterType: formData.activity,
+                }}
+                textareaProps={{ id: "professionalism" }}
               />
             </div>
 
@@ -291,12 +519,16 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                 <Label htmlFor="reasoning">Clinical Reasoning</Label>
                 <VoiceRecorder onTranscription={(text) => setFormData({...formData, clinicalReasoning: text})} />
               </div>
-              <Textarea
-                id="reasoning"
-                placeholder="Decision-making process, diagnostic thinking, problem-solving..."
+              <SmartFeedbackField
                 value={formData.clinicalReasoning}
-                onChange={(e) => setFormData({...formData, clinicalReasoning: e.target.value})}
-                className="min-h-[80px] border-border bg-background"
+                onChange={(value) => setFormData({...formData, clinicalReasoning: value})}
+                placeholder="Decision-making process, diagnostic thinking, problem-solving..."
+                minHeight="80px"
+                className="border-border bg-background"
+                context={{
+                  encounterType: formData.activity,
+                }}
+                textareaProps={{ id: "reasoning" }}
               />
             </div>
           </div>
@@ -306,13 +538,20 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
               <Label htmlFor="narrative">Overall Narrative</Label>
               <VoiceRecorder onTranscription={(text) => setFormData({...formData, narrative: text})} />
             </div>
-            <Textarea
-              id="narrative"
-              placeholder="Comprehensive description of performance, context, and specific examples..."
+            <SmartFeedbackField
               value={formData.narrative}
-              onChange={(e) => setFormData({...formData, narrative: e.target.value})}
-              className="min-h-[100px] border-border bg-background"
+              onChange={(value) => setFormData({...formData, narrative: value})}
+              placeholder="Comprehensive description of performance, context, and specific examples..."
+              minHeight="100px"
+              className={validationErrors.narrative ? 'border-destructive bg-background' : 'border-border bg-background'}
+              context={{
+                encounterType: formData.activity,
+              }}
+              textareaProps={{ id: "narrative" }}
             />
+            {validationErrors.narrative && (
+              <p className="text-sm text-destructive">{validationErrors.narrative}</p>
+            )}
           </div>
 
           <div className="space-y-4">
@@ -333,29 +572,54 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                   <Label htmlFor="response">Physician Associate Response to Feedback</Label>
                   <VoiceRecorder onTranscription={(text) => setFormData({...formData, associateResponse: text})} />
                 </div>
-                <Textarea
-                  id="response"
-                  placeholder="How did the physician associate respond to the feedback? Questions asked, understanding demonstrated..."
+                <SmartFeedbackField
                   value={formData.associateResponse}
-                  onChange={(e) => setFormData({...formData, associateResponse: e.target.value})}
-                  className="min-h-[60px] border-border bg-background"
+                  onChange={(value) => setFormData({...formData, associateResponse: value})}
+                  placeholder="How did the physician associate respond to the feedback? Questions asked, understanding demonstrated..."
+                  minHeight="60px"
+                  className="border-border bg-background"
+                  context={{
+                    encounterType: formData.activity,
+                  }}
+                  textareaProps={{ id: "response" }}
                 />
               </div>
             )}
           </div>
 
-          <div className="flex justify-end pt-4">
+          <div className="flex flex-col items-end gap-2 pt-4">
+            {/* Debug info - show why button is disabled */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="text-xs text-muted-foreground">
+                Debug: Activity={formData.activity ? '✓' : '✗'}, 
+                O-Score={formData.oScore ? '✓' : '✗'}, 
+                Narrative={formData.narrative?.trim() ? '✓' : '✗'}
+              </div>
+            )}
             <Button 
               onClick={handleSubmit}
               className="bg-gradient-primary hover:opacity-90"
-              disabled={!formData.activity || !formData.oScore || !formData.narrative}
+              disabled={
+                !formData.activity?.trim() || 
+                !formData.oScore?.trim() || 
+                !formData.narrative?.trim() || 
+                submitting
+              }
+              title={
+                !formData.activity?.trim() ? 'Activity is required' :
+                !formData.oScore?.trim() ? 'O-SCORE rating is required' :
+                !formData.narrative?.trim() ? 'Narrative feedback is required' :
+                submitting ? 'Submitting...' :
+                'Submit assessment'
+              }
             >
-              Submit Direct Observation
+              {submitting ? "Submitting..." : "Submit Direct Observation"}
             </Button>
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </SectionErrorBoundary>
   );
 };
 

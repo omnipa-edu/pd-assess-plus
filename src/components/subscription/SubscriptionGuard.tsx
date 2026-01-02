@@ -4,11 +4,14 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+
 import { Loader2, Lock } from 'lucide-react';
+import { Navigate, useLocation } from 'react-router-dom';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 import { getUserSubscription } from '@/lib/subscription';
 
 interface SubscriptionGuardProps {
@@ -66,7 +69,7 @@ export const SubscriptionGuard = ({
       const access = isActive && userPlanLevel >= requiredPlanLevel;
       setHasAccess(access);
     } catch (error) {
-      console.error('Error checking subscription:', error);
+      logger.error('Error checking subscription', error);
       setHasAccess(false);
     } finally {
       setChecking(false);

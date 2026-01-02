@@ -10,14 +10,25 @@ import { useAuth } from '@/hooks/useAuth';
 
 const Landing = () => {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading, hasRole, roles } = useAuth();
 
-  // Redirect authenticated users to their dashboard
+  // Redirect authenticated users to their dashboard based on role
   useEffect(() => {
-    if (!loading && user) {
-      navigate('/student'); // or role-based routing
+    if (!loading && user && roles.length > 0) {
+      // Only redirect once roles are loaded (roles.length > 0)
+      // Check roles in priority order: admin first, then supervisor, then student
+      if (hasRole('admin')) {
+        navigate('/admin');
+      } else if (hasRole('supervisor')) {
+        navigate('/supervisor');
+      } else if (hasRole('student')) {
+        navigate('/student');
+      } else {
+        // Default to dashboard if no recognized role detected
+        navigate('/dashboard');
+      }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, roles, hasRole, navigate]);
 
   const handleGetStarted = () => {
     navigate('/auth');

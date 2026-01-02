@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+
 import {
   Building2,
   Users,
@@ -14,14 +14,16 @@ import {
   TrendingUp,
   Activity
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
-import { DashboardGridSkeleton } from '@/components/ui/skeleton-loaders';
+import { Link , useNavigate } from 'react-router-dom';
+
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
+import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DashboardGridSkeleton } from '@/components/ui/skeleton-loaders';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+
 
 interface Stats {
   institutions: number;

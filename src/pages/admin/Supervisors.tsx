@@ -4,15 +4,17 @@
  */
 
 import { useEffect, useState } from 'react';
-import { ColumnDef } from '@tanstack/react-table';
+
+import { type ColumnDef } from '@tanstack/react-table';
 import { GraduationCap, Mail, Building2 } from 'lucide-react';
-import { AdminLayout } from '@/components/admin/AdminLayout';
-import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
-import { DataTable } from '@/components/admin/DataTable';
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
+
+import { AdminLayout } from '@/components/admin/AdminLayout';
+import { DataTable } from '@/components/admin/DataTable';
+import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Institution {
   id: string;
@@ -47,15 +49,31 @@ const Supervisors = () => {
 
   const loadSupervisors = async () => {
     try {
+      // First get all supervisor user IDs
+      const { data: supervisorRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'supervisor');
+
+      if (rolesError) throw rolesError;
+
+      const supervisorIds = (supervisorRoles || []).map(r => r.user_id);
+
+      if (supervisorIds.length === 0) {
+        setSupervisors([]);
+        setLoading(false);
+        return;
+      }
+
+      // Then fetch profiles for those supervisors
       const { data, error } = await supabase
         .from('profiles')
         .select(`
           *,
-          user_roles!inner(role),
           institutions(id, name),
           departments(id, name)
         `)
-        .eq('user_roles.role', 'supervisor')
+        .in('id', supervisorIds)
         .order('full_name');
 
       if (error) throw error;

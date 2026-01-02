@@ -1,6 +1,7 @@
-import { computeEpaReadiness, EpaObservation } from '@/lib/readiness/calc';
-import { DEFAULT_READINESS } from '@/lib/readiness/config';
 import { describe, it, expect } from 'vitest';
+
+import { computeEpaReadiness, type EpaObservation } from '@/lib/readiness/calc';
+import { DEFAULT_READINESS } from '@/lib/readiness/config';
 
 describe('computeEpaReadiness', () => {
   const now = new Date().toISOString();

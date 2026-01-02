@@ -116,7 +116,7 @@ export async function getPendingRoleRequests(): Promise<{
   try {
     const { data, error } = await supabase
       .from('role_requests')
-      .select('*')
+      .select('id, user_id, requested_role, justification, status, reviewed_by, reviewed_at, created_at')
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
 

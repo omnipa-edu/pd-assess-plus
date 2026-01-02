@@ -4,11 +4,14 @@
  */
 
 import { useEffect, useState } from 'react';
-import { ColumnDef } from '@tanstack/react-table';
+
+import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2, Plus, Building2 } from 'lucide-react';
+
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
 import { DataTable } from '@/components/admin/DataTable';
+import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -18,6 +21,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -25,9 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { writeAudit } from '@/lib/admin/audit';

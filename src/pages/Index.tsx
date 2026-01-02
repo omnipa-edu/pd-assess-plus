@@ -24,7 +24,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, hasRole, signOut, loading } = useAuth();
+  const { user, hasRole, signOut, loading, roles } = useAuth();
   const [currentView, setCurrentView] = useState<'dashboard' | 'new-assessment'>('dashboard');
   const [selectedAssessmentType, setSelectedAssessmentType] = useState<'epa-observation' | 'direct-observation' | 'narrative'>('epa-observation');
   const [showNewAssessment, setShowNewAssessment] = useState(false);
@@ -32,16 +32,22 @@ const Index = () => {
   useEffect(() => {
     if (!loading && !user) {
       navigate('/auth');
-    } else if (!loading && user) {
-      if (hasRole('student')) {
-        navigate('/student');
+    } else if (!loading && user && roles.length > 0) {
+      // Only redirect once roles are loaded (roles.length > 0)
+      // Check roles in priority order: admin first, then supervisor, then student
+      // Admin should have highest priority since they might have multiple roles
+      if (hasRole('admin')) {
+        navigate('/admin');
       } else if (hasRole('supervisor')) {
         navigate('/supervisor');
-      } else if (hasRole('admin')) {
-        navigate('/admin');
+      } else if (hasRole('student')) {
+        navigate('/student');
+      } else {
+        // If no recognized role detected, stay on dashboard
+        console.warn('User has no recognized role - staying on dashboard');
       }
     }
-  }, [user, loading, hasRole, navigate]);
+  }, [user, loading, roles, hasRole, navigate]);
 
   const handleSignOut = async () => {
     await signOut();

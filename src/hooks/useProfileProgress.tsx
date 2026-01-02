@@ -2,7 +2,9 @@
  * Hook for managing user onboarding and progress tracking
  */
 import { useState, useEffect } from 'react';
+
 import { supabase } from '@/integrations/supabase/client';
+
 import { useAuth } from './useAuth';
 
 interface ProfileProgress {
@@ -37,7 +39,7 @@ export const useProfileProgress = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('profile_progress')
-        .select('*')
+        .select('id, user_id, onboarding_dismissed, completed_tasks, first_login_at, onboarding_completed_at, dismissed_empty_states, created_at, updated_at')
         .eq('user_id', user?.id)
         .single();
 

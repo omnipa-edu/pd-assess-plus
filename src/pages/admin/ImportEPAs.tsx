@@ -4,12 +4,17 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { Upload, FileText, CheckCircle, AlertCircle, Download } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
@@ -17,15 +22,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { parseFile, ParseResult } from '@/lib/import/parsers/csv';
-import { validateImport, ValidationResult, DedupeChoice } from '@/lib/import/validation';
 import { commitEPAImport } from '@/lib/import/commit';
+import { parseFile, type ParseResult } from '@/lib/import/parsers/csv';
 import { TEMPLATE_DOWNLOADS } from '@/lib/import/templates';
+import { validateImport, type ValidationResult, type DedupeChoice } from '@/lib/import/validation';
 
 type Step = 'upload' | 'preview' | 'validate' | 'commit' | 'complete';
 

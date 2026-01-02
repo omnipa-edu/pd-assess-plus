@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 type Row = {
   learnerName: string;
@@ -18,7 +19,7 @@ const ReadinessAdmin = () => {
   }, []);
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="space-y-4 p-6">
       <h1 className="text-2xl font-semibold">Learner Readiness</h1>
       <Card>
         <CardHeader>
@@ -30,7 +31,7 @@ const ReadinessAdmin = () => {
           ) : (
             <div className="space-y-3">
               {rows.map((r) => (
-                <div key={r.learnerName} className="flex items-center justify-between border rounded-md p-3">
+                <div key={r.learnerName} className="flex items-center justify-between rounded-md border p-3">
                   <div className="space-y-1">
                     <div className="font-medium">{r.learnerName}</div>
                     <div className="text-xs text-muted-foreground">

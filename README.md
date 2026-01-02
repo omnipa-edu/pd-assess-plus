@@ -61,6 +61,18 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase (Database & Auth)
+
+## 📚 Documentation
+
+Comprehensive documentation is available in the [`docs/`](./docs/) directory:
+
+- **[Documentation Index](./docs/README.md)** - Complete documentation overview
+- **[Quick Start Guide](./docs/guides/QUICK_START.md)** - Get started quickly
+- **[Admin Console Guide](./docs/guides/ADMIN_CONSOLE_README.md)** - Complete admin documentation
+- **[Setup Guides](./docs/setup/)** - Environment and onboarding setup
+- **[Feature Documentation](./docs/features/)** - Detailed feature implementations
+- **[Developer Guides](./docs/guides/)** - Testing, deployment, and best practices
 
 ## How can I deploy this project?
 

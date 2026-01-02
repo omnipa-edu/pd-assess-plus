@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { 
   ClipboardList, 
@@ -11,35 +11,170 @@ import {
   FileText,
   CheckCircle,
   LogOut,
-  AlertTriangle
+  AlertTriangle,
+  UserCircle
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import AssessmentDashboard from "@/components/AssessmentDashboard";
+import { AchievementDisplay } from "@/components/achievements/AchievementDisplay";
+import { SupervisorBenchmarkView } from "@/components/benchmarks/SupervisorBenchmarkView";
+import { CMESummaryCard } from "@/components/cme/CMESummaryCard";
+import { CoachingCornerFeed } from "@/components/coaching/CoachingCornerFeed";
+import { GoalsDisplay } from "@/components/goals/GoalsDisplay";
+import { StreakDisplay } from "@/components/gamification/StreakDisplay";
 import NewAssessmentDialog from "@/components/NewAssessmentDialog";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
-import { CoachingCornerCard } from "@/components/coaching/CoachingCornerCard";
-import { DashboardGridSkeleton } from "@/components/ui/skeleton-loaders";
+import { FloatingActionButton } from "@/components/quick-actions/FloatingActionButton";
+import { SupervisorPersonalizedView } from "@/components/personalization/SupervisorPersonalizedView";
+import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
+import { TeachingStatisticsCard } from "@/components/teaching/TeachingStatisticsCard";
+import { AddWidgetsDrawer } from "@/components/dashboard/AddWidgetsDrawer";
+import { DashboardEditControls } from "@/components/dashboard/DashboardEditControls";
+import { DashboardGrid } from "@/components/dashboard/DashboardGrid";
+import { DashboardCustomizeSidebar } from "@/components/dashboard/DashboardCustomizeSidebar";
+import { CustomWidgetRenderer } from "@/components/dashboard/CustomWidgetRenderer";
+import { renderWidget } from "@/components/dashboard/widgets/registry";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { DashboardGridSkeleton } from "@/components/ui/skeleton-loaders";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { usePrimaryCoachingItem, useDismissCoaching } from "@/hooks/useCoachingCorner";
+import { useDashboardLayout } from "@/hooks/useDashboardLayout";
+import { supabase } from "@/integrations/supabase/client";
+import type { WidgetId } from "@/lib/dashboard/types";
 
 const SupervisorDashboard = () => {
   const navigate = useNavigate();
-  const { signOut, hasRole, loading } = useAuth();
+  const { toast } = useToast();
+  const { signOut, hasRole, loading, profile, user } = useAuth();
   const [currentView, setCurrentView] = useState<'dashboard' | 'new-assessment'>('dashboard');
   const [selectedAssessmentType, setSelectedAssessmentType] = useState<'epa-observation' | 'direct-observation' | 'narrative'>('epa-observation');
   const [showNewAssessment, setShowNewAssessment] = useState(false);
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    full_name: profile?.full_name || '',
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
   
-  // Coaching corner
-  const { item: coachingItem } = usePrimaryCoachingItem();
-  const dismissCoaching = useDismissCoaching();
+  // Dashboard layout customization
+  const dashboardLayout = useDashboardLayout({
+    dashboardType: 'supervisor',
+    userId: user?.id || '',
+  });
+  
+  // Update form when profile changes
+  useEffect(() => {
+    if (profile) {
+      setProfileForm({
+        full_name: profile.full_name || '',
+      });
+    }
+  }, [profile]);
+  
+  const handleSaveProfile = async () => {
+    if (!profile) return;
+    
+    setSavingProfile(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ full_name: profileForm.full_name })
+        .eq('id', profile.id);
+      
+      if (error) throw error;
+      
+      setShowProfileDialog(false);
+      
+      // Show success message - profile will be refreshed on next page load or auth state change
+      // The useAuth hook will automatically refetch profile data when auth state changes
+      toast({
+        title: 'Profile updated',
+        description: 'Your profile has been updated successfully.',
+      });
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update profile. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
+  };
+
+  // Handle saving layout
+  const handleSaveLayout = async () => {
+    try {
+      await dashboardLayout.saveLayout();
+      toast({
+        title: 'Dashboard saved',
+        description: 'Your dashboard layout has been saved successfully.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to save dashboard layout.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Render widget function that handles both registry and custom widgets
+  const renderWidgetContent = (widgetId: WidgetId, isCollapsed: boolean) => {
+    // Check if it's a custom widget that needs special handling
+    if (widgetId === 'statistics_grid') {
+      return (
+        <CustomWidgetRenderer
+          widgetId={widgetId}
+          isCollapsed={isCollapsed}
+          stats={stats}
+        />
+      );
+    }
+
+    // Special handling for OnboardingChecklist (needs onTaskClick)
+    if (widgetId === 'onboarding_checklist') {
+      if (isCollapsed) return null;
+      return (
+        <OnboardingChecklist
+          className=""
+          onTaskClick={(taskId) => {
+            if (taskId === 'create_first_assessment') {
+              setShowNewAssessment(true);
+            } else if (taskId === 'add_student') {
+              navigate('/supervisor/students');
+            } else if (taskId === 'complete_profile') {
+              setShowProfileDialog(true);
+            } else if (taskId === 'explore_analytics') {
+              toast({
+                title: 'Analytics Dashboard',
+                description: 'Analytics dashboard is coming soon. You can view assessment statistics in the Recent Assessments section.',
+              });
+            }
+          }}
+        />
+      );
+    }
+
+    // Use registry for standard widgets
+    return renderWidget(widgetId, {
+      widgetId,
+      isCollapsed,
+      onToggleCollapse: () => dashboardLayout.toggleWidgetCollapse(widgetId),
+      className: '',
+    });
   };
 
   // Check if user has supervisor role
@@ -160,22 +295,44 @@ const SupervisorDashboard = () => {
               </div>
             </div>
             <div className="flex items-center gap-2 md:gap-4">
-              <Button 
-                variant="outline"
-                onClick={() => navigate('/supervisor/students')}
-                size="sm"
-              >
-                <Users className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">My Students</span>
-              </Button>
-              <Button 
-                onClick={() => setShowNewAssessment(true)}
-                className="bg-gradient-primary shadow-assessment hover:opacity-90"
-                size="sm"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">New</span> Assessment
-              </Button>
+              {!dashboardLayout.isEditing && <NotificationCenter />}
+              <DashboardEditControls
+                isEditing={dashboardLayout.isEditing}
+                hasUnsavedChanges={dashboardLayout.hasUnsavedChanges}
+                isSaving={dashboardLayout.isSaving}
+                onStartEditing={dashboardLayout.startEditing}
+                onCancel={dashboardLayout.cancelEditing}
+                onSave={handleSaveLayout}
+                onReset={dashboardLayout.resetToDefault}
+              />
+              {!dashboardLayout.isEditing && (
+                <>
+                  <Button 
+                    variant="outline"
+                    onClick={() => navigate('/supervisor/students')}
+                    size="sm"
+                  >
+                    <Users className="mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">My Students</span>
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setShowProfileDialog(true)}
+                    size="sm"
+                  >
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">Profile</span>
+                  </Button>
+                  <Button 
+                    onClick={() => setShowNewAssessment(true)}
+                    className="bg-gradient-primary shadow-assessment hover:opacity-90"
+                    size="sm"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">New</span> Assessment
+                  </Button>
+                </>
+              )}
               <Button variant="outline" onClick={handleSignOut} size="sm">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span className="hidden md:inline">Sign Out</span>
@@ -186,46 +343,48 @@ const SupervisorDashboard = () => {
       </header>
 
       <main className="container mx-auto px-6 py-8">
-        {/* Onboarding Checklist */}
-        <div className="mb-8">
-          <OnboardingChecklist 
-            onTaskClick={(taskId) => {
-              if (taskId === 'create_first_assessment') {
-                setShowNewAssessment(true);
-              } else if (taskId === 'add_student') {
-                navigate('/supervisor/students');
-              }
-            }}
-          />
-        </div>
+        {/* Dashboard Customization Sidebar */}
+        <DashboardCustomizeSidebar
+          open={dashboardLayout.isEditing}
+          onOpenChange={(open) => {
+            if (!open) {
+              dashboardLayout.cancelEditing();
+            } else {
+              dashboardLayout.startEditing();
+            }
+          }}
+          widgets={dashboardLayout.layout.widgets}
+          onReorder={dashboardLayout.moveWidget}
+          onRemove={dashboardLayout.toggleWidgetVisibility}
+          onToggleVisibility={dashboardLayout.toggleWidgetVisibility}
+          onToggleCollapse={dashboardLayout.toggleWidgetCollapse}
+          onSetDefaultCollapsed={dashboardLayout.setDefaultCollapsed}
+          onSetSizePreset={dashboardLayout.setWidgetSizePreset}
+          onAddWidget={dashboardLayout.addWidget}
+          onSave={handleSaveLayout}
+          onCancel={dashboardLayout.cancelEditing}
+          onReset={dashboardLayout.resetToDefault}
+          hasUnsavedChanges={dashboardLayout.hasUnsavedChanges}
+          isSaving={dashboardLayout.isSaving}
+          dashboardType="supervisor"
+          aiSuggestions={dashboardLayout.aiSuggestions}
+          onApplyAISuggestion={dashboardLayout.applyAISuggestion}
+        />
 
-        {/* Coaching Corner */}
-        <div className="mb-8">
-          <CoachingCornerCard 
-            item={coachingItem}
-            onDismiss={(id) => dismissCoaching.mutate(id)}
+        {/* Dashboard Grid with Customizable Layout */}
+        {dashboardLayout.isLoading ? (
+          <DashboardGridSkeleton cards={4} />
+        ) : (
+          <DashboardGrid
+            widgets={dashboardLayout.visibleWidgets}
+            isEditing={dashboardLayout.isEditing}
+            renderWidget={renderWidgetContent}
+            onReorder={dashboardLayout.moveWidget}
+            onRemove={dashboardLayout.toggleWidgetVisibility}
+            onToggleCollapse={dashboardLayout.toggleWidgetCollapse}
+            onSetDefaultCollapsed={dashboardLayout.setDefaultCollapsed}
           />
-        </div>
-
-        {/* Statistics Grid */}
-        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat, index) => (
-            <Card key={index} className="border-0 bg-gradient-card shadow-card transition-all duration-300 hover:shadow-elevated">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                    <p className="mt-1 text-3xl font-bold text-foreground">{stat.value}</p>
-                    <p className="mt-1 text-xs text-success">{stat.change}</p>
-                  </div>
-                  <div className={`rounded-lg bg-primary-light p-3 ${stat.color}`}>
-                    <stat.icon className="h-6 w-6" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        )}
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -351,6 +510,58 @@ const SupervisorDashboard = () => {
           setCurrentView('new-assessment');
         }}
       />
+      
+      {/* Profile Edit Dialog */}
+      <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+            <DialogDescription>
+              Update your profile information
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="full_name">Full Name</Label>
+              <Input
+                id="full_name"
+                value={profileForm.full_name}
+                onChange={(e) => setProfileForm({ ...profileForm, full_name: e.target.value })}
+                placeholder="Enter your full name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input
+                value={profile?.email || ''}
+                disabled
+                className="bg-muted"
+              />
+              <p className="text-xs text-muted-foreground">
+                Email cannot be changed. Contact your administrator if you need to update it.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowProfileDialog(false)}
+              disabled={savingProfile}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveProfile}
+              disabled={savingProfile}
+            >
+              {savingProfile ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Floating Action Button */}
+        <FloatingActionButton />
     </div>
   );
 };

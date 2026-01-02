@@ -4,11 +4,13 @@
  */
 
 import { useEffect, useState } from 'react';
-import { ColumnDef } from '@tanstack/react-table';
+
+import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2, Plus } from 'lucide-react';
+
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
 import { DataTable } from '@/components/admin/DataTable';
+import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -63,7 +65,7 @@ const Institutions = () => {
     try {
       const { data, error } = await supabase
         .from('institutions')
-        .select('*')
+        .select('id, name, created_at, updated_at')
         .order('name');
 
       if (error) throw error;

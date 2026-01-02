@@ -3,12 +3,15 @@
  * Enhanced user management for admin console
  */
 
-import { useEffect, useState } from 'react';
-import { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2, Plus, Shield, User } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
+
+import { type ColumnDef } from '@tanstack/react-table';
+import { Edit, Trash2, Plus, Shield, User, KeyRound, Loader2 } from 'lucide-react';
+
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
 import { DataTable } from '@/components/admin/DataTable';
+import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -18,6 +21,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -25,9 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { writeAudit } from '@/lib/admin/audit';
@@ -67,6 +69,9 @@ const Users = () => {
   const [filterRole, setFilterRole] = useState<string>('all');
   const [filterInstitution, setFilterInstitution] = useState<string>('all');
   const [saving, setSaving] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [resettingUser, setResettingUser] = useState<UserProfile | null>(null);
+  const [sendingReset, setSendingReset] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -78,7 +83,7 @@ const Users = () => {
       const [usersResponse, rolesResponse, institutionsResponse, departmentsResponse] = await Promise.all([
         supabase
           .from('profiles')
-          .select('*')
+          .select('id, email, full_name, student_id, program, year_of_training, institution_id, department_id, created_at')
           .order('created_at', { ascending: false }),
         supabase
           .from('user_roles')
@@ -111,9 +116,22 @@ const Users = () => {
       }
 
       // Create a map of user roles for quick lookup
+      // If a user has multiple roles, prioritize: admin > supervisor > student
       const rolesMap = new Map<string, string>();
       (rolesResponse.data || []).forEach((roleRecord: any) => {
-        rolesMap.set(roleRecord.user_id, roleRecord.role);
+        const userId = roleRecord.user_id;
+        const role = roleRecord.role;
+        const existingRole = rolesMap.get(userId);
+        
+        // Priority: admin > supervisor > student
+        if (!existingRole) {
+          rolesMap.set(userId, role);
+        } else {
+          const priority: Record<string, number> = { admin: 3, supervisor: 2, student: 1 };
+          if (priority[role] > priority[existingRole]) {
+            rolesMap.set(userId, role);
+          }
+        }
       });
 
       // Transform user data
@@ -155,6 +173,18 @@ const Users = () => {
     }
   };
 
+  // Memoize role counts to avoid repeated filtering (optimized)
+  const roleCounts = useMemo(() => {
+    return users.reduce((acc, u) => {
+      acc[u.role] = (acc[u.role] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [users]);
+
+  const adminCount = roleCounts.admin || 0;
+  const supervisorCount = roleCounts.supervisor || 0;
+  const studentCount = roleCounts.student || 0;
+
   const handleEdit = (user: UserProfile) => {
     setEditingUser(user);
     setDialogOpen(true);
@@ -166,15 +196,29 @@ const Users = () => {
   };
 
   const handleSaveRole = async (userId: string, newRole: 'student' | 'supervisor' | 'admin') => {
-    setSaving(true);
     try {
-      // Update role
-      const { error: roleError } = await supabase
+      // Get current roles
+      const { data: currentRoles } = await supabase
         .from('user_roles')
-        .update({ role: newRole })
+        .select('role')
         .eq('user_id', userId);
 
-      if (roleError) throw roleError;
+      const oldRole = currentRoles?.[0]?.role;
+
+      // Delete all existing roles for this user
+      const { error: deleteError } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
+
+      if (deleteError) throw deleteError;
+
+      // Insert the new role
+      const { error: insertError } = await supabase
+        .from('user_roles')
+        .insert({ user_id: userId, role: newRole });
+
+      if (insertError) throw insertError;
 
       // Find old role for audit
       const oldUser = users.find(u => u.id === userId);
@@ -190,22 +234,11 @@ const Users = () => {
         },
       });
 
-      toast({
-        title: 'Success',
-        description: 'User role updated successfully',
-      });
-
-      setDialogOpen(false);
-      loadData();
+      // Don't show toast here - will show after both saves complete
+      // Don't close dialog yet - wait for assignments to be saved too
     } catch (error: any) {
       console.error('Error updating role:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update user role',
-        variant: 'destructive',
-      });
-    } finally {
-      setSaving(false);
+      throw error; // Re-throw so caller can handle
     }
   };
 
@@ -216,15 +249,73 @@ const Users = () => {
   ) => {
     setSaving(true);
     try {
-      const { error } = await supabase
+      // Ensure empty strings are converted to null
+      const cleanInstitutionId = institutionId && institutionId.trim() !== '' && institutionId !== 'none' 
+        ? institutionId 
+        : null;
+      const cleanDepartmentId = departmentId && departmentId.trim() !== '' && departmentId !== 'none'
+        ? departmentId
+        : null;
+
+      console.log('Saving assignments:', { userId, cleanInstitutionId, cleanDepartmentId });
+
+      // Check current user's role for debugging
+      const { data: currentUser } = await supabase.auth.getUser();
+      if (currentUser?.user) {
+        const { data: userRoles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', currentUser.user.id);
+        console.log('Current user ID:', currentUser.user.id);
+        console.log('Current user roles:', userRoles);
+        
+        const isAdmin = userRoles?.some(r => r.role === 'admin');
+        console.log('Is admin (from user_roles):', isAdmin);
+        
+        if (!isAdmin) {
+          console.error('ERROR: Current user does not have admin role!');
+          throw new Error('You must have admin role to update user assignments. Please contact your administrator.');
+        }
+      }
+
+      const { error, data } = await supabase
         .from('profiles')
         .update({
-          institution_id: institutionId || null,
-          department_id: departmentId || null,
+          institution_id: cleanInstitutionId,
+          department_id: cleanDepartmentId,
         })
-        .eq('id', userId);
+        .eq('id', userId)
+        .select('id, institution_id, department_id');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
+        throw error;
+      }
+
+      console.log('Update result:', data);
+      
+      // If update returned empty array, it might be an RLS issue
+      if (!data || data.length === 0) {
+        console.warn('Update returned empty array - possible RLS issue. Checking if update actually succeeded...');
+        // Try to fetch the profile to verify
+        const { data: verifyData, error: verifyError } = await supabase
+          .from('profiles')
+          .select('id, institution_id, department_id')
+          .eq('id', userId)
+          .single();
+        
+        if (verifyError) {
+          console.error('Verify fetch error:', verifyError);
+        } else {
+          console.log('Verified profile after update:', verifyData);
+          // Check if values match
+          if (verifyData.institution_id !== cleanInstitutionId || verifyData.department_id !== cleanDepartmentId) {
+            console.error('Update did not persist! RLS may be blocking the update.');
+            throw new Error('Update was blocked by security policy. Please ensure you have admin role and the RLS policy allows admin updates.');
+          }
+        }
+      }
 
       const oldUser = users.find(u => u.id === userId);
 
@@ -239,19 +330,21 @@ const Users = () => {
             department_id: oldUser?.department_id,
           },
           after: {
-            institution_id: institutionId,
-            department_id: departmentId,
+            institution_id: cleanInstitutionId,
+            department_id: cleanDepartmentId,
           },
         },
       });
 
+      // Reload data to refresh the table with updated institution/department info
+      await loadData();
+
       toast({
         title: 'Success',
-        description: 'User assignments updated successfully',
+        description: 'User role and assignments updated successfully',
       });
 
       setDialogOpen(false);
-      loadData();
     } catch (error: any) {
       console.error('Error updating assignments:', error);
       toast({
@@ -264,12 +357,88 @@ const Users = () => {
     }
   };
 
+  const handleSendPasswordReset = (user: UserProfile) => {
+    setResettingUser(user);
+    setResetDialogOpen(true);
+  };
+
+  const confirmSendPasswordReset = async () => {
+    if (!resettingUser) return;
+
+    setSendingReset(true);
+    try {
+      // Call the RPC function to create audit log and trigger reset
+      const { data, error } = await supabase.rpc('admin_send_password_reset', {
+        p_target_user_id: resettingUser.id,
+        p_reason: 'Admin-initiated password reset'
+      });
+
+      if (error) throw error;
+
+      // The RPC function creates the audit log, but we still need to actually send the email
+      // Using Supabase client-side reset (this will work if admin has service role access)
+      // For production, this should be done via Edge Function with Admin API
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        resettingUser.email,
+        {
+          redirectTo: `${window.location.origin}/auth/update-password`
+        }
+      );
+
+      if (resetError) {
+        // Update audit log status to failed
+        await supabase
+          .from('password_reset_audit')
+          .update({ 
+            status: 'failed',
+            error_message: resetError.message 
+          })
+          .eq('target_user_id', resettingUser.id)
+          .order('triggered_at', { ascending: false })
+          .limit(1);
+
+        throw resetError;
+      }
+
+      // Also log to main audit_log
+      await writeAudit({
+        action: 'update',
+        entity: 'password_reset',
+        entityId: resettingUser.id,
+        diff: {
+          before: { status: 'active' },
+          after: { status: 'reset_requested' }
+        },
+        metadata: {
+          target_email: resettingUser.email,
+          method: 'admin_triggered'
+        }
+      });
+
+      toast({
+        title: 'Password reset email sent',
+        description: `Password reset email sent to ${resettingUser.email} (if this user has an active account).`,
+      });
+
+      setResetDialogOpen(false);
+      setResettingUser(null);
+    } catch (error: any) {
+      console.error('Error sending password reset:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to send password reset email',
+        variant: 'destructive',
+      });
+    } finally {
+      setSendingReset(false);
+    }
+  };
+
   const confirmDelete = async () => {
     if (!deletingUser) return;
 
     // Prevent deleting the last admin
     if (deletingUser.role === 'admin') {
-      const adminCount = users.filter(u => u.role === 'admin').length;
       if (adminCount <= 1) {
         toast({
           title: 'Cannot Delete',
@@ -410,18 +579,28 @@ const Users = () => {
             variant="ghost"
             size="sm"
             onClick={() => handleEdit(row.original)}
+            title="Edit user"
           >
             <Edit className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
+            onClick={() => handleSendPasswordReset(row.original)}
+            title="Send password reset email"
+          >
+            <KeyRound className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => handleDelete(row.original)}
-            disabled={row.original.role === 'admin' && users.filter(u => u.role === 'admin').length <= 1}
+            disabled={row.original.role === 'admin' && adminCount <= 1}
+            title="Delete user"
           >
             <Trash2
               className={`h-4 w-4 ${
-                row.original.role === 'admin' && users.filter(u => u.role === 'admin').length <= 1
+                row.original.role === 'admin' && adminCount <= 1
                   ? 'text-muted-foreground'
                   : 'text-destructive'
               }`}
@@ -454,19 +633,19 @@ const Users = () => {
             </div>
             <div className="rounded-lg border bg-card p-4">
               <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-                {users.filter(u => u.role === 'admin').length}
+                {adminCount}
               </div>
               <p className="text-sm text-muted-foreground">Admins</p>
             </div>
             <div className="rounded-lg border bg-card p-4">
               <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {users.filter(u => u.role === 'supervisor').length}
+                {supervisorCount}
               </div>
               <p className="text-sm text-muted-foreground">Supervisors</p>
             </div>
             <div className="rounded-lg border bg-card p-4">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {users.filter(u => u.role === 'student').length}
+                {studentCount}
               </div>
               <p className="text-sm text-muted-foreground">Students</p>
             </div>
@@ -631,16 +810,70 @@ const Users = () => {
               <Button
                 onClick={async () => {
                   if (!editingUser) return;
-                  await handleSaveRole(editingUser.id, editingUser.role);
-                  await handleSaveAssignments(
-                    editingUser.id,
-                    editingUser.institution_id,
-                    editingUser.department_id
-                  );
+                  setSaving(true);
+                  try {
+                    // Save role first
+                    await handleSaveRole(editingUser.id, editingUser.role);
+                    // Then save institution/department assignments
+                    await handleSaveAssignments(
+                      editingUser.id,
+                      editingUser.institution_id,
+                      editingUser.department_id
+                    );
+                    // handleSaveAssignments already calls loadData() and closes dialog
+                  } catch (error: any) {
+                    console.error('Error saving user:', error);
+                    toast({
+                      title: 'Error',
+                      description: error.message || 'Failed to save user changes',
+                      variant: 'destructive',
+                    });
+                    setSaving(false);
+                  }
                 }}
                 disabled={saving}
               >
                 {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Password Reset Confirmation Dialog */}
+        <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Send Password Reset Email</DialogTitle>
+              <DialogDescription>
+                Send a password reset email to <strong>{resettingUser?.email}</strong>? They will receive instructions at this address.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setResetDialogOpen(false);
+                  setResettingUser(null);
+                }}
+                disabled={sendingReset}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={confirmSendPasswordReset}
+                disabled={sendingReset}
+              >
+                {sendingReset ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <KeyRound className="mr-2 h-4 w-4" />
+                    Send Reset Email
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -652,7 +885,7 @@ const Users = () => {
             <DialogHeader>
               <DialogTitle>Delete User</DialogTitle>
               <DialogDescription>
-                {deletingUser?.role === 'admin' && users.filter(u => u.role === 'admin').length <= 1 ? (
+                {deletingUser?.role === 'admin' && adminCount <= 1 ? (
                   <>
                     Cannot delete "{deletingUser?.email}" because they are the last admin user.
                   </>
@@ -669,7 +902,7 @@ const Users = () => {
                   ? 'Close'
                   : 'Cancel'}
               </Button>
-              {!(deletingUser?.role === 'admin' && users.filter(u => u.role === 'admin').length <= 1) && (
+              {!(deletingUser?.role === 'admin' && adminCount <= 1) && (
                 <Button variant="destructive" onClick={confirmDelete}>
                   Delete
                 </Button>

@@ -14,6 +14,11 @@ VITE_STRIPE_PRICE_PRO=price_your_pro_price_id
 
 # App Configuration
 VITE_APP_URL=http://localhost:8080
+
+# Smart Feedback Assistant (optional)
+# Set to 'false' or '0' to disable the Smart Feedback Assistant feature
+# Defaults to enabled if not set
+VITE_ENABLE_SMART_FEEDBACK_ASSISTANT=true
 ```
 
 ---

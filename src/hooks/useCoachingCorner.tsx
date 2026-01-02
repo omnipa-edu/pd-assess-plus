@@ -3,7 +3,10 @@
  * Fetch and manage coaching corner content
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
 import { supabase } from '@/integrations/supabase/client';
+import { getAdaptiveCoachingItem } from '@/lib/adaptive-coaching';
+
 import { useAuth } from './useAuth';
 
 export interface CoachingItem {
@@ -15,12 +18,14 @@ export interface CoachingItem {
   content_type: 'text' | 'youtube' | 'instagram';
   body?: string;
   video_url?: string;
-  start_at?: string;
-  end_at?: string;
+  tags?: string[] | null;
+  priority?: number | null;
+  start_at?: string | null;
+  end_at?: string | null;
   pinned: boolean;
   is_active: boolean;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 /**
@@ -36,23 +41,21 @@ export function useCoachingCorner() {
       
       const now = new Date().toISOString();
       
-      // Determine audience filter based on user role
-      let audienceFilter: string[] = ['all'];
+      // Determine allowed audiences based on user role
+      const allowedAudiences = new Set<string>(['all']);
       if (roles.includes('supervisor')) {
-        audienceFilter.push('supervisors');
+        allowedAudiences.add('supervisors');
       }
       if (roles.includes('student')) {
-        audienceFilter.push('learners');
+        allowedAudiences.add('learners');
       }
       
       // Fetch active coaching items
+      // Note: Filter date range and audience in JavaScript to avoid PostgREST query syntax issues
       const { data, error } = await supabase
         .from('coaching_corner')
-        .select('*')
+        .select('id, title, body, content_type, video_url, tags, priority, pinned, created_at, start_at, end_at, audience, is_active')
         .eq('is_active', true)
-        .in('audience', audienceFilter)
-        .or(`start_at.is.null,start_at.lte.${now}`)
-        .or(`end_at.is.null,end_at.gte.${now}`)
         .order('pinned', { ascending: false })
         .order('start_at', { ascending: false });
       
@@ -60,6 +63,15 @@ export function useCoachingCorner() {
         console.error('Error fetching coaching corner:', error);
         throw error;
       }
+      
+      // Filter by date range and audience: (start_at IS NULL OR start_at <= now) AND (end_at IS NULL OR end_at >= now)
+      // AND (audience === 'all' OR audience is in allowedAudiences)
+      const dateFiltered = (data || []).filter((item: any) => {
+        const startValid = !item.start_at || new Date(item.start_at) <= new Date(now);
+        const endValid = !item.end_at || new Date(item.end_at) >= new Date(now);
+        const audienceValid = allowedAudiences.has(item.audience);
+        return startValid && endValid && audienceValid;
+      });
       
       // Fetch dismissed items for this user
       const { data: dismissedData } = await supabase
@@ -70,7 +82,7 @@ export function useCoachingCorner() {
       const dismissedIds = new Set((dismissedData || []).map(d => d.coaching_id));
       
       // Filter out dismissed items
-      const filtered = (data || []).filter(item => !dismissedIds.has(item.id));
+      const filtered = dateFiltered.filter(item => !dismissedIds.has(item.id));
       
       return filtered as CoachingItem[];
     },
@@ -90,26 +102,40 @@ export function useCoachingCornerList() {
     queryFn: async () => {
       if (!user) return [];
       
-      let query = supabase
-        .from('coaching_corner')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      // Supervisors see only their own items
-      if (!hasRole('admin')) {
-        query = query.eq('created_by', user.id);
+      try {
+        // Build query step by step
+        let query = supabase
+          .from('coaching_corner')
+          .select('*');
+        
+        // Supervisors see only their own items
+        if (!hasRole('admin')) {
+          query = query.eq('created_by', user.id);
+        }
+        
+        // Order by created_at descending
+        query = query.order('created_at', { ascending: false });
+        
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error('Error fetching coaching list:', error);
+          console.error('Error details:', JSON.stringify(error, null, 2));
+          console.error('Error code:', error.code);
+          console.error('Error message:', error.message);
+          console.error('Error hint:', error.hint);
+          throw error;
+        }
+        
+        return (data || []) as CoachingItem[];
+      } catch (error: any) {
+        console.error('Exception in useCoachingCornerList:', error);
+        // Return empty array on error to prevent UI breakage
+        return [];
       }
-      
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error('Error fetching coaching list:', error);
-        throw error;
-      }
-      
-      return (data || []) as CoachingItem[];
     },
     enabled: !!user && (hasRole('admin') || hasRole('supervisor')),
+    retry: 1,
   });
 }
 
@@ -213,55 +239,52 @@ export function useDismissCoaching() {
 }
 
 /**
- * Simple hash function for deterministic selection
- * Strategy: Time-based rotation - one item per day per role
- */
-function simpleHash(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  return Math.abs(hash);
-}
-
-/**
- * Get primary (pinned or time-rotated) coaching item
- * Rotation Strategy: Deterministic selection based on current date + role
- * - Pinned items always appear first
- * - Otherwise, uses hash(date + role) mod feed.length to pick one item per day
+ * Get adaptive coaching item based on WBA activity
+ * Uses rule-based selection engine to match content to user's recent activity
  */
 export function usePrimaryCoachingItem() {
-  const { data: items, ...rest } = useCoachingCorner();
-  const { roles } = useAuth();
+  const { user, roles } = useAuth();
   
-  if (!items || items.length === 0) {
-    return {
-      item: null,
-      ...rest,
-    };
-  }
+  // Determine role and audience
+  const isSupervisor = roles.includes('supervisor');
+  const isLearner = roles.includes('student');
+  const role: 'learner' | 'supervisor' = isSupervisor ? 'supervisor' : 'learner';
+  const audience: 'learners' | 'supervisors' | 'all' = isLearner ? 'learners' : isSupervisor ? 'supervisors' : 'all';
   
-  // Pinned items always take priority
-  const pinnedItem = items.find(item => item.pinned);
-  if (pinnedItem) {
-    return {
-      item: pinnedItem,
-      ...rest,
-    };
-  }
-  
-  // Time-based rotation: use current date (YYYY-MM-DD) + role to pick deterministically
-  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-  const role = roles.includes('supervisor') ? 'supervisor' : 'learner';
-  const seed = `${today}-${role}`;
-  const index = simpleHash(seed) % items.length;
-  const primaryItem = items[index] || items[0];
-  
-  return {
-    item: primaryItem,
-    ...rest,
-  };
+  return useQuery({
+    queryKey: ['adaptive-coaching', user?.id, role],
+    queryFn: async () => {
+      if (!user) return null;
+      
+      try {
+        const item = await getAdaptiveCoachingItem(user.id, role, audience);
+        
+        // Convert to CoachingItem format
+        if (!item) return null;
+        
+        return {
+          id: item.id,
+          created_by: '', // Not needed for display
+          role_scope: 'admin' as const, // Not used in display
+          audience: audience,
+          title: item.title,
+          content_type: item.content_type,
+          body: item.body || undefined,
+          video_url: item.video_url || undefined,
+          start_at: undefined,
+          end_at: undefined,
+          pinned: item.pinned,
+          is_active: true,
+          created_at: item.created_at,
+          updated_at: item.created_at,
+        } as CoachingItem;
+      } catch (error) {
+        console.error('Error getting adaptive coaching item:', error);
+        return null;
+      }
+    },
+    enabled: !!user && (isSupervisor || isLearner),
+    staleTime: 60 * 60 * 1000, // 1 hour (adaptive selection changes daily)
+  });
 }
 

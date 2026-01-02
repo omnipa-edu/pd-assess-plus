@@ -4,12 +4,16 @@
  */
 
 import { useEffect, useState } from 'react';
-import { ColumnDef } from '@tanstack/react-table';
+
+import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2, Plus, Archive, CheckCircle2 } from 'lucide-react';
+
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
 import { DataTable } from '@/components/admin/DataTable';
+import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +22,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -25,11 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { writeAudit } from '@/lib/admin/audit';
@@ -622,7 +624,7 @@ const EPAs = () => {
 
         {/* Create/Edit Dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingEPA ? 'Edit EPA' : 'Create EPA'}</DialogTitle>
               <DialogDescription>

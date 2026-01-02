@@ -4,11 +4,15 @@
  */
 
 import { useEffect, useState } from 'react';
-import { ColumnDef } from '@tanstack/react-table';
+
+import { type ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
 import { Edit, Trash2, Plus, Tag, Copy, Sparkles } from 'lucide-react';
+
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
 import { DataTable } from '@/components/admin/DataTable';
+import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -20,13 +24,11 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { writeAudit } from '@/lib/admin/audit';
-import { format } from 'date-fns';
 
 interface PromoCode {
   id: string;
@@ -81,7 +83,7 @@ const PromoCodes = () => {
     try {
       const { data, error } = await supabase
         .from('promo_codes')
-        .select('*')
+        .select('id, code, discount_percent, free_access, max_uses, used_count, created_at, updated_at')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -477,7 +479,7 @@ const PromoCodes = () => {
 
         {/* Create/Edit Dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingPromo ? 'Edit Promo Code' : 'Create Promo Code'}
@@ -562,7 +564,7 @@ const PromoCodes = () => {
                     </Label>
                   </div>
                   {formData.free_access && (
-                    <div className="pl-8 space-y-2">
+                    <div className="space-y-2 pl-8">
                       <Label htmlFor="free_duration_days" className="text-xs">
                         Duration (days)
                       </Label>

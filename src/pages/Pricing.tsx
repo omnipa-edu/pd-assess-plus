@@ -4,11 +4,13 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { Check, Sparkles, Zap, Crown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { getUserSubscription } from '@/lib/subscription';
 
@@ -112,7 +114,7 @@ const Pricing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 dark:to-primary/10 transition-colors duration-200">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 transition-colors duration-200 dark:to-primary/10">
       {/* Header */}
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
@@ -226,7 +228,7 @@ const Pricing = () => {
         <div className="mx-auto mt-12 max-w-2xl rounded-lg border bg-card p-6 text-center">
           <h3 className="text-lg font-semibold">Have a Promo Code?</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            You'll be able to enter your promo code during checkout to unlock discounts or free access.
+            You&apos;ll be able to enter your promo code during checkout to unlock discounts or free access.
           </p>
         </div>
 
@@ -262,7 +264,7 @@ const Pricing = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Absolutely. You can cancel your subscription at any time. You'll retain access until the end of your current billing period.
+                  Absolutely. You can cancel your subscription at any time. You&apos;ll retain access until the end of your current billing period.
                 </p>
               </CardContent>
             </Card>

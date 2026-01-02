@@ -4,15 +4,17 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CreditCard, Calendar, DollarSign, Receipt, ArrowLeft } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/hooks/useAuth';
-import { getUserSubscription } from '@/lib/subscription';
-import { supabase } from '@/integrations/supabase/client';
+
 import { format } from 'date-fns';
+import { CreditCard, Calendar, DollarSign, Receipt, ArrowLeft, Tag } from 'lucide-react';
+import { useNavigate, Navigate } from 'react-router-dom';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { getUserSubscription } from '@/lib/subscription';
 
 interface Transaction {
   id: string;
@@ -167,7 +169,7 @@ const Billing = () => {
                   )}
                 </div>
               ) : (
-                <div className="text-center py-4">
+                <div className="py-4 text-center">
                   <p className="text-muted-foreground">No active subscription</p>
                   <Button className="mt-4" onClick={() => navigate('/pricing')}>
                     View Plans

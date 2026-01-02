@@ -2,8 +2,8 @@
  * Skeleton Loader Components
  * Specialized skeleton loaders for different UI elements
  */
-import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 // Dashboard Card Skeleton
@@ -15,7 +15,7 @@ export const DashboardCardSkeleton = ({ className }: { className?: string }) => 
         <Skeleton className="h-8 w-32" />
       </CardHeader>
       <CardContent>
-        <Skeleton className="h-3 w-full mb-2" />
+        <Skeleton className="mb-2 h-3 w-full" />
         <Skeleton className="h-3 w-3/4" />
       </CardContent>
     </Card>
@@ -35,7 +35,7 @@ export const TableSkeleton = ({
   return (
     <div className={cn("space-y-3", className)} role="status" aria-label="Loading table data">
       {/* Header */}
-      <div className="flex gap-4 pb-3 border-b">
+      <div className="flex gap-4 border-b pb-3">
         {Array.from({ length: columns }).map((_, i) => (
           <Skeleton key={`header-${i}`} className="h-4 flex-1" />
         ))}
@@ -65,7 +65,7 @@ export const StudentCardSkeleton = ({ className }: { className?: string }) => {
     <Card className={cn("", className)}>
       <CardHeader className="flex flex-row items-center gap-4 space-y-0">
         <Skeleton className="h-12 w-12 rounded-full" />
-        <div className="space-y-2 flex-1">
+        <div className="flex-1 space-y-2">
           <Skeleton className="h-4 w-40" />
           <Skeleton className="h-3 w-32" />
         </div>
@@ -85,7 +85,7 @@ export const StudentCardSkeleton = ({ className }: { className?: string }) => {
 export const ChartSkeleton = ({ className }: { className?: string }) => {
   return (
     <div className={cn("space-y-4", className)} role="status" aria-label="Loading chart">
-      <div className="flex items-end justify-between gap-2 h-48">
+      <div className="flex h-48 items-end justify-between gap-2">
         {Array.from({ length: 8 }).map((_, i) => {
           const height = Math.random() * 60 + 40; // Random height between 40-100%
           return (
@@ -112,7 +112,7 @@ export const AssessmentCardSkeleton = ({ className }: { className?: string }) =>
     <Card className={cn("", className)}>
       <CardHeader className="space-y-2">
         <div className="flex items-start justify-between">
-          <div className="space-y-2 flex-1">
+          <div className="flex-1 space-y-2">
             <Skeleton className="h-5 w-48" />
             <Skeleton className="h-3 w-32" />
           </div>
@@ -156,9 +156,9 @@ export const DashboardGridSkeleton = ({
 // List Item Skeleton
 export const ListItemSkeleton = ({ className }: { className?: string }) => {
   return (
-    <div className={cn("flex items-center gap-4 p-4 border-b", className)}>
+    <div className={cn("flex items-center gap-4 border-b p-4", className)}>
       <Skeleton className="h-10 w-10 rounded-full" />
-      <div className="space-y-2 flex-1">
+      <div className="flex-1 space-y-2">
         <Skeleton className="h-4 w-full max-w-sm" />
         <Skeleton className="h-3 w-2/3" />
       </div>
@@ -174,7 +174,7 @@ export const ProfileSkeleton = ({ className }: { className?: string }) => {
       <CardHeader className="space-y-4">
         <div className="flex items-center gap-4">
           <Skeleton className="h-20 w-20 rounded-full" />
-          <div className="space-y-2 flex-1">
+          <div className="flex-1 space-y-2">
             <Skeleton className="h-6 w-48" />
             <Skeleton className="h-4 w-36" />
           </div>

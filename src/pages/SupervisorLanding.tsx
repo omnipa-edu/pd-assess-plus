@@ -121,7 +121,7 @@ const SupervisorLanding = () => {
                 <p className="text-sm font-medium text-foreground">{profile?.full_name}</p>
                 <p className="text-xs text-muted-foreground">{profile?.email}</p>
               </div>
-              <Badge variant="secondary" className="hidden md:inline-flex bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
+              <Badge variant="secondary" className="hidden bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 md:inline-flex">
                 Supervisor
               </Badge>
               <Button

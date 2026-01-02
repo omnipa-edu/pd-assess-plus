@@ -4,9 +4,9 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+
+import { type EPARowOutput , type DedupeChoice } from './validation';
 import { writeAudit } from '../admin/audit';
-import { EPARowOutput } from './validation';
-import { DedupeChoice } from './validation';
 
 export interface ImportResult {
   success: boolean;

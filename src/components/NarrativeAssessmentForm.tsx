@@ -2,15 +2,23 @@ import { useState } from "react";
 
 import { FileText, Target, TrendingUp, MessageCircle, Lightbulb } from "lucide-react";
 
+import { SmartFeedbackField } from "@/components/feedback/SmartFeedbackField";
+import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormFieldError } from "@/components/ui/FormFieldError";
+import { FormSkeleton } from "@/components/ui/FormSkeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
+import { retry } from "@/lib/retry";
 
 
 interface PhysicianAssociate {
@@ -29,7 +37,8 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
   const [formData, setFormData] = useState({
     assessmentType: "",
     date: "",
-    duration: "",
+    observationTimeMinutes: "",
+    feedbackTimeMinutes: "",
     context: "",
     performanceDescription: "",
     strengths: "",
@@ -44,7 +53,10 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
     followUpRequired: "",
     competenciesAddressed: [] as string[]
   });
+  const [submitting, setSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const assessmentTypes = [
     "Longitudinal Assessment",
@@ -66,15 +78,175 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
     "Professional"
   ];
 
-  const handleSubmit = () => {
-    toast({
-      title: "Narrative Assessment Submitted",
-      description: `Comprehensive assessment for ${associate.name} has been documented.`,
-    });
+  const handleSubmit = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to submit assessments.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate form
+    const errors: Record<string, string> = {};
+    if (!formData.assessmentType) errors.assessmentType = 'Assessment type is required';
+    if (!formData.performanceDescription || formData.performanceDescription.trim().length === 0) {
+      errors.performanceDescription = 'Performance description is required';
+    }
+    
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      toast({
+        title: "Validation Error",
+        description: "Please fix the errors in the form.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setValidationErrors({});
+
+    try {
+      setSubmitting(true);
+      
+      // Combine all narrative fields
+      const overallProgression = [
+        formData.performanceDescription,
+        formData.strengths && `Strengths: ${formData.strengths}`,
+        formData.areasForGrowth && `Areas for Growth: ${formData.areasForGrowth}`,
+        formData.specificExamples && `Specific Examples: ${formData.specificExamples}`,
+      ]
+        .filter(Boolean)
+        .join('\n\n');
+
+      const recommendations = [
+        formData.recommendationsForImprovement,
+        formData.developmentPlan,
+        formData.followUpRequired,
+      ]
+        .filter(Boolean)
+        .join('\n\n');
+
+      // Save to database
+      // Build insert payload - conditionally include time tracking fields
+      // (they may not exist if migration hasn't been run yet)
+      const insertPayload: any = {
+        student_id: associate.id,
+        supervisor_id: user.id,
+        assessment_period: formData.assessmentType,
+        clinical_context: formData.context || null,
+        strengths: formData.strengths || null,
+        areas_for_growth: formData.areasForGrowth || null,
+        overall_progression: overallProgression || null,
+        recommendations: recommendations || null,
+      };
+
+      // Only include time tracking fields if they have values
+      // This allows the code to work before the migration is run
+      if (formData.observationTimeMinutes) {
+        const obsMinutes = parseInt(formData.observationTimeMinutes);
+        if (!isNaN(obsMinutes) && obsMinutes > 0) {
+          insertPayload.observation_time_minutes = obsMinutes;
+        }
+      }
+      if (formData.feedbackTimeMinutes) {
+        const feedbackMinutes = parseInt(formData.feedbackTimeMinutes);
+        if (!isNaN(feedbackMinutes) && feedbackMinutes > 0) {
+          insertPayload.feedback_time_minutes = feedbackMinutes;
+        }
+      }
+
+      // Use retry logic for critical assessment submission
+      let result = await retry(
+        async () => {
+          return await supabase
+            .from('narrative_assessments')
+            .insert(insertPayload)
+            .select()
+            .single();
+        },
+        { maxRetries: 2, initialDelay: 1000 }
+      );
+
+      // If error is about unknown columns, try without time tracking fields
+      if (result.error && (
+          result.error.message?.includes('observation_time_minutes') || 
+          result.error.message?.includes('feedback_time_minutes') ||
+          result.error.code === '42703' ||
+          result.error.message?.includes('column') && result.error.message?.includes('does not exist')
+        )) {
+        logger.warn('Time tracking columns not found, inserting without them. Please run the migration: 20250115_add_time_tracking_to_assessments.sql');
+        // Retry without time tracking fields
+        result = await retry(
+          async () => {
+            return await supabase
+              .from('narrative_assessments')
+              .insert({
+                student_id: associate.id,
+                supervisor_id: user.id,
+                assessment_period: formData.assessmentType,
+                clinical_context: formData.context || null,
+                strengths: formData.strengths || null,
+                areas_for_growth: formData.areasForGrowth || null,
+                overall_progression: overallProgression || null,
+                recommendations: recommendations || null,
+              })
+              .select()
+              .single();
+          },
+          { maxRetries: 2, initialDelay: 1000 }
+        );
+      }
+
+      if (result.error) throw result.error;
+      if (!result.data) throw new Error('Failed to create assessment');
+
+      // Database trigger will automatically create CME session
+      toast({
+        title: "Assessment Submitted Successfully",
+        description: `Narrative assessment for ${associate.name} has been recorded. CME time has been automatically logged.`,
+      });
+
+      // Reset form
+      setFormData({
+        assessmentType: "",
+        date: "",
+        observationTimeMinutes: "",
+        feedbackTimeMinutes: "",
+        context: "",
+        performanceDescription: "",
+        strengths: "",
+        areasForGrowth: "",
+        specificExamples: "",
+        behavioralObservations: "",
+        clinicalReasoningComments: "",
+        communicationComments: "",
+        professionalismComments: "",
+        recommendationsForImprovement: "",
+        developmentPlan: "",
+        followUpRequired: "",
+        competenciesAddressed: []
+      });
+    } catch (error: unknown) {
+      logger.error('Error submitting narrative assessment', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to submit assessment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+  if (submitting) {
+    return <FormSkeleton fields={10} />;
+  }
+
   return (
-    <div className="space-y-6">
+    <SectionErrorBoundary sectionName="Narrative Assessment Form">
+      <div className="space-y-6">
       {/* Assessment Context */}
       <Card className="border-0 bg-gradient-card shadow-card">
         <CardHeader>
@@ -100,6 +272,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
                   ))}
                 </SelectContent>
               </Select>
+              <FormFieldError error={validationErrors.assessmentType} />
             </div>
 
             <div className="space-y-2">
@@ -113,15 +286,37 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
               />
             </div>
 
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="duration">Assessment Period</Label>
+              <Label htmlFor="observationTimeMinutes">Observation Time (minutes)</Label>
               <Input 
-                id="duration"
-                placeholder="e.g., 4 weeks, 1 rotation, 6 months"
-                value={formData.duration}
-                onChange={(e) => setFormData({...formData, duration: e.target.value})}
+                id="observationTimeMinutes"
+                type="number"
+                min="0"
+                max="1440"
+                placeholder="e.g., 60"
+                value={formData.observationTimeMinutes}
+                onChange={(e) => setFormData({...formData, observationTimeMinutes: e.target.value})}
                 className="border-border bg-background"
               />
+              <p className="text-xs text-muted-foreground">Time spent observing the student during this period</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="feedbackTimeMinutes">Feedback Time (minutes)</Label>
+              <Input 
+                id="feedbackTimeMinutes"
+                type="number"
+                min="0"
+                max="1440"
+                placeholder="e.g., 30"
+                value={formData.feedbackTimeMinutes}
+                onChange={(e) => setFormData({...formData, feedbackTimeMinutes: e.target.value})}
+                className="border-border bg-background"
+              />
+              <p className="text-xs text-muted-foreground">Time spent providing feedback and coaching</p>
             </div>
           </div>
 
@@ -175,13 +370,27 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="performance">Overall Performance Summary</Label>
-            <Textarea
-              id="performance"
-              placeholder="Provide a comprehensive overview of the physician associate's performance during this period. Include specific examples, patterns observed, and contextual factors..."
+            <SmartFeedbackField
               value={formData.performanceDescription}
-              onChange={(e) => setFormData({...formData, performanceDescription: e.target.value})}
-              className="min-h-[120px] border-border bg-background"
+              onChange={(value) => {
+                setFormData({...formData, performanceDescription: value});
+                if (validationErrors.performanceDescription) {
+                  setValidationErrors(prev => {
+                    const next = { ...prev };
+                    delete next.performanceDescription;
+                    return next;
+                  });
+                }
+              }}
+              placeholder="Provide a comprehensive overview of the physician associate's performance during this period. Include specific examples, patterns observed, and contextual factors..."
+              minHeight="120px"
+              className="border-border bg-background"
+              context={{
+                encounterType: formData.assessmentType,
+              }}
+              textareaProps={{ id: "performance" }}
             />
+            <FormFieldError error={validationErrors.performanceDescription} />
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -194,12 +403,16 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
                   }
                 />
               </div>
-              <Textarea
-                id="strengths"
-                placeholder="What does the physician associate do exceptionally well? Provide specific examples and evidence..."
+              <SmartFeedbackField
                 value={formData.strengths}
-                onChange={(e) => setFormData({...formData, strengths: e.target.value})}
-                className="min-h-[100px] border-border bg-background"
+                onChange={(value) => setFormData({...formData, strengths: value})}
+                placeholder="What does the physician associate do exceptionally well? Provide specific examples and evidence..."
+                minHeight="100px"
+                className="border-border bg-background"
+                context={{
+                  encounterType: formData.assessmentType,
+                }}
+                textareaProps={{ id: "strengths" }}
               />
             </div>
 
@@ -212,12 +425,16 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
                   }
                 />
               </div>
-              <Textarea
-                id="growth"
-                placeholder="What areas need development? Be specific and constructive..."
+              <SmartFeedbackField
                 value={formData.areasForGrowth}
-                onChange={(e) => setFormData({...formData, areasForGrowth: e.target.value})}
-                className="min-h-[100px] border-border bg-background"
+                onChange={(value) => setFormData({...formData, areasForGrowth: value})}
+                placeholder="What areas need development? Be specific and constructive..."
+                minHeight="100px"
+                className="border-border bg-background"
+                context={{
+                  encounterType: formData.assessmentType,
+                }}
+                textareaProps={{ id: "growth" }}
               />
             </div>
           </div>
@@ -231,12 +448,16 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
                 }
               />
             </div>
-            <Textarea
-              id="examples"
-              placeholder="Provide concrete examples of performance, critical incidents, or memorable interactions that illustrate your assessment..."
+            <SmartFeedbackField
               value={formData.specificExamples}
-              onChange={(e) => setFormData({...formData, specificExamples: e.target.value})}
-              className="min-h-[100px] border-border bg-background"
+              onChange={(value) => setFormData({...formData, specificExamples: value})}
+              placeholder="Provide concrete examples of performance, critical incidents, or memorable interactions that illustrate your assessment..."
+              minHeight="100px"
+              className="border-border bg-background"
+              context={{
+                encounterType: formData.assessmentType,
+              }}
+              textareaProps={{ id: "examples" }}
             />
           </div>
         </CardContent>
@@ -319,12 +540,16 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
                 }
               />
             </div>
-            <Textarea
-              id="recommendations"
-              placeholder="Specific, actionable recommendations for addressing areas of growth..."
+            <SmartFeedbackField
               value={formData.recommendationsForImprovement}
-              onChange={(e) => setFormData({...formData, recommendationsForImprovement: e.target.value})}
-              className="min-h-[100px] border-border bg-background"
+              onChange={(value) => setFormData({...formData, recommendationsForImprovement: value})}
+              placeholder="Specific, actionable recommendations for addressing areas of growth..."
+              minHeight="100px"
+              className="border-border bg-background"
+              context={{
+                encounterType: formData.assessmentType,
+              }}
+              textareaProps={{ id: "recommendations" }}
             />
           </div>
 
@@ -337,12 +562,16 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
                 }
               />
             </div>
-            <Textarea
-              id="plan"
-              placeholder="Outline specific learning objectives, activities, resources, and timelines for development..."
+            <SmartFeedbackField
               value={formData.developmentPlan}
-              onChange={(e) => setFormData({...formData, developmentPlan: e.target.value})}
-              className="min-h-[100px] border-border bg-background"
+              onChange={(value) => setFormData({...formData, developmentPlan: value})}
+              placeholder="Outline specific learning objectives, activities, resources, and timelines for development..."
+              minHeight="100px"
+              className="border-border bg-background"
+              context={{
+                encounterType: formData.assessmentType,
+              }}
+              textareaProps={{ id: "plan" }}
             />
           </div>
 
@@ -361,15 +590,16 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
             <Button 
               onClick={handleSubmit}
               className="bg-gradient-primary hover:opacity-90"
-              disabled={!formData.assessmentType || !formData.performanceDescription}
+              disabled={!formData.assessmentType?.trim() || !formData.performanceDescription?.trim() || submitting}
             >
               <Lightbulb className="mr-2 h-4 w-4" />
-              Submit Narrative Assessment
+              {submitting ? "Submitting..." : "Submit Narrative Assessment"}
             </Button>
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </SectionErrorBoundary>
   );
 };
 

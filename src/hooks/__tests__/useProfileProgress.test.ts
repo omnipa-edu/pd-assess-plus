@@ -1,11 +1,14 @@
 /**
  * Tests for useProfileProgress hook
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-import { useProfileProgress } from '../useProfileProgress';
-import { useAuth } from '../useAuth';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
 import { supabase } from '@/integrations/supabase/client';
+
+import { useAuth } from '../useAuth';
+import { useProfileProgress } from '../useProfileProgress';
+
 
 // Mock dependencies
 vi.mock('../useAuth');

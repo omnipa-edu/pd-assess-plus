@@ -4,10 +4,14 @@
  */
 
 import { useEffect, useState } from 'react';
+
+import { format } from 'date-fns';
 import { Activity, Filter } from 'lucide-react';
+
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -15,10 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
-import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuditEntry {
   id: string;
@@ -237,7 +239,7 @@ const ActivityLog = () => {
                       </div>
 
                       {entry.diff && (
-                        <div className="mt-2 rounded bg-muted p-3 text-xs font-mono">
+                        <div className="mt-2 rounded bg-muted p-3 font-mono text-xs">
                           {entry.diff.before && (
                             <div className="mb-2">
                               <span className="font-semibold">Before:</span>

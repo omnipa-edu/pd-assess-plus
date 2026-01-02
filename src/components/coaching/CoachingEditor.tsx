@@ -2,11 +2,15 @@
  * CoachingEditor Component
  * Form for creating/editing coaching corner content
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+import { AlertCircle } from 'lucide-react';
+
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -15,14 +19,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CoachingEmbed } from './CoachingEmbed';
-import { validateVideoUrl } from '@/lib/coaching/video-utils';
+import { Textarea } from '@/components/ui/textarea';
 import { content } from '@/content/strings';
 import { useAuth } from '@/hooks/useAuth';
-import { AlertCircle } from 'lucide-react';
 import type { CoachingItem } from '@/hooks/useCoachingCorner';
+import { parseEmbedUrl, validateEmbedUrl, getPlatformName } from '@/lib/embeds';
+import { extractUrlFromEmbedCode, isEmbedCode } from '@/lib/embeds/extract-url';
+import { validateVideoUrl } from '@/lib/coaching/video-utils';
+
+import { CoachingEmbed } from './CoachingEmbed';
 
 interface CoachingEditorProps {
   initialData?: Partial<CoachingItem>;
@@ -55,8 +60,43 @@ export function CoachingEditor({ initialData, onSave, onCancel, loading }: Coach
   );
   const [pinned, setPinned] = useState(initialData?.pinned || false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // Attribution fields
+  const [creatorName, setCreatorName] = useState(initialData?.creator_name || '');
+  const [creatorHandle, setCreatorHandle] = useState(initialData?.creator_handle || '');
+  const [creatorUrl, setCreatorUrl] = useState(initialData?.creator_url || '');
+  const [sourcePlatform, setSourcePlatform] = useState(initialData?.source_platform || '');
+  const [sourceUrl, setSourceUrl] = useState(initialData?.source_url || '');
+  const [licenseNote, setLicenseNote] = useState(initialData?.license_note || '');
 
   const isVideoType = contentType === 'youtube' || contentType === 'instagram';
+  
+  // Auto-fill attribution when URL changes
+  useEffect(() => {
+    if (isVideoType && videoUrl) {
+      // Try to extract URL from embed code if needed
+      let urlToProcess = videoUrl;
+      if (isEmbedCode(videoUrl)) {
+        const extracted = extractUrlFromEmbedCode(videoUrl);
+        if (extracted) {
+          urlToProcess = extracted;
+          // Update the field with extracted URL (only if different)
+          if (extracted !== videoUrl) {
+            setVideoUrl(extracted);
+          }
+        }
+      }
+      
+      // Parse and auto-fill attribution
+      if (urlToProcess && !sourcePlatform) {
+        const embedInfo = parseEmbedUrl(urlToProcess);
+        if (embedInfo) {
+          setSourcePlatform(getPlatformName(embedInfo.platform));
+          setSourceUrl(urlToProcess);
+        }
+      }
+    }
+  }, [videoUrl, isVideoType, sourcePlatform]);
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -69,10 +109,33 @@ export function CoachingEditor({ initialData, onSave, onCancel, loading }: Coach
       if (!videoUrl.trim()) {
         newErrors.videoUrl = content.coaching.form.errors.urlRequired;
       } else {
-        const urlError = validateVideoUrl(videoUrl);
-        if (urlError) {
-          newErrors.videoUrl = urlError;
+        // Extract URL from embed code if needed
+        let urlToValidate = videoUrl;
+        if (isEmbedCode(videoUrl)) {
+          const extracted = extractUrlFromEmbedCode(videoUrl);
+          if (extracted) {
+            urlToValidate = extracted;
+          } else {
+            newErrors.videoUrl = 'Could not extract URL from embed code. Please paste a valid URL or embed code.';
+            setErrors(newErrors);
+            return false;
+          }
         }
+        
+        const validation = validateEmbedUrl(urlToValidate, contentType);
+        if (!validation.valid) {
+          newErrors.videoUrl = validation.error || 'Invalid URL';
+        }
+      }
+      
+      // Require creator name for embeds
+      if (!creatorName.trim()) {
+        newErrors.creatorName = 'Creator name is required for embedded content';
+      }
+      
+      // Require source URL
+      if (!sourceUrl.trim()) {
+        newErrors.sourceUrl = 'Source URL is required';
       }
     } else {
       if (!body.trim()) {
@@ -99,12 +162,31 @@ export function CoachingEditor({ initialData, onSave, onCancel, loading }: Coach
     };
 
     if (isVideoType) {
-      data.video_url = videoUrl;
+      // Extract URL from embed code if needed
+      let finalUrl = videoUrl;
+      if (isEmbedCode(videoUrl)) {
+        const extracted = extractUrlFromEmbedCode(videoUrl);
+        if (extracted) {
+          finalUrl = extracted;
+        }
+      }
+      
+      data.video_url = finalUrl;
+      data.url = finalUrl; // Also set url field
       // Allow body/caption for video items
       data.body = body || undefined;
+      
+      // Attribution fields
+      data.creator_name = creatorName;
+      data.creator_handle = creatorHandle || undefined;
+      data.creator_url = creatorUrl || undefined;
+      data.source_platform = sourcePlatform;
+      data.source_url = sourceUrl || videoUrl;
+      data.license_note = licenseNote || undefined;
     } else {
       data.body = body;
       data.video_url = undefined;
+      data.url = undefined;
     }
 
     if (startAt) {
@@ -193,14 +275,58 @@ export function CoachingEditor({ initialData, onSave, onCancel, loading }: Coach
               {isVideoType && (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="video-url">{content.coaching.form.videoUrlLabel}</Label>
-                    <Input
+                    <Label htmlFor="video-url">
+                      Video URL or Embed Code
+                    </Label>
+                    <Textarea
                       id="video-url"
-                      type="url"
                       value={videoUrl}
-                      onChange={(e) => setVideoUrl(e.target.value)}
-                      placeholder={content.coaching.form.videoUrlPlaceholder}
-                      className={errors.videoUrl ? 'border-destructive' : ''}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setVideoUrl(value);
+                      }}
+                      onPaste={(e) => {
+                        // Handle paste event to extract URL from embed code
+                        const pastedText = e.clipboardData.getData('text');
+                        
+                        // Check if pasted content is embed code
+                        if (isEmbedCode(pastedText)) {
+                          const extractedUrl = extractUrlFromEmbedCode(pastedText);
+                          if (extractedUrl) {
+                            e.preventDefault();
+                            setVideoUrl(extractedUrl);
+                            
+                            // Clear any existing errors
+                            setErrors(prev => {
+                              const newErrors = { ...prev };
+                              delete newErrors.videoUrl;
+                              return newErrors;
+                            });
+                            
+                            // Trigger auto-fill of attribution fields
+                            const embedInfo = parseEmbedUrl(extractedUrl);
+                            if (embedInfo && !sourcePlatform) {
+                              setSourcePlatform(getPlatformName(embedInfo.platform));
+                              setSourceUrl(extractedUrl);
+                            }
+                            
+                            // Show success message briefly
+                            const validation = validateEmbedUrl(extractedUrl, contentType);
+                            if (!validation.valid) {
+                              setTimeout(() => {
+                                setErrors(prev => ({
+                                  ...prev,
+                                  videoUrl: validation.error || 'Invalid URL',
+                                }));
+                              }, 100);
+                            }
+                          }
+                        }
+                        // If not embed code, let default paste behavior happen
+                      }}
+                      placeholder="Paste YouTube/Instagram URL or embed code (iframe)..."
+                      rows={3}
+                      className={errors.videoUrl ? 'border-destructive font-mono text-sm' : 'font-mono text-sm'}
                     />
                     {errors.videoUrl ? (
                       <Alert variant="destructive">
@@ -208,9 +334,14 @@ export function CoachingEditor({ initialData, onSave, onCancel, loading }: Coach
                         <AlertDescription>{errors.videoUrl}</AlertDescription>
                       </Alert>
                     ) : (
-                      <p className="text-sm text-muted-foreground">
-                        {content.coaching.form.videoHelp}
-                      </p>
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">
+                          {content.coaching.form.videoHelp}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          💡 Tip: You can paste either a URL (e.g., https://youtube.com/watch?v=...) or embed code (e.g., &lt;iframe src="..."&gt;). The URL will be automatically extracted.
+                        </p>
+                      </div>
                     )}
                   </div>
                   
@@ -228,6 +359,115 @@ export function CoachingEditor({ initialData, onSave, onCancel, loading }: Coach
                     <p className="text-xs text-muted-foreground">
                       This text will appear above the video to provide context
                     </p>
+                  </div>
+                  
+                  {/* Attribution Section */}
+                  <div className="rounded-lg border bg-muted/50 p-4 space-y-4">
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2">Attribution (Required for Embeds)</h4>
+                      <p className="text-xs text-muted-foreground mb-4">
+                        Provide attribution information for the embedded content. This ensures proper credit and compliance.
+                      </p>
+                    </div>
+                    
+                    {/* Creator Name */}
+                    <div className="space-y-2">
+                      <Label htmlFor="creator-name">
+                        Creator Name <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="creator-name"
+                        value={creatorName}
+                        onChange={(e) => setCreatorName(e.target.value)}
+                        placeholder="e.g., John Smith"
+                        className={errors.creatorName ? 'border-destructive' : ''}
+                        required
+                      />
+                      {errors.creatorName && (
+                        <p className="text-xs text-destructive">{errors.creatorName}</p>
+                      )}
+                    </div>
+                    
+                    {/* Creator Handle */}
+                    <div className="space-y-2">
+                      <Label htmlFor="creator-handle">Creator Handle (Optional)</Label>
+                      <Input
+                        id="creator-handle"
+                        value={creatorHandle}
+                        onChange={(e) => setCreatorHandle(e.target.value)}
+                        placeholder="e.g., @username or Channel Name"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Instagram handle, YouTube channel name, etc.
+                      </p>
+                    </div>
+                    
+                    {/* Creator URL */}
+                    <div className="space-y-2">
+                      <Label htmlFor="creator-url">Creator Profile URL (Optional)</Label>
+                      <Input
+                        id="creator-url"
+                        type="url"
+                        value={creatorUrl}
+                        onChange={(e) => setCreatorUrl(e.target.value)}
+                        placeholder="https://..."
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Link to creator's profile or channel
+                      </p>
+                    </div>
+                    
+                    {/* Source Platform (Auto-filled) */}
+                    <div className="space-y-2">
+                      <Label htmlFor="source-platform">Source Platform</Label>
+                      <Input
+                        id="source-platform"
+                        value={sourcePlatform}
+                        onChange={(e) => setSourcePlatform(e.target.value)}
+                        placeholder="YouTube or Instagram"
+                        readOnly
+                        className="bg-muted"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Auto-filled from URL
+                      </p>
+                    </div>
+                    
+                    {/* Source URL */}
+                    <div className="space-y-2">
+                      <Label htmlFor="source-url">
+                        Source URL <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="source-url"
+                        type="url"
+                        value={sourceUrl}
+                        onChange={(e) => setSourceUrl(e.target.value)}
+                        placeholder="https://..."
+                        className={errors.sourceUrl ? 'border-destructive' : ''}
+                        required
+                      />
+                      {errors.sourceUrl && (
+                        <p className="text-xs text-destructive">{errors.sourceUrl}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Original content URL (usually same as video URL)
+                      </p>
+                    </div>
+                    
+                    {/* License Note */}
+                    <div className="space-y-2">
+                      <Label htmlFor="license-note">License Note (Optional)</Label>
+                      <Input
+                        id="license-note"
+                        value={licenseNote}
+                        onChange={(e) => setLicenseNote(e.target.value)}
+                        placeholder="e.g., Embedded with permission"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Optional note about licensing or permissions
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
@@ -324,18 +564,18 @@ export function CoachingEditor({ initialData, onSave, onCancel, loading }: Coach
               <CardDescription>How it will appear to users</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-lg border bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/5 p-4 space-y-3">
+              <div className="space-y-3 rounded-lg border bg-gradient-to-br from-primary/5 to-primary/10 p-4 dark:from-primary/10 dark:to-primary/5">
                 <div>
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <h3 className="flex items-center gap-2 text-lg font-semibold">
                     <span>💡</span>
                     {content.coaching.title}
                     {pinned && (
-                      <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary">
+                      <span className="rounded bg-primary/20 px-2 py-0.5 text-xs text-primary">
                         Pinned
                       </span>
                     )}
                   </h3>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="mt-1 text-sm text-muted-foreground">
                     {title || 'Your title will appear here'}
                   </p>
                 </div>
@@ -343,25 +583,60 @@ export function CoachingEditor({ initialData, onSave, onCancel, loading }: Coach
                 {/* Body text - shown for both text and video items */}
                 {body && (
                   <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <p className="text-sm whitespace-pre-wrap">{body}</p>
+                    <p className="whitespace-pre-wrap text-sm">{body}</p>
                   </div>
                 )}
 
                 {/* Video embed */}
                 {isVideoType && videoUrl && !errors.videoUrl && (
-                  <CoachingEmbed url={videoUrl} title={title} />
+                  <>
+                    <CoachingEmbed url={videoUrl} title={title} />
+                    {/* Attribution Preview */}
+                    {(creatorName || sourcePlatform) && (
+                      <div className="mt-3 border-t pt-3 space-y-2">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                          {creatorName && (
+                            <div className="flex items-center gap-1">
+                              <span>By</span>
+                              {creatorUrl ? (
+                                <a href={creatorUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">
+                                  {creatorName}
+                                </a>
+                              ) : (
+                                <span className="font-medium">{creatorName}</span>
+                              )}
+                              {creatorHandle && (
+                                <span className="text-muted-foreground">({creatorHandle})</span>
+                              )}
+                            </div>
+                          )}
+                          {sourcePlatform && (
+                            <>
+                              {creatorName && <span>•</span>}
+                              <span>Source: <span className="font-medium">{sourcePlatform}</span></span>
+                            </>
+                          )}
+                        </div>
+                        {licenseNote && (
+                          <div className="text-xs text-muted-foreground">
+                            {licenseNote}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* Text content */}
                 {!isVideoType && !body && (
-                  <p className="text-sm text-muted-foreground italic">
+                  <p className="text-sm italic text-muted-foreground">
                     Add content to see preview
                   </p>
                 )}
 
                 {/* Video without URL */}
                 {isVideoType && !videoUrl && (
-                  <p className="text-sm text-muted-foreground italic">
+                  <p className="text-sm italic text-muted-foreground">
                     Add video URL to see preview
                   </p>
                 )}

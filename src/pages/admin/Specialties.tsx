@@ -4,11 +4,14 @@
  */
 
 import { useEffect, useState } from 'react';
-import { ColumnDef } from '@tanstack/react-table';
+
+import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2, Plus, FileText } from 'lucide-react';
+
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
 import { DataTable } from '@/components/admin/DataTable';
+import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -20,9 +23,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { writeAudit } from '@/lib/admin/audit';
@@ -70,7 +72,7 @@ const Specialties = () => {
       // Get specialties
       const { data: specialtiesData, error: specialtiesError } = await supabase
         .from('specialties')
-        .select('*')
+        .select('id, name, code, description, created_at, updated_at')
         .order('name');
 
       if (specialtiesError) throw specialtiesError;
@@ -80,7 +82,7 @@ const Specialties = () => {
         (specialtiesData || []).map(async (specialty) => {
           const { count } = await supabase
             .from('epas')
-            .select('*', { count: 'exact', head: true })
+            .select('id', { count: 'exact', head: true })
             .eq('specialty_id', specialty.id)
             .eq('status', 'active');
 

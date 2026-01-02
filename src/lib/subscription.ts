@@ -4,6 +4,8 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
+import { retry } from '@/lib/retry';
 
 export type SubscriptionPlan = 'free' | 'standard' | 'pro' | 'enterprise';
 export type SubscriptionStatus = 'inactive' | 'active' | 'past_due' | 'canceled' | 'trialing';
@@ -40,20 +42,25 @@ export async function getUserSubscription(): Promise<Subscription | null> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
 
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+    const { data, error } = await retry(
+      async () => {
+        return await supabase
+          .from('subscriptions')
+          .select('id, user_id, stripe_customer_id, stripe_subscription_id, plan, status, current_period_start, current_period_end, cancel_at_period_end, metadata, created_at, updated_at')
+          .eq('user_id', user.id)
+          .single();
+      },
+      { maxRetries: 2, initialDelay: 1000 }
+    );
 
     if (error) {
-      console.error('Error fetching subscription:', error);
+      logger.error('Error fetching subscription', error);
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error('Error getting subscription:', error);
+    logger.error('Error getting subscription', error);
     return null;
   }
 }
@@ -84,12 +91,17 @@ export async function hasActiveSubscription(): Promise<boolean> {
  */
 export async function validatePromoCode(code: string): Promise<PromoCodeValidation> {
   try {
-    const { data, error } = await supabase.rpc('validate_promo_code', {
-      p_code: code
-    });
+    const { data, error } = await retry(
+      async () => {
+        return await supabase.rpc('validate_promo_code', {
+          p_code: code
+        });
+      },
+      { maxRetries: 2, initialDelay: 1000 }
+    );
 
     if (error) {
-      console.error('Error validating promo code:', error);
+      logger.error('Error validating promo code', error);
       return {
         valid: false,
         promo_id: null,

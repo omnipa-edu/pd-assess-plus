@@ -1,67 +1,334 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-import { ArrowLeft, User, Calendar, FileText, Star } from "lucide-react";
+import { ArrowLeft, User, FileText } from "lucide-react";
 
 import DirectObservationForm from "@/components/DirectObservationForm";
 import EPAObservationForm from "@/components/EPAObservationForm";
 import NarrativeAssessmentForm from "@/components/NarrativeAssessmentForm";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
+
+interface PhysicianAssociate {
+  id: string;
+  name: string;
+  program: string;
+  year: string;
+  supervisor: string;
+}
 
 interface AssessmentDashboardProps {
   onBack: () => void;
   defaultTab?: 'epa-observation' | 'direct-observation' | 'narrative';
 }
 
+// Constants
+const DEFAULT_VALUES = {
+  STUDENT: {
+    NAME: 'Unknown Student',
+    PROGRAM: 'Unknown Program',
+    YEAR: 'Unknown Year',
+    SUPERVISOR: 'Not Assigned',
+  },
+  SUPERVISOR: {
+    YOU: 'You',
+    UNKNOWN: 'Unknown',
+  },
+} as const;
+
+const ERROR_CODES = {
+  TABLE_NOT_FOUND: 'PGRST116',
+  RELATION_NOT_EXIST: '42p01',
+} as const;
+
+/**
+ * Assessment Dashboard Component
+ * 
+ * Displays a list of physician associates (students) and allows supervisors
+ * to select a student and create assessments (EPA, Direct Observation, or Narrative).
+ * 
+ * @param onBack - Callback function to navigate back to the previous screen
+ * @param defaultTab - Default tab to show when a student is selected
+ */
 const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: AssessmentDashboardProps) => {
   const [selectedAssociate, setSelectedAssociate] = useState<string | null>(null);
+  const [associates, setAssociates] = useState<PhysicianAssociate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const associates = [
-    {
-      id: "1",
-      name: "Dr. Sarah Chen",
-      program: "Internal Medicine",
-      year: "PGY-3",
-      supervisor: "Dr. Johnson",
-      recentScore: 4.2,
-      assessmentsCount: 23,
-      status: "On Track"
-    },
-    {
-      id: "2", 
-      name: "Dr. Michael Rodriguez",
-      program: "Surgery",
-      year: "PGY-2",
-      supervisor: "Dr. Smith",
-      recentScore: 3.8,
-      assessmentsCount: 18,
-      status: "Needs Attention"
-    },
-    {
-      id: "3",
-      name: "Dr. Emily Watson", 
-      program: "Emergency Medicine",
-      year: "PGY-4",
-      supervisor: "Dr. Brown",
-      recentScore: 4.5,
-      assessmentsCount: 31,
-      status: "Excellent"
-    }
-  ];
+  useEffect(() => {
+    loadStudents();
+  }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Excellent": return "bg-assessment-excellent text-white";
-      case "On Track": return "bg-assessment-good text-white";
-      case "Needs Attention": return "bg-assessment-needs-improvement text-white";
-      default: return "bg-secondary text-secondary-foreground";
+  /**
+   * Loads students assigned to the current supervisor.
+   * Uses a fallback strategy:
+   * 1. First tries supervisor_student_assignments table
+   * 2. Falls back to user_roles table
+   * 3. Ultimate fallback: loads all profiles
+   */
+  const loadStudents = async () => {
+    try {
+      setLoading(true);
+      
+      // Get current user (supervisor)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: 'Error',
+          description: 'You must be logged in to view students.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      let students: PhysicianAssociate[] = [];
+      let _useAssignments = false;
+
+      // Try to load students assigned to this supervisor via assignments table
+      try {
+        const { data: assignments, error: assignmentsError } = await supabase
+          .from('supervisor_student_assignments')
+          .select(`
+            student_id,
+            supervisor_id,
+            is_active,
+            student:profiles!supervisor_student_assignments_student_id_fkey (
+              id,
+              full_name,
+              program,
+              year_of_training
+            )
+          `)
+          .eq('supervisor_id', user.id)
+          .eq('is_active', true);
+        
+        // Check if table exists and has data
+        if (!assignmentsError && assignments && assignments.length > 0) {
+          _useAssignments = true;
+          
+          // Use assigned students
+          type AssignmentWithStudent = {
+            student_id: string;
+            supervisor_id: string;
+            student: {
+              id: string;
+              full_name?: string;
+              program?: string;
+              year_of_training?: string;
+            };
+          };
+          
+          students = (assignments as AssignmentWithStudent[])
+            .filter((a) => a.student)
+            .map((assignment) => ({
+              id: assignment.student.id,
+              name: assignment.student.full_name || DEFAULT_VALUES.STUDENT.NAME,
+              program: assignment.student.program || DEFAULT_VALUES.STUDENT.PROGRAM,
+              year: assignment.student.year_of_training || DEFAULT_VALUES.STUDENT.YEAR,
+              supervisor: DEFAULT_VALUES.SUPERVISOR.YOU, // Will be updated with actual supervisor name
+            }));
+
+          // Load supervisor names
+          const supervisorIds = [...new Set(
+            assignments
+              .map((a: any) => a.supervisor_id)
+              .filter(Boolean)
+          )];
+
+          if (supervisorIds.length > 0) {
+            const { data: supervisors } = await supabase
+              .from('profiles')
+              .select('id, full_name')
+              .in('id', supervisorIds);
+
+            const supervisorMap = new Map(
+              (supervisors || []).map((s: { id: string; full_name?: string }) => [s.id, s.full_name || DEFAULT_VALUES.SUPERVISOR.UNKNOWN])
+            );
+
+            // Update students with supervisor names
+            students = students.map((student, index) => {
+              const assignment = (assignments as AssignmentWithStudent[])[index];
+              if (assignment) {
+                const supervisorName = supervisorMap.get(assignment.supervisor_id) || DEFAULT_VALUES.SUPERVISOR.UNKNOWN;
+                return { ...student, supervisor: supervisorName };
+              }
+              return student;
+            });
+          }
+        } else if (assignmentsError) {
+          // Check if it's a 404 (table doesn't exist) - this is OK, we'll use fallback
+          // Supabase errors can have different structures, so check multiple properties
+          const errorStr = JSON.stringify(assignmentsError).toLowerCase();
+          const is404 = assignmentsError?.code === ERROR_CODES.TABLE_NOT_FOUND || 
+                        assignmentsError?.message?.includes('404') ||
+                        errorStr.includes('404') ||
+                        errorStr.includes('not found');
+          
+          if (is404) {
+            logger.warn('supervisor_student_assignments table not found. Using fallback method to load students.');
+          } else {
+            logger.debug('Assignments error object', { error: assignmentsError });
+          }
+          const errorMessage = (assignmentsError.message || '').toLowerCase();
+          const errorCode = (assignmentsError.code || '').toLowerCase();
+          // PostgrestError doesn't have status/statusCode/httpStatus, check message/code instead
+          const statusCode = (assignmentsError as unknown as { status?: number; statusCode?: number; httpStatus?: number }).status 
+            || (assignmentsError as unknown as { status?: number; statusCode?: number; httpStatus?: number }).statusCode
+            || (assignmentsError as unknown as { status?: number; statusCode?: number; httpStatus?: number }).httpStatus;
+          
+        const isTableNotFound = 
+          statusCode === 404 ||
+          String(statusCode) === '404' ||
+            errorCode === ERROR_CODES.TABLE_NOT_FOUND.toLowerCase() ||
+            errorCode === ERROR_CODES.RELATION_NOT_EXIST.toLowerCase() ||
+            errorMessage.includes('relation') || 
+            errorMessage.includes('does not exist') ||
+            errorMessage.includes('not found') ||
+            errorMessage.includes('no such table') ||
+            errorStr.includes('404') ||
+            errorStr.includes('relation') ||
+            errorStr.includes('does not exist') ||
+            errorStr.includes('not found');
+          
+          if (!isTableNotFound) {
+            // It's a real error, not just missing table - log it but still try fallback
+            logger.warn('Error loading assignments (non-404)', {
+              statusCode,
+              errorCode,
+              errorMessage,
+              fullError: assignmentsError
+            });
+          } else {
+            logger.warn('supervisor_student_assignments table not found. Using fallback method.');
+          }
+          // Always fall through to fallback method below
+        }
+      } catch (assignmentsErr: any) {
+        // Catch any unexpected errors from the assignments query
+        // Supabase errors can have different structures, so check multiple properties
+        const errorStr = JSON.stringify(assignmentsErr || {}).toLowerCase();
+        const errorMessage = assignmentsErr?.message?.toLowerCase() || '';
+        const errorCode = assignmentsErr?.code?.toLowerCase() || '';
+        const statusCode = assignmentsErr?.status || assignmentsErr?.statusCode;
+        
+        const isTableNotFound = 
+          statusCode === 404 ||
+          errorCode === ERROR_CODES.TABLE_NOT_FOUND.toLowerCase() ||
+          errorCode === ERROR_CODES.RELATION_NOT_EXIST.toLowerCase() ||
+          errorMessage.includes('relation') || 
+          errorMessage.includes('does not exist') ||
+          errorMessage.includes('not found') ||
+          errorMessage.includes('no such table') ||
+          errorStr.includes('404') ||
+          errorStr.includes('relation') ||
+          errorStr.includes('does not exist');
+        
+        if (!isTableNotFound) {
+          logger.warn('Unexpected error loading assignments', { error: assignmentsErr });
+        } else {
+          logger.warn('supervisor_student_assignments table not found. Using fallback method.');
+        }
+        // Always fall through to fallback method below
+      }
+
+      // If we didn't get students from assignments, use fallback
+      // Always use fallback if we don't have students (either table doesn't exist or no assignments)
+      if (students.length === 0) {
+        // Fallback: Load all students (for backwards compatibility)
+        // First get student user IDs from user_roles
+        const { data: studentRoles, error: rolesError } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role', 'student');
+        
+        if (rolesError) {
+          logger.error('Error loading student roles', rolesError);
+          throw rolesError;
+        }
+        
+        const studentIds = (studentRoles || []).map(r => r.user_id);
+        
+        logger.debug(`Fallback: Found ${studentIds.length} student IDs from user_roles`);
+        
+        if (studentIds.length === 0) {
+          logger.warn('No students found in user_roles table. Trying to load all profiles as fallback...');
+          
+          // Ultimate fallback: Try to load all profiles (supervisors can see all profiles)
+          // This is a last resort when user_roles doesn't have students
+          const { data: allProfiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, full_name, program, year_of_training')
+            .order('full_name');
+          
+          if (profilesError) {
+            logger.error('Error loading all profiles', profilesError);
+            // Don't throw - just show empty list
+            setAssociates([]);
+            setLoading(false);
+            return;
+          }
+          
+          logger.debug(`Ultimate fallback: Loaded ${(allProfiles || []).length} profiles`);
+          
+          students = (allProfiles || []).map((profile: { id: string; full_name?: string; program?: string; year_of_training?: string }) => ({
+            id: profile.id,
+            name: profile.full_name || DEFAULT_VALUES.STUDENT.NAME,
+            program: profile.program || DEFAULT_VALUES.STUDENT.PROGRAM,
+            year: profile.year_of_training || DEFAULT_VALUES.STUDENT.YEAR,
+            supervisor: DEFAULT_VALUES.STUDENT.SUPERVISOR,
+          }));
+        } else {
+          // Then fetch profiles for those students
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('id, full_name, program, year_of_training')
+            .in('id', studentIds)
+            .order('full_name');
+
+          if (error) {
+            logger.error('Error loading student profiles', error);
+            throw error;
+          }
+
+          logger.debug(`Fallback: Loaded ${(data || []).length} student profiles`);
+
+          students = (data || []).map((profile: { id: string; full_name?: string; program?: string; year_of_training?: string }) => ({
+            id: profile.id,
+            name: profile.full_name || DEFAULT_VALUES.STUDENT.NAME,
+            program: profile.program || DEFAULT_VALUES.STUDENT.PROGRAM,
+            year: profile.year_of_training || DEFAULT_VALUES.STUDENT.YEAR,
+            supervisor: DEFAULT_VALUES.STUDENT.SUPERVISOR,
+          }));
+        }
+      }
+      
+      logger.debug(`Total students loaded: ${students.length}`);
+
+      setAssociates(students);
+    } catch (error: unknown) {
+      logger.error('Error loading students', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load students. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   if (selectedAssociate) {
     const associate = associates.find(r => r.id === selectedAssociate);
+    if (!associate) {
+      // If associate not found, go back
+      setSelectedAssociate(null);
+      return null;
+    }
+
     return (
       <div className="min-h-screen bg-background">
         <header className="border-b bg-card shadow-card">
@@ -73,18 +340,15 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
                 onClick={() => setSelectedAssociate(null)}
                 size="sm"
               >
-                  Back to Physician Associates
-                </Button>
+                Back to Physician Associates
+              </Button>
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">{associate?.name}</h1>
+                  <h1 className="text-2xl font-bold text-foreground">{associate.name}</h1>
                   <p className="text-sm text-muted-foreground">
-                    {associate?.program} • {associate?.year} • Supervisor: {associate?.supervisor}
+                    {associate.program} • {associate.year} • Supervisor: {associate.supervisor}
                   </p>
                 </div>
               </div>
-              <Badge className={getStatusColor(associate?.status || "")}>
-                {associate?.status}
-              </Badge>
             </div>
           </div>
         </header>
@@ -144,64 +408,60 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
       </header>
 
       <main className="container mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {associates.map((associate) => (
-            <Card 
-              key={associate.id} 
-              className="cursor-pointer border-0 bg-gradient-card shadow-card transition-all duration-300 hover:shadow-elevated"
-              onClick={() => setSelectedAssociate(associate.id)}
-            >
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-primary">
-                      <User className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">{associate.name}</CardTitle>
-                      <CardDescription>{associate.program}</CardDescription>
-                    </div>
-                  </div>
-                  <Badge className={getStatusColor(associate.status)}>
-                    {associate.status}
-                  </Badge>
-                </div>
-              </CardHeader>
-
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Training Year:</span>
-                    <span className="font-semibold text-foreground">{associate.year}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Supervisor:</span>
-                    <span className="font-semibold text-foreground">{associate.supervisor}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Recent Avg Score:</span>
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 fill-current text-assessment-good" />
-                      <span className="font-semibold text-foreground">{associate.recentScore}</span>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-pulse text-muted-foreground">Loading students...</div>
+          </div>
+        ) : associates.length === 0 ? (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-muted-foreground">No students found. Please add students to the system first.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {associates.map((associate) => (
+              <Card 
+                key={associate.id} 
+                className="cursor-pointer border-0 bg-gradient-card shadow-card transition-all duration-300 hover:shadow-elevated"
+                onClick={() => setSelectedAssociate(associate.id)}
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-primary">
+                        <User className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg">{associate.name}</CardTitle>
+                        <CardDescription>{associate.program}</CardDescription>
+                      </div>
                     </div>
                   </div>
+                </CardHeader>
 
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Assessments:</span>
-                    <span className="font-semibold text-foreground">{associate.assessmentsCount}</span>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Training Year:</span>
+                      <span className="font-semibold text-foreground">{associate.year}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Supervisor:</span>
+                      <span className="font-semibold text-foreground">{associate.supervisor}</span>
+                    </div>
+
+                    <Button className="mt-4 w-full bg-gradient-primary hover:opacity-90">
+                      <FileText className="mr-2 h-4 w-4" />
+                      Start Assessment
+                    </Button>
                   </div>
-
-                  <Button className="mt-4 w-full bg-gradient-primary hover:opacity-90">
-                    <FileText className="mr-2 h-4 w-4" />
-                    Start Assessment
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

@@ -258,8 +258,10 @@ export const content = {
   },
   coaching: {
     title: "Coaching Corner",
-    subtitle: "Tips and inspiration for your journey",
+    subtitle: "Evidence-based tips to support feedback literacy and high-quality coaching",
     empty: "No coaching content yet. Check back soon!",
+    learnerDescription: "These tips are designed to help you understand, use, and act on feedback throughout your training.",
+    supervisorDescription: "Today's coaching tip focuses on high-impact feedback behaviours that support learner autonomy and improvement.",
     pinned: "Pinned",
     viewAll: "View all",
     dismiss: "Dismiss",

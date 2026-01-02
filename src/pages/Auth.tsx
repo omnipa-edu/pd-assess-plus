@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { motion } from 'framer-motion';
 import { Loader2, Mail, CheckCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { MagicLinkForm } from '@/components/auth/MagicLinkForm';
 import { PasswordInput } from '@/components/auth/PasswordInput';
@@ -87,7 +87,8 @@ const Auth = () => {
         title: 'Welcome back!',
         description: 'You have successfully signed in.'
       });
-      navigate('/');
+      // Navigate to dashboard which will redirect based on role
+      navigate('/dashboard');
     }
   };
 
@@ -235,7 +236,15 @@ const Auth = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="login-password">{content.auth.passwordLabel}</Label>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="login-password">{content.auth.passwordLabel}</Label>
+                        <Link
+                          to="/auth/reset-password"
+                          className="text-xs text-primary hover:underline"
+                        >
+                          Forgot your password?
+                        </Link>
+                      </div>
                       <PasswordInput
                         id="login-password"
                         value={loginData.password}

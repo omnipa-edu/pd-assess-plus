@@ -2,6 +2,7 @@
  * Tests for video URL parsing and validation
  */
 import { describe, it, expect } from 'vitest';
+
 import {
   extractYouTubeId,
   extractInstagramId,

@@ -4,17 +4,19 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+
 import { CreditCard, Tag, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { validatePromoCode, redeemPromoCode } from '@/lib/subscription';
 import { supabase } from '@/integrations/supabase/client';
+import { validatePromoCode, redeemPromoCode } from '@/lib/subscription';
 
 interface PlanDetails {
   name: string;
@@ -174,7 +176,7 @@ const Subscribe = () => {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 dark:to-primary/10 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4 dark:to-primary/10">
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex items-center justify-between">

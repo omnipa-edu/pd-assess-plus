@@ -1,4 +1,4 @@
-import { DEFAULT_READINESS, ReadinessConfig, isRecent } from './config';
+import { DEFAULT_READINESS, type ReadinessConfig, isRecent } from './config';
 
 export type EpaObservation = {
   epaCode: string;

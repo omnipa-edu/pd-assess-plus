@@ -1,7 +1,8 @@
 import { Info } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type Props = {
@@ -29,7 +30,7 @@ export function ReadinessCard({ title, readinessPercent, metrics }: Props) {
               <Info className="h-4 w-4 text-muted-foreground" />
             </TooltipTrigger>
             <TooltipContent>
-              <div className="text-sm space-y-1">
+              <div className="space-y-1 text-sm">
                 <div>
                   WBAs meeting criteria: {metrics.highScore.achieved}/{metrics.highScore.required}
                 </div>
@@ -44,7 +45,7 @@ export function ReadinessCard({ title, readinessPercent, metrics }: Props) {
         </TooltipProvider>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center justify-between mb-2">
+        <div className="mb-2 flex items-center justify-between">
           <span className="text-sm text-muted-foreground">Toward practice-ready</span>
           <Badge variant="secondary">{Math.round(readinessPercent)}%</Badge>
         </div>

@@ -1,0 +1,65 @@
+/**
+ * ColumnAwareGrid Styles
+ * Custom styles for react-grid-layout integration
+ */
+
+.react-grid-layout {
+  position: relative;
+}
+
+.react-grid-item {
+  transition: width 200ms ease-out, height 200ms ease-out, transform 200ms ease-out;
+}
+
+.react-grid-item.is-resizing {
+  transition: none !important;
+  z-index: 1000;
+}
+
+.react-grid-item.react-draggable-dragging {
+  transition: none !important;
+  z-index: 1000;
+  opacity: 0.8;
+}
+
+.react-grid-item > .react-resizable-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  bottom: 0;
+  right: 0;
+  cursor: nwse-resize;
+  background: transparent;
+  z-index: 10;
+}
+
+.react-grid-item > .react-resizable-handle::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 12px 12px;
+  border-color: transparent transparent rgba(0, 0, 0, 0.3) transparent;
+}
+
+.react-grid-item > .react-resizable-handle:hover::after {
+  border-color: transparent transparent rgba(0, 0, 0, 0.5) transparent;
+}
+
+.react-grid-item.react-grid-placeholder {
+  background: rgba(59, 130, 246, 0.1);
+  border: 2px dashed rgba(59, 130, 246, 0.5);
+  border-radius: 4px;
+  opacity: 0.5;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .react-grid-item {
+    transition: none !important;
+  }
+}
+

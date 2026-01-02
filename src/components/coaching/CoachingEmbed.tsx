@@ -3,12 +3,16 @@
  * Safe video embedding with YouTube (privacy-enhanced) and Instagram support
  */
 import { useState, useEffect, useRef } from 'react';
+
 import { ExternalLink, Loader2 } from 'lucide-react';
+
 import { AspectBox } from '@/components/ui/aspect-box';
-import { parseVideoUrl } from '@/lib/coaching/video-utils';
-import { content } from '@/content/strings';
 import { Button } from '@/components/ui/button';
+import { content } from '@/content/strings';
 import { supabase } from '@/integrations/supabase/client';
+import { parseEmbedUrl } from '@/lib/embeds';
+import { processInstagramEmbeds, generateInstagramEmbedMarkup } from '@/lib/embeds/instagram';
+import { parseVideoUrl } from '@/lib/coaching/video-utils';
 
 interface CoachingEmbedProps {
   url: string;
@@ -31,7 +35,9 @@ interface InstagramEmbedData {
 }
 
 export function CoachingEmbed({ url, title, className }: CoachingEmbedProps) {
-  const videoInfo = parseVideoUrl(url);
+  // Try new embed utilities first, fallback to legacy
+  const embedInfo = parseEmbedUrl(url);
+  const videoInfo = parseVideoUrl(url); // Legacy fallback
   const [instagramEmbed, setInstagramEmbed] = useState<InstagramEmbedData | null>(null);
   const [instagramLoading, setInstagramLoading] = useState(false);
   const [instagramError, setInstagramError] = useState<string | null>(null);
@@ -39,7 +45,8 @@ export function CoachingEmbed({ url, title, className }: CoachingEmbedProps) {
 
   // Fetch Instagram oEmbed data
   useEffect(() => {
-    if (videoInfo.platform === 'instagram' && !instagramEmbed && !instagramLoading && !instagramError) {
+    const platform = embedInfo?.platform || videoInfo.platform;
+    if (platform === 'instagram' && !instagramEmbed && !instagramLoading && !instagramError) {
       setInstagramLoading(true);
       setInstagramError(null);
       
@@ -92,47 +99,34 @@ export function CoachingEmbed({ url, title, className }: CoachingEmbedProps) {
 
       fetchInstagramEmbed();
     }
-  }, [videoInfo.platform, url, instagramEmbed, instagramLoading, instagramError]);
+  }, [embedInfo?.platform, videoInfo.platform, url, instagramEmbed, instagramLoading, instagramError]);
 
   // Load Instagram embed script when embed HTML is ready
   useEffect(() => {
     if (instagramEmbed && !scriptLoadedRef.current) {
-      // Check if script already exists
-      const existingScript = document.querySelector('script[src*="instagram.com/embed"]');
-      if (existingScript) {
+      // Use the new Instagram embed processor
+      processInstagramEmbeds().then(() => {
         scriptLoadedRef.current = true;
-        // Process embeds if script is already loaded
-        if ((window as any).instgrm) {
-          (window as any).instgrm.Embeds.process();
-        }
-        return;
-      }
-
-      // Load Instagram embed script
-      const script = document.createElement('script');
-      script.src = '//www.instagram.com/embed.js';
-      script.async = true;
-      script.onload = () => {
-        scriptLoadedRef.current = true;
-        if ((window as any).instgrm) {
-          (window as any).instgrm.Embeds.process();
-        }
-      };
-      document.body.appendChild(script);
-
-      return () => {
-        // Cleanup: don't remove script as it might be used by other embeds
-      };
+      }).catch((error) => {
+        console.error('Error processing Instagram embeds:', error);
+      });
     }
   }, [instagramEmbed]);
 
-  // YouTube embed
-  if (videoInfo.platform === 'youtube' && videoInfo.embedUrl && videoInfo.id) {
+  // YouTube embed - prefer new embedInfo, fallback to videoInfo
+  const youtubeEmbedUrl = embedInfo?.platform === 'youtube' 
+    ? embedInfo.embedUrl 
+    : (videoInfo.platform === 'youtube' ? videoInfo.embedUrl : null);
+  const youtubeId = embedInfo?.platform === 'youtube' 
+    ? embedInfo.id 
+    : (videoInfo.platform === 'youtube' ? videoInfo.id : null);
+    
+  if ((embedInfo?.platform === 'youtube' || videoInfo.platform === 'youtube') && youtubeEmbedUrl && youtubeId) {
     return (
       <AspectBox className={className}>
         <iframe
           title={title || 'Coaching video'}
-          src={videoInfo.embedUrl}
+          src={youtubeEmbedUrl}
           className="h-full w-full rounded-lg"
           loading="lazy"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -145,7 +139,8 @@ export function CoachingEmbed({ url, title, className }: CoachingEmbedProps) {
   }
 
   // Instagram embed
-  if (videoInfo.platform === 'instagram') {
+  const instagramPlatform = embedInfo?.platform === 'instagram' || videoInfo.platform === 'instagram';
+  if (instagramPlatform) {
     // Loading state
     if (instagramLoading) {
       return (
@@ -179,11 +174,16 @@ export function CoachingEmbed({ url, title, className }: CoachingEmbedProps) {
     }
 
     // Render Instagram embed HTML
+    // Try to use generated markup if available, otherwise use oEmbed HTML
+    const embedMarkup = embedInfo?.platform === 'instagram' && embedInfo.id
+      ? generateInstagramEmbedMarkup(embedInfo.id, embedInfo.canonicalUrl || url)
+      : instagramEmbed.html;
+      
     return (
       <div className={className}>
         <div
           className="instagram-embed-container"
-          dangerouslySetInnerHTML={{ __html: instagramEmbed.html }}
+          dangerouslySetInnerHTML={{ __html: embedMarkup }}
         />
       </div>
     );

@@ -2,7 +2,8 @@
  * EmptyState Component
  * Rich empty state with icon, description, and CTAs
  */
-import { LucideIcon } from 'lucide-react';
+import { type LucideIcon } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -32,24 +33,24 @@ export const EmptyState = ({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center text-center p-8 py-12 rounded-lg border border-dashed border-border bg-muted/10",
+        "flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/10 p-8 py-12 text-center",
         className
       )}
       role="status"
       aria-label={title}
     >
-      <div className="rounded-full bg-primary/10 p-3 mb-4">
+      <div className="mb-4 rounded-full bg-primary/10 p-3">
         <Icon 
           className="h-8 w-8 text-primary" 
           aria-hidden="true"
         />
       </div>
       
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-sm text-muted-foreground max-w-sm mb-6">{description}</p>
+      <h3 className="mb-2 text-lg font-semibold">{title}</h3>
+      <p className="mb-6 max-w-sm text-sm text-muted-foreground">{description}</p>
       
       {(primaryAction || secondaryAction) && (
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row">
           {primaryAction && (
             <Button 
               onClick={primaryAction.onClick}

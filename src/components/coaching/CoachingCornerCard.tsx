@@ -3,20 +3,34 @@
  * Displays coaching content (text or video) on dashboards
  */
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, X, Pin } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+
+import { ChevronDown, ChevronUp, X, Pin, ExternalLink, User } from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
-import { CoachingEmbed } from './CoachingEmbed';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { content } from '@/content/strings';
+import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
+
+import { CoachingEmbed } from './CoachingEmbed';
 
 export interface CoachingItem {
   id: string;
   title: string;
-  content_type: 'text' | 'youtube' | 'instagram';
+  content_type: 'text' | 'youtube' | 'instagram' | 'link';
   body?: string;
   video_url?: string;
+  url?: string; // Canonical URL (preferred over video_url)
+  
+  // Attribution fields
+  creator_name?: string;
+  creator_handle?: string;
+  creator_url?: string;
+  source_platform?: string;
+  source_url?: string;
+  license_note?: string;
+  
   pinned: boolean;
   start_at?: string;
   end_at?: string;
@@ -30,6 +44,16 @@ interface CoachingCornerCardProps {
 
 export function CoachingCornerCard({ item, onDismiss, className }: CoachingCornerCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { hasRole } = useAuth();
+  const isLearner = hasRole('student');
+  const isSupervisor = hasRole('supervisor');
+  
+  // Get role-specific description
+  const description = isLearner 
+    ? content.coaching.learnerDescription 
+    : isSupervisor 
+    ? content.coaching.supervisorDescription 
+    : content.coaching.subtitle;
   
   if (!item) {
     return (
@@ -39,6 +63,9 @@ export function CoachingCornerCard({ item, onDismiss, className }: CoachingCorne
             <span className="text-2xl" role="img" aria-label="lightbulb">💡</span>
             {content.coaching.title}
           </CardTitle>
+          <CardDescription>
+            {description}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
@@ -58,16 +85,16 @@ export function CoachingCornerCard({ item, onDismiss, className }: CoachingCorne
   return (
     <Card 
       className={cn(
-        "bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/5 overflow-hidden",
+        "overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/5",
         className
       )}
     >
       <CardHeader className="space-y-1 pb-3">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
               <CardTitle className="text-lg">
-                <span className="text-2xl mr-1" role="img" aria-label="lightbulb">💡</span>
+                <span className="mr-1 text-2xl" role="img" aria-label="lightbulb">💡</span>
                 {content.coaching.title}
               </CardTitle>
               {item.pinned && (
@@ -76,7 +103,7 @@ export function CoachingCornerCard({ item, onDismiss, className }: CoachingCorne
                   className="bg-primary/20 text-primary"
                   aria-label={content.coaching.pinned}
                 >
-                  <Pin className="h-3 w-3 mr-1" aria-hidden="true" />
+                  <Pin className="mr-1 h-3 w-3" aria-hidden="true" />
                   {content.coaching.pinned}
                 </Badge>
               )}
@@ -84,6 +111,9 @@ export function CoachingCornerCard({ item, onDismiss, className }: CoachingCorne
             <CardDescription className="mt-1">
               {item.title}
             </CardDescription>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {description}
+            </p>
           </div>
           {onDismiss && (
             <Button
@@ -104,7 +134,7 @@ export function CoachingCornerCard({ item, onDismiss, className }: CoachingCorne
         {item.body && (
           <div className="space-y-2">
             <div className="prose prose-sm dark:prose-invert max-w-none">
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed">
                 {isTextContent && isLongText && !isExpanded
                   ? `${item.body.substring(0, 300)}...`
                   : item.body}
@@ -115,7 +145,7 @@ export function CoachingCornerCard({ item, onDismiss, className }: CoachingCorne
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="text-xs h-7"
+                className="h-7 text-xs"
                 aria-expanded={isExpanded}
               >
                 {isExpanded ? (
@@ -135,16 +165,92 @@ export function CoachingCornerCard({ item, onDismiss, className }: CoachingCorne
         )}
         
         {/* Video Content - embedded iframe */}
-        {(item.content_type === 'youtube' || item.content_type === 'instagram') && item.video_url && (
+        {(item.content_type === 'youtube' || item.content_type === 'instagram') && (item.url || item.video_url) && (
           <CoachingEmbed 
-            url={item.video_url} 
+            url={item.url || item.video_url || ''} 
             title={item.title}
           />
         )}
         
+        {/* Attribution Footer - Required for embeds */}
+        {(item.content_type === 'youtube' || item.content_type === 'instagram') && (
+          <div className="border-t pt-3 space-y-2">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              {/* Creator attribution */}
+              {item.creator_name && (
+                <div className="flex items-center gap-1">
+                  <User className="h-3 w-3" />
+                  <span>By</span>
+                  {item.creator_url ? (
+                    <a
+                      href={item.creator_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-medium"
+                    >
+                      {item.creator_name}
+                    </a>
+                  ) : (
+                    <span className="font-medium">{item.creator_name}</span>
+                  )}
+                  {item.creator_handle && (
+                    <span className="text-muted-foreground">({item.creator_handle})</span>
+                  )}
+                </div>
+              )}
+              
+              {/* Source platform */}
+              {item.source_platform && (
+                <>
+                  <span>•</span>
+                  <span>Source:</span>
+                  {item.source_url ? (
+                    <a
+                      href={item.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-medium flex items-center gap-1"
+                    >
+                      {item.source_platform}
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  ) : (
+                    <span className="font-medium">{item.source_platform}</span>
+                  )}
+                </>
+              )}
+            </div>
+            
+            {/* License note or default attribution */}
+            <div className="text-xs text-muted-foreground">
+              {item.license_note || (
+                <span>Embedded via {item.source_platform || 'platform'} tools</span>
+              )}
+            </div>
+            
+            {/* Open on platform button */}
+            {(item.url || item.video_url || item.source_url) && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto"
+                onClick={() => {
+                  const openUrl = item.url || item.video_url || item.source_url;
+                  if (openUrl) {
+                    window.open(openUrl, '_blank', 'noopener,noreferrer');
+                  }
+                }}
+              >
+                <ExternalLink className="mr-2 h-3 w-3" />
+                Open on {item.source_platform || (item.content_type === 'youtube' ? 'YouTube' : 'Instagram')}
+              </Button>
+            )}
+          </div>
+        )}
+        
         {/* Metadata */}
         {(item.start_at || item.end_at) && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t">
+          <div className="flex items-center gap-2 border-t pt-2 text-xs text-muted-foreground">
             {item.start_at && (
               <span>
                 From {new Date(item.start_at).toLocaleDateString()}
