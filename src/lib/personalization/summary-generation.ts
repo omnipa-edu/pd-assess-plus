@@ -22,9 +22,10 @@ export async function generateAndSaveLearnerSummary(
 ): Promise<LearnerPersonalizationSummary | null> {
   try {
     // Get learner context
+    // Note: cohort_id and specialty_id may not exist in all database instances
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('id, cohort_id, specialty_id')
+      .select('id')
       .eq('id', learnerId)
       .single();
 
@@ -33,11 +34,16 @@ export async function generateAndSaveLearnerSummary(
       return null;
     }
 
+    // cohort_id and specialty_id may not exist in profiles table
+    // Set to undefined if columns don't exist - will be handled gracefully
+    const cohortId: string | undefined = undefined;
+    const specialtyId: string | undefined = undefined;
+
     // Generate summary
     const summary = await generateLearnerPersonalizationSummary(
       learnerId,
-      profile.specialty_id || undefined,
-      profile.cohort_id || undefined
+      specialtyId,
+      cohortId
     );
 
     // Upsert into database
@@ -46,8 +52,8 @@ export async function generateAndSaveLearnerSummary(
       .upsert(
         {
           learner_id: learnerId,
-          specialty_id: profile.specialty_id || null,
-          cohort_id: profile.cohort_id || null,
+          specialty_id: specialtyId || null,
+          cohort_id: cohortId || null,
           summary: summary as any,
         },
         {

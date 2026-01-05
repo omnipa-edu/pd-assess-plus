@@ -2,7 +2,6 @@ import { useState } from 'react';
 
 import { motion } from 'framer-motion';
 import { 
-  Stethoscope, 
   LogOut, 
   Plus, 
   Search, 
@@ -19,8 +18,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Logo } from '@/components/ui/Logo';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
+
+import { LogoWordmark } from '@/components/brand/LogoWordmark';
 
 const SupervisorLanding = () => {
   const navigate = useNavigate();
@@ -108,11 +110,9 @@ const SupervisorLanding = () => {
         <div className="container mx-auto px-4 py-4 md:px-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/70">
-                <Stethoscope className="h-6 w-6 text-primary-foreground" />
-              </div>
+              <Logo showText={false} />
               <div>
-                <h1 className="text-xl font-bold text-foreground md:text-2xl">WBA Tracker</h1>
+                <LogoWordmark className="text-xl md:text-2xl" />
                 <p className="text-sm text-muted-foreground">Supervisor Dashboard</p>
               </div>
             </div>

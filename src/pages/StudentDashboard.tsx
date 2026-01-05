@@ -23,6 +23,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardGridSkeleton } from '@/components/ui/skeleton-loaders';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -67,7 +69,14 @@ const StudentDashboard = () => {
   const { toast } = useToast();
   const { completeTask, isTaskCompleted } = useProfileProgress();
   const [showOScoreDialog, setShowOScoreDialog] = useState(false);
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [selectedEpaForBenchmark, setSelectedEpaForBenchmark] = useState<string | null>(null);
+  const [profileForm, setProfileForm] = useState({
+    full_name: profile?.full_name || '',
+    program: profile?.program || '',
+    year_of_training: profile?.year_of_training || '',
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
   const profileRef = useRef<HTMLDivElement | null>(null);
   const epaSectionRef = useRef<HTMLDivElement | null>(null);
   
@@ -76,6 +85,56 @@ const StudentDashboard = () => {
     dashboardType: 'learner',
     userId: user?.id || '',
   });
+
+  // Update form when profile changes
+  useEffect(() => {
+    if (profile) {
+      setProfileForm({
+        full_name: profile.full_name || '',
+        program: profile.program || '',
+        year_of_training: profile.year_of_training || '',
+      });
+    }
+  }, [profile]);
+
+  const handleSaveProfile = async () => {
+    if (!profile) return;
+    
+    setSavingProfile(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: profileForm.full_name,
+          program: profileForm.program || null,
+          year_of_training: profileForm.year_of_training || null,
+        })
+        .eq('id', profile.id);
+      
+      if (error) throw error;
+      
+      setShowProfileDialog(false);
+      
+      toast({
+        title: 'Profile updated',
+        description: 'Your profile has been updated successfully.',
+      });
+      
+      // Complete the onboarding task if profile is now complete
+      if (profileForm.program && profileForm.year_of_training && !isTaskCompleted('complete_profile')) {
+        await completeTask('complete_profile');
+      }
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update profile. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   // Use React Query for assessments (cached and optimized)
   const { data: assessmentsData, isLoading: loading } = useStudentAssessments();
@@ -183,7 +242,7 @@ const StudentDashboard = () => {
           className=""
           onTaskClick={(taskId) => {
             if (taskId === 'complete_profile') {
-              profileRef.current?.scrollIntoView({ behavior: 'smooth' });
+              setShowProfileDialog(true);
             } else if (taskId === 'view_first_assessment') {
               epaSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
             } else if (taskId === 'understand_oscore') {
@@ -304,6 +363,73 @@ const StudentDashboard = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Profile Edit Dialog */}
+        <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Profile</DialogTitle>
+              <DialogDescription>
+                Update your profile information
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="full_name">Full Name</Label>
+                <Input
+                  id="full_name"
+                  value={profileForm.full_name}
+                  onChange={(e) => setProfileForm({ ...profileForm, full_name: e.target.value })}
+                  placeholder="Enter your full name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="program">Program</Label>
+                <Input
+                  id="program"
+                  value={profileForm.program}
+                  onChange={(e) => setProfileForm({ ...profileForm, program: e.target.value })}
+                  placeholder="Enter your program"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="year_of_training">Year of Training</Label>
+                <Input
+                  id="year_of_training"
+                  value={profileForm.year_of_training}
+                  onChange={(e) => setProfileForm({ ...profileForm, year_of_training: e.target.value })}
+                  placeholder="Enter your year of training"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input
+                  value={profile?.email || ''}
+                  disabled
+                  className="bg-muted"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Email cannot be changed. Contact your administrator if you need to update it.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowProfileDialog(false)}
+                disabled={savingProfile}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveProfile}
+                disabled={savingProfile}
+              >
+                {savingProfile ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* O-SCORE Info Dialog */}
         <Dialog open={showOScoreDialog} onOpenChange={(open) => {

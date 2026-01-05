@@ -8,46 +8,46 @@ All colors MUST be HSL.
 
 @layer base {
 :root {
-    /* Medical Professional Color Palette */
-    --background: 210 25% 98%;
-    --foreground: 215 25% 15%;
+    /* Slate + Teal Brand Palette - Light Mode */
+    --background: 210 40% 96.1%; /* slate100 #F1F5F9 */
+    --foreground: 222 84% 4.9%; /* slate950 #020617 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card: 0 0% 100%; /* white #FFFFFF */
+    --card-foreground: 222 84% 4.9%; /* slate950 #020617 */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover: 0 0% 100%; /* white #FFFFFF */
+    --popover-foreground: 222 84% 4.9%; /* slate950 #020617 */
 
-    /* Medical Blue Primary */
-    --primary: 210 85% 45%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 210 85% 40%;
-    --primary-light: 210 85% 95%;
+    /* Primary Accent - Trajectory Teal */
+    --primary: 173 80% 36%; /* teal600 #0D9488 */
+    --primary-foreground: 0 0% 100%; /* white #FFFFFF */
+    --primary-hover: 173 80% 32%;
+    --primary-light: 173 80% 96%;
 
-    /* Clinical Secondary */
-    --secondary: 210 15% 95%;
-    --secondary-foreground: 215 25% 25%;
+    /* Secondary */
+    --secondary: 214 32% 91%; /* slate200 #E2E8F0 */
+    --secondary-foreground: 222 47% 11%; /* slate900 #0F172A */
 
-    --muted: 210 15% 96%;
-    --muted-foreground: 215 15% 45%;
+    --muted: 214 32% 91%; /* slate200 #E2E8F0 */
+    --muted-foreground: 215 16% 47%; /* slate600 #475569 */
 
-    /* Professional Accent */
-    --accent: 195 75% 50%;
-    --accent-foreground: 0 0% 100%;
-    --accent-light: 195 75% 95%;
+    /* Accent */
+    --accent: 167 70% 84%; /* teal200 #99F6E4 */
+    --accent-foreground: 222 47% 11%; /* slate900 #0F172A */
+    --accent-light: 167 70% 96%;
 
-    /* Medical Alert Colors */
-    --destructive: 0 85% 55%;
-    --destructive-foreground: 0 0% 100%;
-    --warning: 45 90% 55%;
+    /* Status Colors */
+    --destructive: 0 72% 51%; /* error #DC2626 */
+    --destructive-foreground: 0 0% 100%; /* white #FFFFFF */
+    --warning: 38 92% 50%; /* warning #F59E0B */
     --warning-foreground: 45 25% 15%;
-    --success: 145 65% 45%;
-    --success-foreground: 0 0% 100%;
+    --success: 142 71% 45%; /* success #16A34A */
+    --success-foreground: 0 0% 100%; /* white #FFFFFF */
 
     /* Interface Elements */
-    --border: 210 20% 88%;
-    --input: 210 20% 95%;
-    --ring: 210 85% 45%;
+    --border: 214 32% 91%; /* slate200 #E2E8F0 */
+    --input: 214 32% 91%; /* slate200 #E2E8F0 */
+    --ring: 173 85% 39%; /* teal500 #14B8A6 */
 
     /* Medical Assessment Colors */
     --assessment-excellent: 145 65% 45%;
@@ -57,70 +57,65 @@ All colors MUST be HSL.
     --assessment-unsatisfactory: 0 85% 55%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(210 85% 50%), hsl(195 75% 50%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 15% 98%));
-    --gradient-assessment: linear-gradient(90deg, hsl(210 85% 95%), hsl(195 75% 95%));
+    --gradient-primary: linear-gradient(135deg, hsl(173 80% 36%), hsl(173 85% 39%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 40% 98%));
+    --gradient-assessment: linear-gradient(90deg, hsl(173 70% 90%), hsl(167 70% 90%));
 
     /* Shadows */
-    --shadow-card: 0 4px 12px hsl(210 25% 15% / 0.08);
-    --shadow-elevated: 0 8px 25px hsl(210 25% 15% / 0.12);
-    --shadow-assessment: 0 2px 8px hsl(210 85% 45% / 0.15);
+    --shadow-card: 0 4px 12px hsl(222 47% 11% / 0.08);
+    --shadow-elevated: 0 8px 25px hsl(222 47% 11% / 0.12);
+    --shadow-assessment: 0 2px 8px hsl(173 80% 36% / 0.15);
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 210 40% 98%;
+    --sidebar-foreground: 215 16% 47%;
+    --sidebar-primary: 173 80% 36%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 214 32% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 173 85% 39%;
   }
 
   .dark {
-    /* Dark Mode Medical Interface */
-    --background: 215 25% 8%;
-    --foreground: 210 25% 92%;
+    /* Slate + Teal Brand Palette - Dark Mode */
+    --background: 222 47% 11%; /* slate900 #0F172A */
+    --foreground: 210 40% 96.1%; /* slate100 #F1F5F9 */
 
-    --card: 215 25% 10%;
-    --card-foreground: 210 25% 92%;
+    --card: 217 33% 17%; /* slate800 #1E293B */
+    --card-foreground: 210 40% 96.1%; /* slate100 #F1F5F9 */
 
-    --popover: 215 25% 10%;
-    --popover-foreground: 210 25% 92%;
+    --popover: 217 33% 17%; /* slate800 #1E293B */
+    --popover-foreground: 210 40% 96.1%; /* slate100 #F1F5F9 */
 
-    --primary: 210 85% 55%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 210 85% 50%;
-    --primary-light: 210 85% 15%;
+    /* Primary Accent - Trajectory Teal */
+    --primary: 173 85% 39%; /* teal500 #14B8A6 */
+    --primary-foreground: 222 84% 4.9%; /* slate950 #020617 */
+    --primary-hover: 173 85% 43%;
+    --primary-light: 173 80% 12%;
 
-    --secondary: 215 20% 15%;
-    --secondary-foreground: 210 25% 85%;
+    --secondary: 215 28% 17%; /* slate800 variant #1F2937 */
+    --secondary-foreground: 210 40% 96.1%; /* slate100 #F1F5F9 */
 
-    --muted: 215 20% 12%;
-    --muted-foreground: 215 15% 60%;
+    --muted: 215 16% 47%; /* slate600 #334155 */
+    --muted-foreground: 215 20% 65%; /* slate400 #94A3B8 */
 
-    --accent: 195 75% 55%;
-    --accent-foreground: 0 0% 100%;
-    --accent-light: 195 75% 15%;
+    --accent: 173 58% 24%; /* teal800 #134E4A */
+    --accent-foreground: 210 40% 96.1%; /* slate100 #F1F5F9 */
+    --accent-light: 173 58% 12%;
 
-    --destructive: 0 85% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --warning: 45 90% 60%;
+    /* Status Colors */
+    --destructive: 0 72% 51%; /* error #DC2626 */
+    --destructive-foreground: 0 0% 100%; /* white #FFFFFF */
+    --warning: 38 92% 50%; /* warning #F59E0B */
     --warning-foreground: 45 25% 15%;
-    --success: 145 65% 50%;
-    --success-foreground: 0 0% 100%;
+    --success: 142 71% 45%; /* success #16A34A */
+    --success-foreground: 0 0% 100%; /* white #FFFFFF */
 
-    --border: 215 20% 20%;
-    --input: 215 20% 15%;
-    --ring: 210 85% 55%;
+    --border: 215 16% 47%; /* slate600 #334155 */
+    --input: 215 16% 47%; /* slate600 #334155 */
+    --ring: 173 85% 39%; /* teal500 #14B8A6 */
 
     --assessment-excellent: 145 65% 50%;
     --assessment-good: 85 75% 55%;
@@ -128,21 +123,21 @@ All colors MUST be HSL.
     --assessment-needs-improvement: 25 90% 60%;
     --assessment-unsatisfactory: 0 85% 60%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(210 85% 55%), hsl(195 75% 55%));
-    --gradient-card: linear-gradient(145deg, hsl(215 25% 12%), hsl(215 20% 10%));
-    --gradient-assessment: linear-gradient(90deg, hsl(210 85% 15%), hsl(195 75% 15%));
+    --gradient-primary: linear-gradient(135deg, hsl(173 85% 39%), hsl(173 80% 36%));
+    --gradient-card: linear-gradient(145deg, hsl(217 33% 17%), hsl(222 47% 13%));
+    --gradient-assessment: linear-gradient(90deg, hsl(173 58% 20%), hsl(167 58% 20%));
 
     --shadow-card: 0 4px 12px hsl(0 0% 0% / 0.25);
     --shadow-elevated: 0 8px 25px hsl(0 0% 0% / 0.35);
-    --shadow-assessment: 0 2px 8px hsl(210 85% 45% / 0.25);
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --shadow-assessment: 0 2px 8px hsl(173 85% 39% / 0.25);
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 96.1%;
+    --sidebar-primary: 173 85% 39%;
+    --sidebar-primary-foreground: 222 84% 4.9%;
+    --sidebar-accent: 215 28% 17%;
+    --sidebar-accent-foreground: 210 40% 96.1%;
+    --sidebar-border: 215 16% 47%;
+    --sidebar-ring: 173 85% 39%;
   }
 }
 
@@ -152,7 +147,7 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground transition-colors duration-200;
+    @apply bg-background text-foreground transition-colors duration-200 font-sans antialiased;
   }
   
   /* Smooth theme transitions (respects prefers-reduced-motion) */

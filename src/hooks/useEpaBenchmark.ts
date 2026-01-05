@@ -3,7 +3,7 @@
  * Fetches and manages benchmark data for a learner and EPA
  */
 
-import { useQueries } from '@tanstack/react-query';
+import { useQuery, useQueries } from '@tanstack/react-query';
 
 import {
   getBenchmarkFor,

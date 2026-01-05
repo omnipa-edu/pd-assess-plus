@@ -6,6 +6,7 @@ import { Features } from '@/components/marketing/Features';
 import { Footer } from '@/components/marketing/Footer';
 import { Hero } from '@/components/marketing/Hero';
 import { HowItWorks } from '@/components/marketing/HowItWorks';
+import { LandingHeader } from '@/components/marketing/LandingHeader';
 import { useAuth } from '@/hooks/useAuth';
 
 const Landing = () => {
@@ -52,6 +53,8 @@ const Landing = () => {
       >
         Skip to main content
       </a>
+
+      <LandingHeader />
 
       <main id="main-content">
         <Hero onGetStarted={handleGetStarted} onLearnMore={handleLearnMore} />

@@ -38,17 +38,27 @@ export const Hero = ({ onGetStarted, onLearnMore }: HeroProps) => {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
-            className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl"
+            className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-6xl"
           >
             {content.landing.hero.title}
           </motion.h1>
+
+          {/* Tagline */}
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.15 }}
+            className="mx-auto mt-4 text-lg text-muted-foreground sm:text-xl"
+          >
+            {content.landing.hero.tagline}
+          </motion.p>
 
           {/* Subtitle */}
           <motion.p
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.2 }}
-            className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl"
+            className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg"
           >
             {content.landing.hero.subtitle}
           </motion.p>

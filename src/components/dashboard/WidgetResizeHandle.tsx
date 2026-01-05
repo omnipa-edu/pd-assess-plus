@@ -33,3 +33,4 @@ export function WidgetResizeHandle({ isVisible, onMouseDown }: WidgetResizeHandl
   );
 }
 
+

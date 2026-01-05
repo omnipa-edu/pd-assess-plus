@@ -2,9 +2,10 @@
 export const content = {
   landing: {
     hero: {
-      title: "Track Progress. Coach Better. Grow Faster.",
-      subtitle: "A simple, mobile-friendly way to capture observations, give feedback, and see trends at a glance.",
-      ctaPrimary: "Get started",
+      title: "Adaptive Competency",
+      tagline: "From observation to readiness.",
+      subtitle: "Transform observations and feedback into adaptive learning trajectories—powered by data, coaching, and evidence.",
+      ctaPrimary: "Get Started",
       ctaSecondary: "Learn more"
     },
     features: [
@@ -51,11 +52,11 @@ export const content = {
         { label: "Terms of Service", href: "/terms" },
         { label: "Contact Us", href: "/contact" }
       ],
-      copyright: "© 2025 WBA Tracker. All rights reserved."
+      copyright: "© 2025 Adaptive Competency. All rights reserved."
     }
   },
   auth: {
-    title: "Welcome to WBA Tracker",
+    title: "Welcome to Adaptive Competency",
     subtitle: "Sign in to access your assessments and feedback",
     tabs: {
       signIn: "Sign In",
@@ -112,7 +113,7 @@ export const content = {
   },
   onboarding: {
     student: {
-      title: "Welcome to WBA Tracker!",
+      title: "Welcome to Adaptive Competency!",
       subtitle: "Let's get you started with tracking your progress",
       tasks: [
         {

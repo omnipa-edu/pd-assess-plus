@@ -24,6 +24,8 @@ const Pricing = lazy(() => import("./pages/Pricing"));
 const Subscribe = lazy(() => import("./pages/Subscribe"));
 const Billing = lazy(() => import("./pages/Billing"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const PaletteSwatch = lazy(() => import("./pages/PaletteSwatch"));
+const ContrastCheck = lazy(() => import("./pages/dev/ContrastCheck"));
 const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
 const SupervisorDashboard = lazy(() => import("./pages/SupervisorDashboard"));
 const CMELog = lazy(() => import("./pages/supervisor/CMELog"));
@@ -88,6 +90,8 @@ const App = () => (
               <Suspense fallback={<RouteLoadingFallback />}>
                 <Routes>
                   <Route path="/" element={<Landing />} />
+                  <Route path="/palette-swatch" element={<PaletteSwatch />} />
+                  <Route path="/dev/contrast" element={<ContrastCheck />} />
                   <Route path="/pricing" element={<Pricing />} />
                   <Route path="/subscribe" element={<Subscribe />} />
                   <Route path="/billing" element={<Billing />} />

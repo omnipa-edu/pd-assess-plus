@@ -244,7 +244,7 @@ export function scoreCandidateActions(
     }
 
     // Benchmark delta boost (below cohort)
-    if (epaState?.benchmarkDelta !== null && epaState.benchmarkDelta < -0.5) {
+    if (epaState && epaState.benchmarkDelta !== null && epaState.benchmarkDelta < -0.5) {
       score += 25;
       reasons.push(`Below cohort benchmark by ${epaState.benchmarkDelta.toFixed(1)}`);
     }

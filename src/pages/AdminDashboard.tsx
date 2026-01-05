@@ -17,8 +17,11 @@ import { UserRoleManagement } from "@/components/admin/UserRoleManagement";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Logo } from "@/components/ui/Logo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
+
+import { LogoWordmark } from "@/components/brand/LogoWordmark";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -153,11 +156,9 @@ const AdminDashboard = () => {
         <div className="container mx-auto px-4 py-3 md:px-6 md:py-4">
           <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center sm:gap-0">
             <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-primary sm:h-10 sm:w-10">
-                <Shield className="h-5 w-5 text-white sm:h-6 sm:w-6" />
-              </div>
+              <Logo showText={false} variant="admin" size="sm" />
               <div>
-                <h1 className="text-lg font-bold text-foreground sm:text-xl md:text-2xl">WBA Tracker</h1>
+                <LogoWordmark className="text-lg sm:text-xl md:text-2xl" />
                 <p className="text-xs text-muted-foreground sm:text-sm">Administrator Dashboard</p>
               </div>
             </div>

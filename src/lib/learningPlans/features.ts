@@ -116,15 +116,6 @@ export async function buildLearnerStateSnapshot(
       plateau_flag: boolean;
     }>;
 
-    // If no EPA summary data, return empty snapshot (learner has no assessments)
-    if (epaSummaryData.length === 0 && assessments.length === 0) {
-      return {
-        learnerId,
-        generatedAt,
-        epas: {},
-      };
-    }
-
     // Step 3: Get all EPA assessments for exposure and distribution calculations
     const cutoff30 = new Date();
     cutoff30.setDate(cutoff30.getDate() - 30);
@@ -142,6 +133,15 @@ export async function buildLearnerStateSnapshot(
     }
 
     const assessments = allAssessments || [];
+
+    // If no EPA summary data and no assessments, return empty snapshot
+    if (epaSummaryData.length === 0 && assessments.length === 0) {
+      return {
+        learnerId,
+        generatedAt,
+        epas: {},
+      };
+    }
     const assessmentIds = assessments.map((a) => a.id);
 
     // Step 4: Get feedback quality scores for this learner's assessments only

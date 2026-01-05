@@ -1,7 +1,8 @@
-import { Stethoscope } from 'lucide-react';
-
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { Logo } from '@/components/ui/Logo';
 import { content } from '@/content/strings';
+
+import { LogoWordmark } from '@/components/brand/LogoWordmark';
 
 export const Footer = () => {
   return (
@@ -10,11 +11,9 @@ export const Footer = () => {
         <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-3">
           {/* Brand */}
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/70">
-              <Stethoscope className="h-6 w-6 text-primary-foreground" aria-hidden="true" />
-            </div>
+            <Logo showText={false} />
             <div>
-              <h3 className="text-lg font-bold text-foreground">WBA Tracker</h3>
+              <LogoWordmark className="text-lg" />
               <p className="text-sm text-muted-foreground">Workplace-Based Assessment Platform</p>
             </div>
           </div>

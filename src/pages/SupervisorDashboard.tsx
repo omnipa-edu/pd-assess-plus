@@ -6,7 +6,6 @@ import {
   BookOpen, 
   TrendingUp, 
   Plus,
-  Stethoscope,
   GraduationCap,
   FileText,
   CheckCircle,
@@ -42,7 +41,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Logo } from "@/components/ui/Logo";
 import { DashboardGridSkeleton } from "@/components/ui/skeleton-loaders";
+
+import { LogoWordmark } from "@/components/brand/LogoWordmark";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardLayout } from "@/hooks/useDashboardLayout";
@@ -286,11 +288,9 @@ const SupervisorDashboard = () => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-primary">
-                <Stethoscope className="h-6 w-6 text-white" />
-              </div>
+              <Logo showText={false} />
               <div>
-                <h1 className="text-2xl font-bold text-foreground">WBA Tracker</h1>
+                <LogoWordmark className="text-2xl" />
                 <p className="text-sm text-muted-foreground">Supervisor Dashboard</p>
               </div>
             </div>

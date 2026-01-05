@@ -109,3 +109,4 @@ COMMENT ON COLUMN public.dashboard_layout_audit.action IS 'Type of action: save,
 COMMENT ON TABLE public.dashboard_layout_recommendations IS 'AI-recommended dashboard layouts per role and dashboard type';
 COMMENT ON COLUMN public.dashboard_layout_recommendations.recommendation_json IS 'Complete v4 layout JSON with column structure';
 
+

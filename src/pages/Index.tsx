@@ -6,7 +6,6 @@ import {
   BookOpen, 
   TrendingUp, 
   Plus,
-  Stethoscope,
   GraduationCap,
   FileText,
   CheckCircle,
@@ -20,7 +19,10 @@ import NewAssessmentDialog from "@/components/NewAssessmentDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Logo } from "@/components/ui/Logo";
 import { useAuth } from "@/hooks/useAuth";
+
+import { LogoWordmark } from "@/components/brand/LogoWordmark";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -131,11 +133,9 @@ const Index = () => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-primary">
-                <Stethoscope className="h-6 w-6 text-white" />
-              </div>
+              <Logo showText={false} />
               <div>
-                <h1 className="text-2xl font-bold text-foreground">WBA Tracker</h1>
+                <LogoWordmark className="text-2xl" />
                 <p className="text-sm text-muted-foreground">Workplace-Based Assessment Platform</p>
               </div>
             </div>

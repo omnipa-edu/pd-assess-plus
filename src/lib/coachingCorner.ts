@@ -69,7 +69,6 @@ export async function getCoachingCornerItems(
     // For now, let's fetch and filter client-side to avoid complex Supabase query syntax
     const { data: coachingData, error } = await query
       .order('pinned', { ascending: false })
-      .order('priority', { ascending: false })
       .order('updated_at', { ascending: false })
       .limit(limit * 2); // Fetch more to account for date filtering
     
