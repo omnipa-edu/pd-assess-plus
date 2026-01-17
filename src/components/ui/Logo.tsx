@@ -1,7 +1,9 @@
 import { Stethoscope } from 'lucide-react';
 import { useState } from 'react';
 
+import { branding } from '@/lib/branding';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/components/theme/ThemeProvider';
 
 interface LogoProps {
   className?: string;
@@ -21,9 +23,13 @@ export const Logo = ({
   size = 'md'
 }: LogoProps) => {
   const [imageError, setImageError] = useState(false);
+  const { actualTheme } = useTheme();
   
   // Use icon for admin variant, or if image fails to load
   const useIcon = variant === 'admin' || imageError;
+  
+  // Select logo based on theme
+  const logoSrc = actualTheme === 'dark' ? '/logodark.png' : '/logo.png';
   
   const sizeClasses = {
     sm: 'h-8',
@@ -57,22 +63,22 @@ export const Logo = ({
         </div>
       ) : (
         <img
-          src="/logo.png"
-          alt="Adaptive Competency Logo"
+          src={logoSrc}
+          alt={`${branding.appName} Logo`}
           className={cn('object-contain w-auto', sizeClasses[size])}
           style={{ display: 'block' }}
           onError={() => {
-            console.error('Logo image failed to load');
+            console.error(`Logo image failed to load: ${logoSrc}`);
             setImageError(true);
           }}
           onLoad={() => {
-            console.log('Logo image loaded successfully');
+            console.log(`Logo image loaded successfully: ${logoSrc}`);
           }}
         />
       )}
       {showText && (
         <div className={textClassName}>
-          <div className="text-lg font-bold text-foreground">Adaptive Competency</div>
+          <div className="text-lg font-bold text-foreground">{branding.appName}</div>
         </div>
       )}
     </div>

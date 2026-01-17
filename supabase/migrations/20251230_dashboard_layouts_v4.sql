@@ -110,3 +110,4 @@ COMMENT ON TABLE public.dashboard_layout_recommendations IS 'AI-recommended dash
 COMMENT ON COLUMN public.dashboard_layout_recommendations.recommendation_json IS 'Complete v4 layout JSON with column structure';
 
 
+

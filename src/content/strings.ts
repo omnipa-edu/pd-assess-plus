@@ -1,10 +1,12 @@
+import { branding } from '@/lib/branding';
+
 // All copy and content strings for the application
 export const content = {
   landing: {
     hero: {
-      title: "Adaptive Competency",
-      tagline: "From observation to readiness.",
-      subtitle: "Transform observations and feedback into adaptive learning trajectories—powered by data, coaching, and evidence.",
+      title: branding.appName,
+      tagline: branding.tagline,
+      subtitle: branding.description,
       ctaPrimary: "Get Started",
       ctaSecondary: "Learn more"
     },
@@ -52,11 +54,11 @@ export const content = {
         { label: "Terms of Service", href: "/terms" },
         { label: "Contact Us", href: "/contact" }
       ],
-      copyright: "© 2025 Adaptive Competency. All rights reserved."
+      copyright: `© 2025 ${branding.appName}. All rights reserved.`
     }
   },
   auth: {
-    title: "Welcome to Adaptive Competency",
+    title: `Welcome to ${branding.appName}`,
     subtitle: "Sign in to access your assessments and feedback",
     tabs: {
       signIn: "Sign In",
@@ -113,7 +115,7 @@ export const content = {
   },
   onboarding: {
     student: {
-      title: "Welcome to Adaptive Competency!",
+      title: `Welcome to ${branding.appName}!`,
       subtitle: "Let's get you started with tracking your progress",
       tasks: [
         {

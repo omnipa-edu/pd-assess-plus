@@ -218,6 +218,33 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
     await saveMutation.mutateAsync(defaultV2Layout);
   }, [dashboardType, saveMutation]);
 
+  // Apply mobile-optimized widget order based on default mobile layout
+  const applyMobileOptimizedLayout = useCallback(() => {
+    if (!draftLayout || !draftLayout.widgets) return;
+
+    const normalizedType = dashboardType === 'admin' ? 'learner' : dashboardType;
+    const defaultLayout = getDefaultLayout(normalizedType);
+    const mobileOrder = defaultLayout.breakpoints?.mobile?.map((w) => w.widgetId) || [];
+    const widgetMap = new Map(draftLayout.widgets.map((w) => [w.widgetId, w]));
+
+    const orderedWidgetIds = [
+      ...mobileOrder.filter((id) => widgetMap.has(id)),
+      ...draftLayout.widgets
+        .map((w) => w.widgetId)
+        .filter((id) => !mobileOrder.includes(id)),
+    ];
+
+    const updatedWidgets = orderedWidgetIds.map((widgetId, index) => ({
+      ...widgetMap.get(widgetId)!,
+      order: index,
+    }));
+
+    setDraftLayout({
+      ...draftLayout,
+      widgets: updatedWidgets,
+    });
+  }, [draftLayout, dashboardType]);
+
   // Move widget to new position
   const moveWidget = useCallback((widgetId: WidgetId, newOrder: number) => {
     if (!draftLayout || !draftLayout.widgets) return;
@@ -402,6 +429,7 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
     // Actions
     saveLayout,
     resetToDefault,
+    applyMobileOptimizedLayout,
     moveWidget,
     toggleWidgetVisibility,
     toggleWidgetCollapse,

@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 
-import { GripVertical, X, Plus, Layout, Save, X as XIcon } from 'lucide-react';
+import { GripVertical, X, Plus, Smartphone, Save, X as XIcon } from 'lucide-react';
 
 import {
   Sheet,
@@ -62,6 +62,7 @@ interface DashboardCustomizeSidebarProps {
   dashboardType: 'learner' | 'supervisor';
   aiSuggestions?: ResizeSuggestion[];
   onApplyAISuggestion?: (widgetId: WidgetId, preset: SizePreset) => void;
+  onApplyMobileOptimizedLayout?: () => void;
   currentBreakpoint?: Breakpoint;
   columnCount?: number;
 }
@@ -171,6 +172,7 @@ export function DashboardCustomizeSidebar({
   dashboardType,
   aiSuggestions,
   onApplyAISuggestion,
+  onApplyMobileOptimizedLayout,
   currentBreakpoint = 'desktop',
   columnCount = 2,
 }: DashboardCustomizeSidebarProps) {
@@ -214,35 +216,18 @@ export function DashboardCustomizeSidebar({
           {/* Scrollable content */}
           <ScrollArea className="flex-1 px-6">
             <div className="space-y-6 pb-4">
-            {/* Layout Presets */}
+            {/* Mobile Layout */}
             <div className="space-y-3">
-              <Label className="text-sm font-semibold">Layout Presets</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-auto flex-col py-3"
-                  onClick={() => {
-                    // Apply single column layout
-                    const updated = widgets.map((w, idx) => ({
-                      ...w,
-                      order: idx,
-                    }));
-                    // This would need to be handled by the parent
-                  }}
-                >
-                  <Layout className="h-4 w-4 mb-1" />
-                  <span className="text-xs">Focused</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-auto flex-col py-3"
-                >
-                  <Layout className="h-4 w-4 mb-1" />
-                  <span className="text-xs">Balanced</span>
-                </Button>
-              </div>
+              <Label className="text-sm font-semibold">Mobile Layout</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full h-auto py-3 flex items-center justify-center gap-2"
+                onClick={() => onApplyMobileOptimizedLayout?.()}
+              >
+                <Smartphone className="h-4 w-4" />
+                <span className="text-xs">Apply Mobile-Optimized Layout</span>
+              </Button>
             </div>
 
             <Separator />

@@ -14,7 +14,7 @@ export const Footer = () => {
             <Logo showText={false} />
             <div>
               <LogoWordmark className="text-lg" />
-              <p className="text-sm text-muted-foreground">Workplace-Based Assessment Platform</p>
+              <p className="text-sm text-muted-foreground">Clinical Intelligence Platform</p>
             </div>
           </div>
 

@@ -369,6 +369,7 @@ const SupervisorDashboard = () => {
           dashboardType="supervisor"
           aiSuggestions={dashboardLayout.aiSuggestions}
           onApplyAISuggestion={dashboardLayout.applyAISuggestion}
+          onApplyMobileOptimizedLayout={dashboardLayout.applyMobileOptimizedLayout}
         />
 
         {/* Dashboard Grid with Customizable Layout */}
