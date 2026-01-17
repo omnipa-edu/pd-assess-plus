@@ -16,7 +16,9 @@ import type {
   LegacyDashboardLayoutJson,
   LegacyWidgetLayout,
   SizePreset,
+  DashboardLayoutJsonV3,
 } from '@/lib/dashboard/types';
+import type { Json } from '@/integrations/supabase/types';
 
 interface UseDashboardLayoutOptions {
   dashboardType: DashboardType;
@@ -25,6 +27,7 @@ interface UseDashboardLayoutOptions {
 
 export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayoutOptions) {
   const queryClient = useQueryClient();
+  const normalizedDashboardType = dashboardType === 'admin' ? 'learner' : dashboardType;
   const [isEditing, setIsEditing] = useState(false);
   const [draftLayout, setDraftLayout] = useState<LegacyDashboardLayoutJson | null>(null);
   const [savedLayout, setSavedLayout] = useState<LegacyDashboardLayoutJson | null>(null);
@@ -47,11 +50,11 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
         // 406 might mean table doesn't exist yet (migration not run)
         if (error.code === 'PGRST116' || error.code === '42P01' || error.message?.includes('does not exist')) {
           console.warn('Dashboard layouts table not found or no data, using default layout:', error.message);
-          return getDefaultLayout(dashboardType);
+          return getDefaultLayout(normalizedDashboardType);
         }
         console.error('Error fetching dashboard layout:', error);
         // For other errors, still return default to prevent breaking the app
-        return getDefaultLayout(dashboardType);
+        return getDefaultLayout(normalizedDashboardType);
       }
 
       if (data?.layout_json) {
@@ -62,19 +65,19 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
         if (layout.version === 3 && layout.breakpoints) {
           console.warn('v3 layout detected but using v2 hook. Consider migrating to useDashboardLayoutV3.');
           // Return default for now - v3 layouts should use v3 hook
-          return getDefaultLayout(dashboardType) as any;
+          return getDefaultLayout(normalizedDashboardType) as any;
         }
         
         // Ensure it has widgets array (v2 format)
         if (!layout.widgets) {
-          return getDefaultLayout(dashboardType) as any;
+          return getDefaultLayout(normalizedDashboardType) as any;
         }
         
         return layout as LegacyDashboardLayoutJson;
       }
 
       // No saved layout, return default
-      return getDefaultLayout(dashboardType);
+      return getDefaultLayout(normalizedDashboardType);
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -150,7 +153,7 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
         .upsert({
           user_id: userId,
           dashboard_type: dashboardType,
-          layout_json: layout,
+          layout_json: layout as unknown as Json,
           version: 1,
           updated_at: new Date().toISOString(),
         }, {
@@ -160,7 +163,7 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
         .single();
 
       if (error) throw error;
-      return data.layout_json as LegacyDashboardLayoutJson;
+      return data.layout_json as unknown as LegacyDashboardLayoutJson;
     },
     onSuccess: (saved) => {
       setSavedLayout(saved);
@@ -201,9 +204,9 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
 
   // Reset to default layout
   const resetToDefault = useCallback(async () => {
-    const defaultV3Layout = getDefaultLayout(dashboardType === 'admin' ? 'learner' : dashboardType);
+    const defaultV3Layout = getDefaultLayout(normalizedDashboardType) as unknown as DashboardLayoutJsonV3;
     const defaultV2Layout: LegacyDashboardLayoutJson = {
-      dashboardType: dashboardType === 'admin' ? 'learner' : dashboardType,
+      dashboardType: normalizedDashboardType,
       widgets: defaultV3Layout.breakpoints?.desktop?.map((w, idx) => ({
         widgetId: w.widgetId,
         order: idx,
@@ -216,20 +219,29 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
     };
     setDraftLayout(defaultV2Layout);
     await saveMutation.mutateAsync(defaultV2Layout);
-  }, [dashboardType, saveMutation]);
+  }, [normalizedDashboardType, saveMutation]);
 
   // Apply mobile-optimized widget order based on default mobile layout
-  const applyMobileOptimizedLayout = useCallback(() => {
-    if (!draftLayout || !draftLayout.widgets) return;
+  const applyMobileOptimizedLayout = useCallback(async (options?: { autoSave?: boolean }) => {
+    const sourceLayout = draftLayout || savedLayout;
+    if (!sourceLayout || !sourceLayout.widgets) return false;
 
-    const normalizedType = dashboardType === 'admin' ? 'learner' : dashboardType;
-    const defaultLayout = getDefaultLayout(normalizedType);
-    const mobileOrder = defaultLayout.breakpoints?.mobile?.map((w) => w.widgetId) || [];
-    const widgetMap = new Map(draftLayout.widgets.map((w) => [w.widgetId, w]));
+    const defaultLayout = getDefaultLayout(normalizedDashboardType) as unknown as DashboardLayoutJsonV3;
+    const mobileLayout = [...(defaultLayout.breakpoints?.mobile || [])].sort(
+      (a, b) => a.y - b.y || a.x - b.x
+    );
+    const mobileOrder = mobileLayout.map((w) => w.widgetId);
+    const mobileSizeMap = new Map<WidgetId, LegacyWidgetLayout['size']>(
+      mobileLayout.map((w) => [
+        w.widgetId,
+        w.sizePreset === 'compact' ? 'sm' : w.sizePreset === 'wide' || w.sizePreset === 'full' ? 'lg' : 'md',
+      ])
+    );
+    const widgetMap = new Map(sourceLayout.widgets.map((w) => [w.widgetId, w]));
 
     const orderedWidgetIds = [
       ...mobileOrder.filter((id) => widgetMap.has(id)),
-      ...draftLayout.widgets
+      ...sourceLayout.widgets
         .map((w) => w.widgetId)
         .filter((id) => !mobileOrder.includes(id)),
     ];
@@ -237,13 +249,25 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
     const updatedWidgets = orderedWidgetIds.map((widgetId, index) => ({
       ...widgetMap.get(widgetId)!,
       order: index,
+      size: mobileSizeMap.get(widgetId) ?? widgetMap.get(widgetId)!.size,
     }));
 
-    setDraftLayout({
-      ...draftLayout,
+    const updatedLayout: LegacyDashboardLayoutJson = {
+      ...sourceLayout,
       widgets: updatedWidgets,
-    });
-  }, [draftLayout, dashboardType]);
+    };
+
+    setDraftLayout(updatedLayout);
+
+    if (options?.autoSave) {
+      const layoutToSave: LegacyDashboardLayoutJson = {
+        ...updatedLayout,
+        updatedAt: new Date().toISOString(),
+      };
+      await saveMutation.mutateAsync(layoutToSave);
+    }
+    return true;
+  }, [draftLayout, savedLayout, normalizedDashboardType, saveMutation]);
 
   // Move widget to new position
   const moveWidget = useCallback((widgetId: WidgetId, newOrder: number) => {
@@ -396,9 +420,9 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
   }, [draftLayout]);
 
   // Ensure we always return a valid v2 layout with widgets array
-  const defaultLayout = getDefaultLayout(dashboardType === 'admin' ? 'learner' : dashboardType) as any;
+  const defaultLayout = getDefaultLayout(normalizedDashboardType) as unknown as DashboardLayoutJsonV3;
   const defaultV2Layout: LegacyDashboardLayoutJson = {
-    dashboardType: dashboardType === 'admin' ? 'learner' : dashboardType,
+    dashboardType: normalizedDashboardType,
     widgets: defaultLayout.breakpoints?.desktop?.map((w, idx) => ({
       widgetId: w.widgetId,
       order: idx,

@@ -62,7 +62,7 @@ interface DashboardCustomizeSidebarProps {
   dashboardType: 'learner' | 'supervisor';
   aiSuggestions?: ResizeSuggestion[];
   onApplyAISuggestion?: (widgetId: WidgetId, preset: SizePreset) => void;
-  onApplyMobileOptimizedLayout?: () => void;
+  onApplyMobileOptimizedLayout?: (options?: { autoSave?: boolean }) => Promise<boolean> | boolean;
   currentBreakpoint?: Breakpoint;
   columnCount?: number;
 }
@@ -223,7 +223,9 @@ export function DashboardCustomizeSidebar({
                 variant="outline"
                 size="sm"
                 className="w-full h-auto py-3 flex items-center justify-center gap-2"
-                onClick={() => onApplyMobileOptimizedLayout?.()}
+                onClick={async () => {
+                  await onApplyMobileOptimizedLayout?.({ autoSave: true });
+                }}
               >
                 <Smartphone className="h-4 w-4" />
                 <span className="text-xs">Apply Mobile-Optimized Layout</span>

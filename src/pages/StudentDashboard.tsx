@@ -324,7 +324,16 @@ const StudentDashboard = () => {
           dashboardType="learner"
           aiSuggestions={dashboardLayout.aiSuggestions}
           onApplyAISuggestion={dashboardLayout.applyAISuggestion}
-          onApplyMobileOptimizedLayout={dashboardLayout.applyMobileOptimizedLayout}
+          onApplyMobileOptimizedLayout={async (options) => {
+            const applied = await dashboardLayout.applyMobileOptimizedLayout(options);
+            if (applied) {
+              toast({
+                title: 'Mobile layout applied',
+                description: 'Your dashboard was optimized for mobile and saved.',
+              });
+            }
+            return applied;
+          }}
         />
 
         {/* Dashboard Grid with Customizable Layout */}
