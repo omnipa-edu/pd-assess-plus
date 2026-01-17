@@ -15,7 +15,7 @@ import { ThemeProvider } from "./components/theme/ThemeProvider";
 import { AuthProvider } from "./hooks/useAuth";
 
 // Lazy load routes for code splitting
-const Landing = lazy(() => import("./pages/Landing"));
+const LandingAccess = lazy(() => import("./pages/LandingAccess"));
 const Auth = lazy(() => import("./pages/Auth"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
@@ -89,7 +89,7 @@ const App = () => (
               <CommandPalette />
               <Suspense fallback={<RouteLoadingFallback />}>
                 <Routes>
-                  <Route path="/" element={<Landing />} />
+                  <Route path="/" element={<LandingAccess />} />
                   <Route path="/palette-swatch" element={<PaletteSwatch />} />
                   <Route path="/dev/contrast" element={<ContrastCheck />} />
                   <Route path="/pricing" element={<Pricing />} />
