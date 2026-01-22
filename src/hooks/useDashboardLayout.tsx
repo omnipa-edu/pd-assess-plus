@@ -37,6 +37,9 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
   const { data: layoutData, isLoading } = useQuery({
     queryKey: ['dashboard-layout', userId, dashboardType],
     queryFn: async () => {
+      if (!userId) {
+        return getDefaultLayout(normalizedDashboardType);
+      }
       const { data, error } = await supabase
         .from('dashboard_layouts')
         .select('*')
@@ -80,6 +83,7 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
       return getDefaultLayout(normalizedDashboardType);
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: Boolean(userId),
   });
 
   // Initialize saved layout and draft

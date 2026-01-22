@@ -1,6 +1,6 @@
 /**
  * DashboardGrid Component
- * Renders widgets in a drag-and-drop grid layout with multi-column support
+ * Renders widgets in a drag-and-drop single-column layout
  */
 
 import { ReactNode } from 'react';
@@ -171,8 +171,8 @@ export function DashboardGrid({
           items={widgets.map((w) => w.widgetId)}
           strategy={verticalListSortingStrategy}
         >
-          {/* Multi-column grid: 1 column on mobile, 2 columns on medium+ screens */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Single-column layout for consistent sizing */}
+          <div className="grid grid-cols-1 gap-6">
             {widgets.map((widget) => (
               <SortableWidgetItem
                 key={widget.widgetId}
