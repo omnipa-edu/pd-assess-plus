@@ -69,6 +69,7 @@ const navigationSections = [
     title: 'Content',
     items: [
       { label: 'Coaching Corner', href: '/admin/coaching', icon: Lightbulb },
+      { label: 'Resources', href: '/admin/resources', icon: FileText },
     ]
   },
   {

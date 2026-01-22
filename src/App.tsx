@@ -51,6 +51,7 @@ const Accreditation = lazy(() => import("./pages/admin/Accreditation"));
 const ReadinessAdmin = lazy(() => import("./pages/admin/Readiness"));
 const CoachingTime = lazy(() => import("./pages/admin/CoachingTime"));
 const SupervisorAssignments = lazy(() => import("./pages/admin/SupervisorAssignments"));
+const ResourcesAdmin = lazy(() => import("./pages/admin/Resources"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -122,6 +123,7 @@ const App = () => (
                   <Route path="/admin/accreditation" element={<Accreditation />} />
                   <Route path="/admin/coaching-time" element={<CoachingTime />} />
                   <Route path="/admin/supervisor-assignments" element={<SupervisorAssignments />} />
+                  <Route path="/admin/resources" element={<ResourcesAdmin />} />
                   
                   {/* Legacy Admin Routes (to be migrated) */}
                   <Route path="/admin/legacy" element={<AdminDashboard />} />

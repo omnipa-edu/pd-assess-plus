@@ -19,6 +19,7 @@ import { DashboardGrid } from '@/components/dashboard/DashboardGrid';
 import { DashboardCustomizeSidebar } from '@/components/dashboard/DashboardCustomizeSidebar';
 import { CustomWidgetRenderer } from '@/components/dashboard/CustomWidgetRenderer';
 import { renderWidget } from '@/components/dashboard/widgets/registry';
+import { StudentResourceRecommendations } from '@/components/resources/StudentResourceRecommendations';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -350,6 +351,9 @@ const StudentDashboard = () => {
             onSetDefaultCollapsed={dashboardLayout.setDefaultCollapsed}
           />
         )}
+
+        {/* Supervisor Recommendations + Learning Plan */}
+        <StudentResourceRecommendations />
 
         {/* Profile Card (always visible, not in widget system) */}
         {profile && (

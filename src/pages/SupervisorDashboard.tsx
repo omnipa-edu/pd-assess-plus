@@ -35,6 +35,7 @@ import { DashboardGrid } from "@/components/dashboard/DashboardGrid";
 import { DashboardCustomizeSidebar } from "@/components/dashboard/DashboardCustomizeSidebar";
 import { CustomWidgetRenderer } from "@/components/dashboard/CustomWidgetRenderer";
 import { renderWidget } from "@/components/dashboard/widgets/registry";
+import { SupervisorRecommendationsCard } from "@/components/resources/SupervisorRecommendationsCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -395,6 +396,8 @@ const SupervisorDashboard = () => {
             onSetDefaultCollapsed={dashboardLayout.setDefaultCollapsed}
           />
         )}
+
+        <SupervisorRecommendationsCard />
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

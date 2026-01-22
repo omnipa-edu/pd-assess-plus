@@ -8,10 +8,14 @@ select
   count(*) filter (where ea.created_at >= now() - interval '6 months') as total_in_window,
   count(*) filter (
     where ea.created_at >= now() - interval '6 months'
-      and (try_cast(ea.rating as int) >= 4)
+      and (
+        case when ea.rating ~ '^\d+$' then ea.rating::int end
+      ) >= 4
   ) as high_score_count,
   count(distinct ea.supervisor_id) filter (where ea.created_at >= now() - interval '6 months') as distinct_supervisors,
-  max(try_cast(ea.rating as int)) filter (where ea.created_at >= now() - interval '6 months') as latest_score,
+  max(
+    case when ea.rating ~ '^\d+$' then ea.rating::int end
+  ) filter (where ea.created_at >= now() - interval '6 months') as latest_score,
   max(ea.created_at) filter (where ea.created_at >= now() - interval '6 months') as latest_at
 from public.epa_assessments ea
 group by ea.student_id, ea.epa_number;
@@ -23,9 +27,9 @@ create or replace view public.supervisor_calibration_base as
 select
   ea.supervisor_id,
   ea.epa_number as epa_code,
-  try_cast(ea.rating as int) as score
+  case when ea.rating ~ '^\d+$' then ea.rating::int end as score
 from public.epa_assessments ea
-where try_cast(ea.rating as int) between 1 and 5;
+where (case when ea.rating ~ '^\d+$' then ea.rating::int end) between 1 and 5;
 
 -- Helper: cohort median per EPA
 create or replace view public.supervisor_calibration_cohort as
