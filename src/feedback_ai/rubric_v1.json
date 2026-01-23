@@ -1,0 +1,83 @@
+{
+  "rubric_id": "feedback_ai_rubric_v1",
+  "scale": { "min": 0, "max": 4 },
+  "domains": {
+    "specificity_observability": {
+      "description": "Feedback references observable behaviors rather than traits or generalities.",
+      "anchors": {
+        "0": "No observable behaviors; entirely vague or judgmental.",
+        "1": "Mostly vague with minimal behavioral detail.",
+        "2": "Some observable behaviors but still general.",
+        "3": "Clear behavioral examples; minimal vagueness.",
+        "4": "Consistently behavior-specific with concrete observations."
+      }
+    },
+    "competency_alignment": {
+      "description": "Learner digest items are mapped to relevant competencies or marked unmapped.",
+      "anchors": {
+        "0": "No competency mapping or incorrect mapping.",
+        "1": "Sparse or inconsistent mapping.",
+        "2": "Partial mapping with gaps.",
+        "3": "Most items mapped appropriately.",
+        "4": "All items mapped appropriately or explicitly unmapped."
+      }
+    },
+    "actionability_feedforward": {
+      "description": "Provides clear, actionable next steps with observable success criteria.",
+      "anchors": {
+        "0": "No next steps provided.",
+        "1": "Generic advice without actionability.",
+        "2": "Some actionability but lacks clear success criteria.",
+        "3": "Actionable steps with observable success criteria.",
+        "4": "Highly actionable, specific feedforward guidance."
+      }
+    },
+    "tone_psychological_safety": {
+      "description": "Feedback maintains respectful, supportive tone and avoids shaming language.",
+      "anchors": {
+        "0": "Shaming, demeaning, or unsafe tone.",
+        "1": "Harsh or dismissive tone with limited support.",
+        "2": "Neutral tone with minor issues.",
+        "3": "Supportive and professional tone.",
+        "4": "Highly supportive, psychologically safe tone."
+      }
+    },
+    "prioritization_impact": {
+      "description": "Prioritizes 1–2 key growth areas rather than a laundry list.",
+      "anchors": {
+        "0": "Overwhelming list, no prioritization.",
+        "1": "Minimal prioritization; still scattered.",
+        "2": "Some prioritization but unclear focus.",
+        "3": "Clear priority focus on 1–2 areas.",
+        "4": "Strong prioritization with impact framing."
+      }
+    },
+    "bias_equity_language": {
+      "description": "Avoids biased descriptors and flags potential bias.",
+      "anchors": {
+        "0": "Biased or discriminatory language present.",
+        "1": "Multiple biased cues; not addressed.",
+        "2": "Some bias cues; partially addressed.",
+        "3": "Bias cues flagged and mitigated.",
+        "4": "Bias-aware, equity-forward language."
+      }
+    }
+  },
+  "pass_rules": {
+    "average_min": 3.0,
+    "domain_min": 2,
+    "auto_fail": {
+      "tone_psychological_safety": 1,
+      "bias_equity_language": 1
+    }
+  },
+  "bias_flags": [
+    "gendered_descriptor",
+    "trait_label",
+    "global_judgment",
+    "double_standard_language",
+    "non-specific_superlatives",
+    "demeaning_or_shaming",
+    "cultural_loading"
+  ]
+}

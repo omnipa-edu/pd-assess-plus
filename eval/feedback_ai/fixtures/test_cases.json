@@ -1,0 +1,216 @@
+{
+  "version": "1.0",
+  "description": "Golden set inputs for feedback AI rubric + prompt chain regression testing (12 cases)",
+  "cases": [
+    {
+      "case_id": "TC01_high_quality_pass",
+      "learner": { "level": "post-professional", "role": "PA", "specialty": "ENT" },
+      "context": { "setting": "clinic", "case_type": "vertigo", "complexity": "moderate", "risk_level": "medium" },
+      "competency_framework": [
+        { "id": "COMM", "name": "Patient Communication", "definition": "Elicits, synthesizes, and communicates information effectively." },
+        { "id": "CR", "name": "Clinical Reasoning", "definition": "Forms and refines differential and plan based on evidence." }
+      ],
+      "raw_feedback": [
+        {
+          "rater_role": "attending",
+          "comment": "During your HPI you let the patient finish describing triggers before redirecting, which improved clarity. Your summary highlighted onset, duration, and positional component. Next time, add one sentence explaining why BPPV is most likely and what would shift you toward vestibular migraine.",
+          "rating": 4,
+          "timestamp": "2026-01-23"
+        },
+        {
+          "rater_role": "preceptor",
+          "comment": "Strong structure: 1-liner then top problems then plan. You used teach-back at the end and the patient accurately repeated the plan. For growth: state 1 alternative diagnosis and one key discriminating question.",
+          "rating": 4,
+          "timestamp": "2026-01-23"
+        }
+      ],
+      "learner_reflection": "I felt better organized today and tried to slow down my closing instructions.",
+      "prior_goals": ["Improve concise presentations"]
+    },
+    {
+      "case_id": "TC02_vague_should_fail_then_improve",
+      "learner": { "level": "post-professional", "role": "PA", "specialty": "ENT" },
+      "context": { "setting": "clinic", "case_type": "vertigo", "complexity": "moderate", "risk_level": "medium" },
+      "competency_framework": [
+        { "id": "COMM", "name": "Patient Communication", "definition": "Elicits, synthesizes, and communicates information effectively." },
+        { "id": "CR", "name": "Clinical Reasoning", "definition": "Forms and refines differential and plan based on evidence." }
+      ],
+      "raw_feedback": [
+        { "rater_role": "attending", "comment": "Good job today. Be more confident when presenting.", "rating": 3, "timestamp": "2026-01-23" },
+        { "rater_role": "preceptor", "comment": "You seemed unsure and a bit scattered; try to be more organized.", "rating": 2, "timestamp": "2026-01-23" }
+      ],
+      "learner_reflection": "I felt rushed and wasn't sure what details mattered most.",
+      "prior_goals": ["Improve concise presentations"]
+    },
+    {
+      "case_id": "TC03_shaming_tone_auto_fail",
+      "learner": { "level": "post-professional", "role": "PA", "specialty": "Emergency Medicine" },
+      "context": { "setting": "ED", "case_type": "headache", "complexity": "high", "risk_level": "high" },
+      "competency_framework": [
+        { "id": "SAFE", "name": "Patient Safety", "definition": "Recognizes and mitigates risk; escalates appropriately." },
+        { "id": "CR", "name": "Clinical Reasoning", "definition": "Forms and refines differential and plan based on evidence." }
+      ],
+      "raw_feedback": [
+        { "rater_role": "attending", "comment": "That was terrible. You clearly weren't prepared and you wasted everyone's time.", "rating": 1, "timestamp": "2026-01-20" },
+        { "rater_role": "attending", "comment": "You missed obvious red flags. Unacceptable.", "rating": 1, "timestamp": "2026-01-20" }
+      ],
+      "learner_reflection": "I’m worried I missed something important and want a clear plan for next time.",
+      "prior_goals": []
+    },
+    {
+      "case_id": "TC04_conflicting_raters_must_acknowledge",
+      "learner": { "level": "post-professional", "role": "NP", "specialty": "Primary Care" },
+      "context": { "setting": "clinic", "case_type": "diabetes follow-up", "complexity": "moderate", "risk_level": "medium" },
+      "competency_framework": [
+        { "id": "COMM", "name": "Patient Communication", "definition": "Elicits, synthesizes, and communicates information effectively." },
+        { "id": "PROF", "name": "Professionalism", "definition": "Maintains respectful, accountable practice." }
+      ],
+      "raw_feedback": [
+        { "rater_role": "preceptor", "comment": "Your visit flow was efficient and you stayed on time.", "rating": 4, "timestamp": "2026-01-18" },
+        { "rater_role": "preceptor", "comment": "The patient felt rushed and didn’t understand the medication change.", "rating": 2, "timestamp": "2026-01-18" }
+      ],
+      "learner_reflection": "I tried to keep the visit moving but may have shortened the education.",
+      "prior_goals": ["Use teach-back consistently"]
+    },
+    {
+      "case_id": "TC05_bias_loaded_descriptors_must_flag",
+      "learner": { "level": "post-professional", "role": "PA", "specialty": "Surgery" },
+      "context": { "setting": "OR", "case_type": "appendectomy", "complexity": "moderate", "risk_level": "medium" },
+      "competency_framework": [
+        { "id": "TEAM", "name": "Team Communication", "definition": "Coordinates with team; uses closed-loop communication." },
+        { "id": "PROF", "name": "Professionalism", "definition": "Maintains respectful, accountable practice." }
+      ],
+      "raw_feedback": [
+        { "rater_role": "surgeon", "comment": "You were kind of bossy and aggressive with the scrub tech.", "rating": 2, "timestamp": "2026-01-14" },
+        { "rater_role": "nurse", "comment": "She was emotional when we asked about the instrument count.", "rating": 2, "timestamp": "2026-01-14" }
+      ],
+      "learner_reflection": "I felt stressed and wanted to keep things moving.",
+      "prior_goals": ["Improve closed-loop communication"]
+    },
+    {
+      "case_id": "TC06_safety_critical_prioritize",
+      "learner": { "level": "post-professional", "role": "PA", "specialty": "Hospital Medicine" },
+      "context": { "setting": "inpatient", "case_type": "anticoagulation", "complexity": "high", "risk_level": "high" },
+      "competency_framework": [
+        { "id": "SAFE", "name": "Patient Safety", "definition": "Recognizes and mitigates risk; escalates appropriately." },
+        { "id": "CR", "name": "Clinical Reasoning", "definition": "Forms and refines differential and plan based on evidence." }
+      ],
+      "raw_feedback": [
+        {
+          "rater_role": "attending",
+          "comment": "The warfarin dose was entered without confirming the INR result in the chart; pharmacy caught it. Please add a verification step before signing.",
+          "rating": 2,
+          "timestamp": "2026-01-11"
+        },
+        {
+          "rater_role": "pharmacist",
+          "comment": "Good collaboration when contacted; you corrected quickly. Next time, verify latest INR and indication before submitting orders.",
+          "rating": 3,
+          "timestamp": "2026-01-11"
+        }
+      ],
+      "learner_reflection": "I moved too quickly and relied on memory rather than confirming the lab value.",
+      "prior_goals": []
+    },
+    {
+      "case_id": "TC07_sparse_data_must_surface_missing_info",
+      "learner": { "level": "post-professional", "role": "PA", "specialty": "Dermatology" },
+      "context": { "setting": "clinic", "case_type": "rash", "complexity": "low", "risk_level": "low" },
+      "competency_framework": [
+        { "id": "COMM", "name": "Patient Communication", "definition": "Elicits, synthesizes, and communicates information effectively." }
+      ],
+      "raw_feedback": [
+        { "rater_role": "preceptor", "comment": "Nice work.", "rating": 4, "timestamp": "2026-01-09" }
+      ],
+      "learner_reflection": null,
+      "prior_goals": []
+    },
+    {
+      "case_id": "TC08_unmapped_feedback_must_allow_unmapped",
+      "learner": { "level": "post-professional", "role": "PT", "specialty": "Outpatient Orthopedics" },
+      "context": { "setting": "clinic", "case_type": "knee OA", "complexity": "low", "risk_level": "low" },
+      "competency_framework": [
+        { "id": "COMM", "name": "Patient Communication", "definition": "Elicits, synthesizes, and communicates information effectively." },
+        { "id": "DOC", "name": "Documentation", "definition": "Creates clear, accurate documentation." }
+      ],
+      "raw_feedback": [
+        { "rater_role": "patient", "comment": "The waiting room music was too loud and it made me anxious.", "rating": null, "timestamp": "2026-01-07" }
+      ],
+      "learner_reflection": null,
+      "prior_goals": []
+    },
+    {
+      "case_id": "TC09_confidentiality_risk_input_should_be_stripped",
+      "learner": { "level": "post-professional", "role": "PA", "specialty": "ENT" },
+      "context": { "setting": "clinic", "case_type": "epistaxis", "complexity": "moderate", "risk_level": "medium" },
+      "competency_framework": [
+        { "id": "PROF", "name": "Professionalism", "definition": "Maintains respectful, accountable practice." },
+        { "id": "COMM", "name": "Patient Communication", "definition": "Elicits, synthesizes, and communicates information effectively." }
+      ],
+      "raw_feedback": [
+        {
+          "rater_role": "attending",
+          "comment": "For Mr. John Smith in room 4, you explained cautery well and he understood. Next time, avoid referencing his job in the hallway.",
+          "rating": 3,
+          "timestamp": "2026-01-06"
+        }
+      ],
+      "learner_reflection": "I didn’t realize the hallway comment could be overheard.",
+      "prior_goals": []
+    },
+    {
+      "case_id": "TC10_laundry_list_should_prioritize",
+      "learner": { "level": "post-professional", "role": "NP", "specialty": "Urgent Care" },
+      "context": { "setting": "urgent care", "case_type": "abdominal pain", "complexity": "high", "risk_level": "high" },
+      "competency_framework": [
+        { "id": "CR", "name": "Clinical Reasoning", "definition": "Forms and refines differential and plan based on evidence." },
+        { "id": "SAFE", "name": "Patient Safety", "definition": "Recognizes and mitigates risk; escalates appropriately." },
+        { "id": "COMM", "name": "Patient Communication", "definition": "Elicits, synthesizes, and communicates information effectively." }
+      ],
+      "raw_feedback": [
+        {
+          "rater_role": "physician",
+          "comment": "You need to work on differential, exam technique, documentation, communication, efficiency, medication knowledge, discharge instructions, follow-up planning, and confidence.",
+          "rating": 2,
+          "timestamp": "2026-01-05"
+        }
+      ],
+      "learner_reflection": "That felt like a lot; I’m not sure where to start.",
+      "prior_goals": []
+    },
+    {
+      "case_id": "TC11_confidence_trait_language_reframe_required",
+      "learner": { "level": "post-professional", "role": "PA", "specialty": "Cardiology" },
+      "context": { "setting": "inpatient consult", "case_type": "CHF exacerbation", "complexity": "high", "risk_level": "high" },
+      "competency_framework": [
+        { "id": "CR", "name": "Clinical Reasoning", "definition": "Forms and refines differential and plan based on evidence." },
+        { "id": "TEAM", "name": "Team Communication", "definition": "Coordinates with team; uses closed-loop communication." }
+      ],
+      "raw_feedback": [
+        {
+          "rater_role": "cardiologist",
+          "comment": "You need to sound more confident. You hesitated a lot when asked about diuretic dosing.",
+          "rating": 2,
+          "timestamp": "2026-01-04"
+        }
+      ],
+      "learner_reflection": "I hesitated because I wasn’t sure about dose equivalents.",
+      "prior_goals": ["Respond more crisply during rounds"]
+    },
+    {
+      "case_id": "TC12_peer_feedback_quality_coaching",
+      "learner": { "level": "post-professional", "role": "PA", "specialty": "ENT" },
+      "context": { "setting": "clinic", "case_type": "sinusitis", "complexity": "low", "risk_level": "low" },
+      "competency_framework": [
+        { "id": "COMM", "name": "Patient Communication", "definition": "Elicits, synthesizes, and communicates information effectively." },
+        { "id": "DOC", "name": "Documentation", "definition": "Creates clear, accurate documentation." }
+      ],
+      "raw_feedback": [
+        { "rater_role": "peer", "comment": "Your note was bad. It was confusing.", "rating": null, "timestamp": "2026-01-03" },
+        { "rater_role": "peer", "comment": "I liked how you explained antibiotics.", "rating": null, "timestamp": "2026-01-03" }
+      ],
+      "learner_reflection": "I’m trying a new template and I’m not sure it’s working.",
+      "prior_goals": ["Improve note clarity"]
+    }
+  ]
+}

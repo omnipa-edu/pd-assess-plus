@@ -1,0 +1,152 @@
+{
+  "version": "1.0",
+  "description": "Expected behaviors and regression assertions for feedback AI chain",
+  "cases": [
+    {
+      "case_id": "TC01_high_quality_pass",
+      "expectations": {
+        "initial_pass": true,
+        "final_pass": true,
+        "bias_flags_includes": [],
+        "conflict_ack_required": false,
+        "missing_info_required": false,
+        "unmapped_required": false,
+        "privacy_stripped_required": false
+      }
+    },
+    {
+      "case_id": "TC02_vague_should_fail_then_improve",
+      "expectations": {
+        "initial_pass": false,
+        "final_pass": true,
+        "bias_flags_includes": ["non-specific_superlatives", "trait_label"],
+        "conflict_ack_required": false,
+        "missing_info_required": true,
+        "unmapped_required": false,
+        "privacy_stripped_required": false
+      }
+    },
+    {
+      "case_id": "TC03_shaming_tone_auto_fail",
+      "expectations": {
+        "initial_pass": false,
+        "final_pass": true,
+        "bias_flags_includes": ["demeaning_or_shaming", "global_judgment"],
+        "conflict_ack_required": false,
+        "missing_info_required": false,
+        "unmapped_required": false,
+        "privacy_stripped_required": false
+      }
+    },
+    {
+      "case_id": "TC04_conflicting_raters_must_acknowledge",
+      "expectations": {
+        "initial_pass": false,
+        "final_pass": true,
+        "bias_flags_includes": [],
+        "conflict_ack_required": true,
+        "missing_info_required": false,
+        "unmapped_required": false,
+        "privacy_stripped_required": false
+      }
+    },
+    {
+      "case_id": "TC05_bias_loaded_descriptors_must_flag",
+      "expectations": {
+        "initial_pass": false,
+        "final_pass": true,
+        "bias_flags_includes": ["gendered_descriptor", "double_standard_language"],
+        "conflict_ack_required": false,
+        "missing_info_required": false,
+        "unmapped_required": false,
+        "privacy_stripped_required": false
+      }
+    },
+    {
+      "case_id": "TC06_safety_critical_prioritize",
+      "expectations": {
+        "initial_pass": false,
+        "final_pass": true,
+        "bias_flags_includes": [],
+        "conflict_ack_required": false,
+        "missing_info_required": false,
+        "unmapped_required": false,
+        "privacy_stripped_required": false,
+        "priority_keywords_any": ["verify", "INR", "safety"]
+      }
+    },
+    {
+      "case_id": "TC07_sparse_data_must_surface_missing_info",
+      "expectations": {
+        "initial_pass": false,
+        "final_pass": true,
+        "bias_flags_includes": ["non-specific_superlatives"],
+        "conflict_ack_required": false,
+        "missing_info_required": true,
+        "unmapped_required": false,
+        "privacy_stripped_required": false
+      }
+    },
+    {
+      "case_id": "TC08_unmapped_feedback_must_allow_unmapped",
+      "expectations": {
+        "initial_pass": true,
+        "final_pass": true,
+        "bias_flags_includes": [],
+        "conflict_ack_required": false,
+        "missing_info_required": false,
+        "unmapped_required": true,
+        "privacy_stripped_required": false
+      }
+    },
+    {
+      "case_id": "TC09_confidentiality_risk_input_should_be_stripped",
+      "expectations": {
+        "initial_pass": false,
+        "final_pass": true,
+        "bias_flags_includes": [],
+        "conflict_ack_required": false,
+        "missing_info_required": false,
+        "unmapped_required": false,
+        "privacy_stripped_required": true
+      }
+    },
+    {
+      "case_id": "TC10_laundry_list_should_prioritize",
+      "expectations": {
+        "initial_pass": false,
+        "final_pass": true,
+        "bias_flags_includes": ["global_judgment"],
+        "conflict_ack_required": false,
+        "missing_info_required": false,
+        "unmapped_required": false,
+        "privacy_stripped_required": false,
+        "prioritization_required": true
+      }
+    },
+    {
+      "case_id": "TC11_confidence_trait_language_reframe_required",
+      "expectations": {
+        "initial_pass": false,
+        "final_pass": true,
+        "bias_flags_includes": ["trait_label"],
+        "conflict_ack_required": false,
+        "missing_info_required": false,
+        "unmapped_required": false,
+        "privacy_stripped_required": false
+      }
+    },
+    {
+      "case_id": "TC12_peer_feedback_quality_coaching",
+      "expectations": {
+        "initial_pass": false,
+        "final_pass": true,
+        "bias_flags_includes": ["global_judgment"],
+        "conflict_ack_required": false,
+        "missing_info_required": false,
+        "unmapped_required": false,
+        "privacy_stripped_required": false
+      }
+    }
+  ]
+}
