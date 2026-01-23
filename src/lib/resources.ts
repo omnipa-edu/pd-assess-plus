@@ -152,13 +152,27 @@ const upsertTags = async (tags: Array<{ tag_type: ResourceTag['tag_type']; tag_v
   const cleaned = uniqueTags(tags);
   if (cleaned.length === 0) return [];
 
+  const { error: insertError } = await supabase
+    .from('resource_tags')
+    .insert(cleaned, { onConflict: 'tag_type,tag_value', ignoreDuplicates: true });
+
+  if (insertError) throw insertError;
+
+  const values = cleaned.map((tag) => tag.tag_value);
   const { data, error } = await supabase
     .from('resource_tags')
-    .upsert(cleaned, { onConflict: 'tag_type,tag_value' })
-    .select('id, tag_type, tag_value');
+    .select('id, tag_type, tag_value')
+    .in('tag_value', values);
 
   if (error) throw error;
-  return (data || []) as ResourceTag[];
+
+  const keySet = new Set(
+    cleaned.map((tag) => `${tag.tag_type}:${tag.tag_value.trim().toLowerCase()}`)
+  );
+
+  return ((data || []) as ResourceTag[]).filter((tag) =>
+    keySet.has(`${tag.tag_type}:${tag.tag_value.trim().toLowerCase()}`)
+  );
 };
 
 const replaceResourceTags = async (resourceId: string, tagIds: string[]) => {
