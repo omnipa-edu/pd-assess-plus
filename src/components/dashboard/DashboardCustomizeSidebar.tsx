@@ -74,6 +74,8 @@ interface WidgetListItemProps {
   onToggleCollapse: (widgetId: WidgetId) => void;
   onSetDefaultCollapsed: (widgetId: WidgetId, collapsed: boolean) => void;
   onSetSizePreset?: (widgetId: WidgetId, preset: SizePreset) => void;
+  onSelect: (widgetId: WidgetId) => void;
+  isSelected: boolean;
   currentBreakpoint?: Breakpoint;
   columnCount?: number;
 }
@@ -85,6 +87,8 @@ function WidgetListItem({
   onToggleCollapse,
   onSetDefaultCollapsed,
   onSetSizePreset,
+  onSelect,
+  isSelected,
   currentBreakpoint,
   columnCount,
 }: WidgetListItemProps) {
@@ -110,12 +114,16 @@ function WidgetListItem({
       style={style}
       className={`flex items-center gap-3 p-3 border rounded-lg bg-card transition-all ${
         isDragging ? 'shadow-lg ring-2 ring-primary' : 'hover:border-primary/50'
-      } ${!widget.isVisible ? 'opacity-50' : ''}`}
+      } ${!widget.isVisible ? 'opacity-50' : ''} ${isSelected ? 'ring-2 ring-primary/70' : ''}`}
+      onClick={() => onSelect(widget.widgetId)}
     >
       <button
         {...attributes}
         {...listeners}
         className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
       >
         <GripVertical className="h-4 w-4" />
       </button>
@@ -139,12 +147,16 @@ function WidgetListItem({
           checked={widget.isVisible}
           onCheckedChange={() => onToggleVisibility(widget.widgetId)}
           className="h-4 w-4"
+          onClick={(event) => {
+            event.stopPropagation();
+          }}
         />
         <Button
           variant="ghost"
           size="icon"
           className="h-7 w-7 text-destructive hover:text-destructive"
           onClick={() => onRemove(widget.widgetId)}
+          onMouseDown={(event) => event.stopPropagation()}
         >
           <X className="h-4 w-4" />
         </Button>
@@ -277,7 +289,8 @@ export function DashboardCustomizeSidebar({
                 <Label className="text-sm font-semibold">Widgets</Label>
                 <AddWidgetsDrawer
                   dashboardType={dashboardType}
-                  currentWidgetIds={widgets.map((w) => w.widgetId)}
+                  visibleWidgetIds={widgets.filter((w) => w.isVisible).map((w) => w.widgetId)}
+                  hiddenWidgetIds={widgets.filter((w) => !w.isVisible).map((w) => w.widgetId)}
                   onAddWidget={(widgetId) => {
                     onAddWidget(widgetId);
                   }}
@@ -310,6 +323,8 @@ export function DashboardCustomizeSidebar({
                         onToggleCollapse={onToggleCollapse}
                         onSetDefaultCollapsed={onSetDefaultCollapsed}
                         onSetSizePreset={onSetSizePreset}
+                        onSelect={(widgetId) => setSelectedWidget(widgetId)}
+                        isSelected={selectedWidget === widget.widgetId}
                         currentBreakpoint={currentBreakpoint}
                         columnCount={columnCount}
                       />

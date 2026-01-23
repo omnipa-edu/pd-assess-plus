@@ -23,14 +23,16 @@ import type { DashboardType, WidgetId } from '@/lib/dashboard/types';
 
 interface AddWidgetsDrawerProps {
   dashboardType: DashboardType;
-  currentWidgetIds: WidgetId[];
+  visibleWidgetIds: WidgetId[];
+  hiddenWidgetIds: WidgetId[];
   onAddWidget: (widgetId: WidgetId) => void;
   trigger?: React.ReactNode;
 }
 
 export function AddWidgetsDrawer({
   dashboardType,
-  currentWidgetIds,
+  visibleWidgetIds,
+  hiddenWidgetIds,
   onAddWidget,
   trigger,
 }: AddWidgetsDrawerProps) {
@@ -66,7 +68,7 @@ export function AddWidgetsDrawer({
         <DrawerHeader>
           <DrawerTitle>Add Widgets to Dashboard</DrawerTitle>
           <DrawerDescription>
-            Select widgets to add to your dashboard. You can reorder them after adding.
+            Select widgets to add back to your dashboard. Hidden widgets can be restored here.
           </DrawerDescription>
         </DrawerHeader>
         <ScrollArea className="flex-1 px-4">
@@ -78,12 +80,13 @@ export function AddWidgetsDrawer({
                 </h3>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {widgets.map((widget) => {
-                    const isAdded = currentWidgetIds.includes(widget.id);
+                    const isVisible = visibleWidgetIds.includes(widget.id);
+                    const isHidden = hiddenWidgetIds.includes(widget.id);
                     return (
                       <div
                         key={widget.id}
                         className={`rounded-lg border p-4 transition-colors ${
-                          isAdded
+                          isVisible
                             ? 'border-muted bg-muted/50'
                             : 'border-border bg-card hover:border-primary/50'
                         }`}
@@ -92,9 +95,14 @@ export function AddWidgetsDrawer({
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <h4 className="font-medium">{widget.label}</h4>
-                              {isAdded && (
+                              {isVisible && (
                                 <Badge variant="secondary" className="text-xs">
                                   Added
+                                </Badge>
+                              )}
+                              {isHidden && (
+                                <Badge variant="outline" className="text-xs">
+                                  Hidden
                                 </Badge>
                               )}
                             </div>
@@ -105,12 +113,12 @@ export function AddWidgetsDrawer({
                         </div>
                         <div className="mt-3 flex justify-end">
                           <Button
-                            variant={isAdded ? 'outline' : 'default'}
+                            variant={isVisible ? 'outline' : 'default'}
                             size="sm"
                             onClick={() => handleAddWidget(widget.id)}
-                            disabled={isAdded}
+                            disabled={isVisible}
                           >
-                            {isAdded ? 'Added' : 'Add'}
+                            {isVisible ? 'Added' : isHidden ? 'Add back' : 'Add'}
                           </Button>
                         </div>
                       </div>
