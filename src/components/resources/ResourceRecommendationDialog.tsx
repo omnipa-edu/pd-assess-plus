@@ -41,6 +41,8 @@ interface ResourceRecommendationDialogProps {
   onOpenChange: (open: boolean) => void;
   supervisorId: string;
   students: StudentOption[];
+  fixedStudent?: StudentOption;
+  assessmentId?: string | null;
   onCreated?: (recommendation: ResourceRecommendationRow) => void;
 }
 
@@ -62,6 +64,8 @@ export function ResourceRecommendationDialog({
   onOpenChange,
   supervisorId,
   students,
+  fixedStudent,
+  assessmentId,
   onCreated,
 }: ResourceRecommendationDialogProps) {
   const { toast } = useToast();
@@ -96,6 +100,12 @@ export function ResourceRecommendationDialog({
   });
 
   const selectedResource = libraryResources.find((resource) => resource.id === selectedResourceId) || null;
+
+  useEffect(() => {
+    if (fixedStudent?.id) {
+      setSelectedStudentId(fixedStudent.id);
+    }
+  }, [fixedStudent?.id]);
 
   useEffect(() => {
     if (!open) return;
@@ -214,6 +224,7 @@ export function ResourceRecommendationDialog({
         recommendation = await createRecommendation({
           student_id: selectedStudentId,
           supervisor_id: supervisorId,
+          assessment_id: assessmentId || null,
           resource_id: selectedResource.id,
           estimated_minutes: selectedResource.estimated_minutes,
           level: selectedResource.level,
@@ -240,6 +251,7 @@ export function ResourceRecommendationDialog({
         recommendation = await createRecommendation({
           student_id: selectedStudentId,
           supervisor_id: supervisorId,
+          assessment_id: assessmentId || null,
           url: pasteForm.url.trim(),
           title: pasteForm.title.trim(),
           resource_type: pasteForm.resourceType,
@@ -292,18 +304,24 @@ export function ResourceRecommendationDialog({
         <div className="grid gap-4">
           <div className="space-y-2">
             <Label>Choose learner</Label>
-            <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a learner" />
-              </SelectTrigger>
-              <SelectContent>
-                {students.map((student) => (
-                  <SelectItem key={student.id} value={student.id}>
-                    {student.name || student.email}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {fixedStudent ? (
+              <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-sm">
+                {fixedStudent.name || fixedStudent.email}
+              </div>
+            ) : (
+              <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a learner" />
+                </SelectTrigger>
+                <SelectContent>
+                  {students.map((student) => (
+                    <SelectItem key={student.id} value={student.id}>
+                      {student.name || student.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'library' | 'paste')}>

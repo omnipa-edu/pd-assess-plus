@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import VoiceRecorder from "@/components/VoiceRecorder";
+import { FeedbackResourceRecommendation } from "@/components/resources/FeedbackResourceRecommendation";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,6 +55,8 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
     competenciesAddressed: [] as string[]
   });
   const [submitting, setSubmitting] = useState(false);
+  const [assessmentId, setAssessmentId] = useState<string | null>(null);
+  const [recommendationOpenKey, setRecommendationOpenKey] = useState(0);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
   const { user } = useAuth();
@@ -201,6 +204,8 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
 
       if (result.error) throw result.error;
       if (!result.data) throw new Error('Failed to create assessment');
+      setAssessmentId(result.data.id);
+      setRecommendationOpenKey((prev) => prev + 1);
 
       // Database trigger will automatically create CME session
       toast({
@@ -598,6 +603,13 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
           </div>
         </CardContent>
       </Card>
+
+      <FeedbackResourceRecommendation
+        supervisorId={user?.id || ''}
+        associate={{ id: associate.id, name: associate.name }}
+        assessmentId={assessmentId}
+        autoOpenKey={recommendationOpenKey}
+      />
       </div>
     </SectionErrorBoundary>
   );

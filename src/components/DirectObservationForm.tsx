@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import VoiceRecorder from "@/components/VoiceRecorder";
+import { FeedbackResourceRecommendation } from "@/components/resources/FeedbackResourceRecommendation";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,6 +52,8 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
     associateResponse: ""
   });
   const [submitting, setSubmitting] = useState(false);
+  const [assessmentId, setAssessmentId] = useState<string | null>(null);
+  const [recommendationOpenKey, setRecommendationOpenKey] = useState(0);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
   const { user } = useAuth();
@@ -201,6 +204,10 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
       }
 
       if (result.error) throw result.error;
+      if (result.data?.id) {
+        setAssessmentId(result.data.id);
+        setRecommendationOpenKey((prev) => prev + 1);
+      }
 
       // Database trigger will automatically create CME session
       toast({
@@ -618,6 +625,13 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
           </div>
         </CardContent>
       </Card>
+
+      <FeedbackResourceRecommendation
+        supervisorId={user?.id || ''}
+        associate={{ id: associate.id, name: associate.name }}
+        assessmentId={assessmentId}
+        autoOpenKey={recommendationOpenKey}
+      />
       </div>
     </SectionErrorBoundary>
   );

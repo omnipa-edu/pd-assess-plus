@@ -323,6 +323,7 @@ export async function adminArchiveResource(resourceId: string) {
 export async function createRecommendation(payload: {
   student_id: string;
   supervisor_id: string;
+  assessment_id?: string | null;
   resource_id?: string | null;
   url?: string | null;
   title?: string | null;
@@ -338,6 +339,7 @@ export async function createRecommendation(payload: {
     .insert({
       student_id: payload.student_id,
       supervisor_id: payload.supervisor_id,
+      assessment_id: payload.assessment_id || null,
       resource_id: payload.resource_id || null,
       url: payload.url || null,
       title: payload.title || null,

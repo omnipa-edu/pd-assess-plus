@@ -15,6 +15,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import VoiceRecorder from "@/components/VoiceRecorder";
+import { FeedbackResourceRecommendation } from "@/components/resources/FeedbackResourceRecommendation";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,6 +52,8 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
     actionPlan: ""
   });
   const [submitting, setSubmitting] = useState(false);
+  const [assessmentId, setAssessmentId] = useState<string | null>(null);
+  const [recommendationOpenKey, setRecommendationOpenKey] = useState(0);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [aiUsage, setAIUsage] = useState({
     used_smart_feedback: false,
@@ -242,6 +245,10 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
       }
 
       if (result.error) throw result.error;
+      if (result.data?.id) {
+        setAssessmentId(result.data.id);
+        setRecommendationOpenKey((prev) => prev + 1);
+      }
       
       // Database trigger will automatically create CME session
       
@@ -686,7 +693,17 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
       {/* Form Steps */}
       {currentStep === 1 && renderStep1()}
       {currentStep === 2 && renderStep2()}
-      {currentStep === 3 && renderStep3()}
+      {currentStep === 3 && (
+        <div className="space-y-6">
+          {renderStep3()}
+          <FeedbackResourceRecommendation
+            supervisorId={user?.id || ''}
+            associate={{ id: associate.id, name: associate.name }}
+            assessmentId={assessmentId}
+            autoOpenKey={recommendationOpenKey}
+          />
+        </div>
+      )}
       </div>
     </SectionErrorBoundary>
   );
