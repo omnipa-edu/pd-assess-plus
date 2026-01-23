@@ -33,6 +33,11 @@ export interface TeachingStatistics {
     highQualityPercentage: number; // % with overall_score >= 75
     aiUsagePercentage: number; // % with used_ai_assistant = true
   };
+  aiAssistUsage: {
+    runs: number;
+    usedInFinal: number;
+    adoptionRate: number;
+  };
 }
 
 interface UseTeachingStatisticsOptions {
@@ -80,8 +85,12 @@ export function useTeachingStatistics({
           throw error;
         }
 
-        // Type assertion and return
-        return data as TeachingStatistics;
+        // Type assertion and ensure new fields exist
+        const typed = data as TeachingStatistics;
+        if (!typed.aiAssistUsage) {
+          typed.aiAssistUsage = { runs: 0, usedInFinal: 0, adoptionRate: 0 };
+        }
+        return typed;
       } catch (err: any) {
         console.error('Error loading teaching statistics:', err);
         // Fallback to individual queries if RPC fails
@@ -265,6 +274,33 @@ export function useTeachingStatistics({
           aiUsagePercentage: count > 0 ? (qualityStats.aiUsageCount / count) * 100 : 0,
         };
 
+        let aiAssistUsage = {
+          runs: 0,
+          usedInFinal: 0,
+          adoptionRate: 0,
+        };
+        try {
+          const { data: aiRuns } = await supabase
+            .from("feedback_ai_runs")
+            .select("used_in_final_feedback")
+            .eq("supervisor_id", supervisorId)
+            .gte("created_at", startDateStr)
+            .lte("created_at", endDateStr);
+          const totalRuns = aiRuns?.length || 0;
+          const usedInFinal = aiRuns?.filter((run) => run.used_in_final_feedback).length || 0;
+          aiAssistUsage = {
+            runs: totalRuns,
+            usedInFinal,
+            adoptionRate: totalRuns > 0 ? (usedInFinal / totalRuns) * 100 : 0,
+          };
+        } catch (error: any) {
+          if (error?.code === "PGRST116" || error?.message?.includes("404")) {
+            console.warn("feedback_ai_runs table not found. Please run migration: 20260123_feedback_ai_runs.sql");
+          } else {
+            throw error;
+          }
+        }
+
         return {
           studentsTracked,
           assessmentCounts: {
@@ -275,6 +311,7 @@ export function useTeachingStatistics({
           cmeTimeByType,
           feedbackTimeByType,
           feedbackQuality: finalQualityStats,
+          aiAssistUsage,
         };
       }
     },

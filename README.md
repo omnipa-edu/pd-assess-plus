@@ -63,6 +63,14 @@ This project is built with:
 - Tailwind CSS
 - Supabase (Database & Auth)
 
+## Feedback AI Chain
+
+The FEEDBACK_AI_CHAIN_V1 workflow powers the Smart Feedback Assistant and learner feedback digests.
+
+- Edge function: `supabase/functions/feedback-ai-chain`
+- Database: run `20260123_feedback_ai_runs.sql` for `feedback_ai_runs` + `student_feedback_digests`
+- Frontend runner: `src/lib/ai/feedbackChain/run.ts`
+
 ## 📚 Documentation
 
 Comprehensive documentation is available in the [`docs/`](./docs/) directory:

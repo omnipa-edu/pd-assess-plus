@@ -1,5 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 
+import { getCompetencyFramework } from "@/lib/ai/feedbackChain/framework";
+import { extractRunId, runFeedbackAIChain } from "@/lib/ai/feedbackChain/run";
+import type { FeedbackAIChainResult } from "@/lib/ai/feedbackChain/types";
+
 /**
  * Interface for vague phrase detection and suggestions
  */
@@ -17,6 +21,7 @@ export interface SmartFeedbackResult {
   coaching_prompts: string[];
   tone_summary: string;
   tone_suggestions: string;
+  run_id?: string;
 }
 
 /**
@@ -28,6 +33,23 @@ export interface FeedbackContext {
   epaName?: string;
   encounterType?: string;
   learnerLevel?: string;
+  learner?: {
+    level: string;
+    role: string;
+    specialty: string;
+  };
+  context?: {
+    setting: string;
+    case_type: string;
+    complexity: string;
+    risk_level: string;
+  };
+  rawFeedbackRating?: number | null;
+  supervisorId?: string;
+  studentId?: string;
+  assessmentId?: string | null;
+  learnerReflection?: string | null;
+  priorGoals?: string[];
 }
 
 /**
@@ -47,6 +69,44 @@ export async function analyzeSupervisorFeedback(
   }
 
   try {
+    const hasChainContext = Boolean(
+      context?.learner &&
+      context?.context &&
+      context?.supervisorId &&
+      context?.studentId
+    );
+
+    if (hasChainContext && context?.learner && context?.context) {
+      try {
+        const competencyFramework = await getCompetencyFramework(context.learner.specialty);
+        const inputs = {
+          learner: context.learner,
+          context: context.context,
+          competency_framework: competencyFramework,
+          raw_feedback: [
+            {
+              rater_role: context.role || "supervisor",
+              comment: feedbackText.trim(),
+              rating: context.rawFeedbackRating ?? null,
+              timestamp: new Date().toISOString(),
+            },
+          ],
+          learner_reflection: context.learnerReflection ?? null,
+          prior_goals: context.priorGoals ?? [],
+        };
+
+        const chainResult = await runFeedbackAIChain(inputs, {
+          supervisorId: context.supervisorId,
+          studentId: context.studentId,
+          assessmentId: context.assessmentId ?? null,
+        });
+
+        return mapChainResultToSmartFeedback(chainResult, feedbackText.trim());
+      } catch (chainError) {
+        console.warn("Feedback AI chain failed, falling back", chainError);
+      }
+    }
+
     const { data, error } = await supabase.functions.invoke('analyze-feedback', {
       body: {
         feedbackText: feedbackText.trim(),
@@ -128,6 +188,29 @@ export async function analyzeSupervisorFeedback(
       ? error 
       : new Error('Failed to analyze feedback. Please try again.');
   }
+}
+
+function mapChainResultToSmartFeedback(
+  chainResult: FeedbackAIChainResult,
+  fallbackText: string
+): SmartFeedbackResult {
+  const rewrittenExamples = chainResult.final.rater_coaching.rewritten_examples || [];
+  const improved = rewrittenExamples[0]?.after || fallbackText;
+  const vaguePhrases = rewrittenExamples.map((example) => ({
+    phrase: example.before,
+    suggestion: example.after,
+  }));
+
+  return {
+    improved_feedback: improved,
+    vague_phrases: vaguePhrases,
+    coaching_prompts: chainResult.final.rater_coaching.two_rater_tips || [],
+    tone_summary:
+      chainResult.rubric_eval.justifications?.tone_psych_safety ||
+      chainResult.final.rater_coaching.quality_risks.join(" "),
+    tone_suggestions: chainResult.rubric_eval.required_fixes?.join(" ") || "",
+    run_id: extractRunId(chainResult) || undefined,
+  };
 }
 
 /**

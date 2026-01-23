@@ -115,6 +115,31 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
     "Professional"
   ];
 
+  const feedbackContext = {
+    role: "supervisor",
+    discipline: "PA / MD / NP clinical education",
+    epaName: formData.epaNumber ? epas.find(e => e.value === formData.epaNumber)?.label : undefined,
+    encounterType: formData.setting,
+    learnerLevel: associate.year,
+    learner: {
+      level: associate.year,
+      role: "student",
+      specialty: associate.program,
+    },
+    context: {
+      setting: formData.setting || "unspecified",
+      case_type: formData.epaNumber || "unknown",
+      complexity: "",
+      risk_level: "",
+    },
+    supervisorId: user?.id || "",
+    studentId: associate.id,
+    assessmentId,
+    rawFeedbackRating: formData.oScore ? Number(formData.oScore) : null,
+    learnerReflection: null,
+    priorGoals: [],
+  };
+
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
     
@@ -561,9 +586,7 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
               placeholder="Describe specific behaviors observed, context, and performance details..."
               minHeight="100px"
               className="border-border bg-background"
-              context={{
-                epaName: formData.epaNumber ? epas.find(e => e.value === formData.epaNumber)?.label : undefined,
-              }}
+            context={feedbackContext}
               textareaProps={{ id: "narrative" }}
             />
           </div>
@@ -581,9 +604,7 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
               placeholder="What did the physician associate do well? Specific examples..."
               minHeight="80px"
               className="border-border bg-background"
-              context={{
-                epaName: formData.epaNumber ? epas.find(e => e.value === formData.epaNumber)?.label : undefined,
-              }}
+            context={feedbackContext}
               textareaProps={{ id: "strengths" }}
             />
           </div>
@@ -601,9 +622,7 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
               placeholder="What could be improved? Constructive feedback..."
               minHeight="80px"
               className="border-border bg-background"
-              context={{
-                epaName: formData.epaNumber ? epas.find(e => e.value === formData.epaNumber)?.label : undefined,
-              }}
+            context={feedbackContext}
               textareaProps={{ id: "improvements" }}
             />
           </div>
@@ -621,9 +640,7 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
               placeholder="Specific recommendations for future learning and development..."
               minHeight="80px"
               className="border-border bg-background"
-              context={{
-                epaName: formData.epaNumber ? epas.find(e => e.value === formData.epaNumber)?.label : undefined,
-              }}
+            context={feedbackContext}
               textareaProps={{ id: "actionPlan" }}
             />
           </div>

@@ -81,6 +81,30 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
     "Professional"
   ];
 
+  const feedbackContext = {
+    role: "supervisor",
+    discipline: "PA / MD / NP clinical education",
+    encounterType: formData.assessmentType,
+    learnerLevel: associate.year,
+    learner: {
+      level: associate.year,
+      role: "student",
+      specialty: associate.program,
+    },
+    context: {
+      setting: formData.context || "unspecified",
+      case_type: formData.assessmentType || "narrative",
+      complexity: "",
+      risk_level: "",
+    },
+    supervisorId: user?.id || "",
+    studentId: associate.id,
+    assessmentId,
+    rawFeedbackRating: null,
+    learnerReflection: null,
+    priorGoals: [],
+  };
+
   const handleSubmit = async () => {
     if (!user) {
       toast({
@@ -390,9 +414,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
               placeholder="Provide a comprehensive overview of the physician associate's performance during this period. Include specific examples, patterns observed, and contextual factors..."
               minHeight="120px"
               className="border-border bg-background"
-              context={{
-                encounterType: formData.assessmentType,
-              }}
+              context={feedbackContext}
               textareaProps={{ id: "performance" }}
             />
             <FormFieldError error={validationErrors.performanceDescription} />
@@ -414,9 +436,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
                 placeholder="What does the physician associate do exceptionally well? Provide specific examples and evidence..."
                 minHeight="100px"
                 className="border-border bg-background"
-                context={{
-                  encounterType: formData.assessmentType,
-                }}
+                context={feedbackContext}
                 textareaProps={{ id: "strengths" }}
               />
             </div>
@@ -436,9 +456,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
                 placeholder="What areas need development? Be specific and constructive..."
                 minHeight="100px"
                 className="border-border bg-background"
-                context={{
-                  encounterType: formData.assessmentType,
-                }}
+                context={feedbackContext}
                 textareaProps={{ id: "growth" }}
               />
             </div>
@@ -459,9 +477,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
               placeholder="Provide concrete examples of performance, critical incidents, or memorable interactions that illustrate your assessment..."
               minHeight="100px"
               className="border-border bg-background"
-              context={{
-                encounterType: formData.assessmentType,
-              }}
+              context={feedbackContext}
               textareaProps={{ id: "examples" }}
             />
           </div>
@@ -551,9 +567,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
               placeholder="Specific, actionable recommendations for addressing areas of growth..."
               minHeight="100px"
               className="border-border bg-background"
-              context={{
-                encounterType: formData.assessmentType,
-              }}
+              context={feedbackContext}
               textareaProps={{ id: "recommendations" }}
             />
           </div>
@@ -573,9 +587,7 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
               placeholder="Outline specific learning objectives, activities, resources, and timelines for development..."
               minHeight="100px"
               className="border-border bg-background"
-              context={{
-                encounterType: formData.assessmentType,
-              }}
+              context={feedbackContext}
               textareaProps={{ id: "plan" }}
             />
           </div>

@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { type SmartFeedbackResult, type VaguePhrase } from "@/lib/smartFeedback";
+import { markFeedbackAIRunUsed } from "@/lib/ai/feedbackChain/run";
+import { type FeedbackContext, type SmartFeedbackResult, type VaguePhrase } from "@/lib/smartFeedback";
 
 interface SmartFeedbackAssistantProps {
   /** The current feedback text */
@@ -23,11 +24,7 @@ interface SmartFeedbackAssistantProps {
   /** Callback when AI suggestions are applied (for tracking) */
   onAIApplied?: () => void;
   /** Optional context for better analysis */
-  context?: {
-    epaName?: string;
-    encounterType?: string;
-    learnerLevel?: string;
-  };
+  context?: FeedbackContext;
 }
 
 export function SmartFeedbackAssistant({
@@ -86,6 +83,11 @@ export function SmartFeedbackAssistant({
       onReplaceFeedback(result.improved_feedback);
       // Track that AI suggestions were applied
       onAIApplied?.();
+      if (result.run_id) {
+        markFeedbackAIRunUsed(result.run_id).catch((err) => {
+          console.warn("Failed to mark AI run used", err);
+        });
+      }
       toast({
         title: "Feedback Replaced",
         description: "Your feedback has been replaced with the improved version.",
@@ -113,6 +115,11 @@ export function SmartFeedbackAssistant({
     onInsertText(prompt);
     // Track that AI suggestions were applied (inserting is also applying)
     onAIApplied?.();
+    if (result?.run_id) {
+      markFeedbackAIRunUsed(result.run_id).catch((err) => {
+        console.warn("Failed to mark AI run used", err);
+      });
+    }
     toast({
       title: "Prompt Inserted",
       description: "Coaching prompt added to your feedback",
@@ -161,7 +168,7 @@ export function SmartFeedbackAssistant({
           ) : (
             <>
               <Sparkles className="mr-2 h-4 w-4" />
-              Improve Feedback
+              Enhance Feedback (AI)
             </>
           )}
         </Button>

@@ -47,6 +47,12 @@ export default function CMETeachingReport() {
     });
   }
 
+  const aiAssistUsage = stats?.aiAssistUsage ?? {
+    runs: 0,
+    usedInFinal: 0,
+    adoptionRate: 0,
+  };
+
   const exportCSV = () => {
     if (!stats) return;
 
@@ -371,46 +377,58 @@ export default function CMETeachingReport() {
                     </div>
                   </div>
                 </div>
-                {stats.feedbackQuality.averageOverall > 0 && (
+                {(stats.feedbackQuality.averageOverall > 0 || aiAssistUsage.runs > 0) && (
                   <div>
                     <h4 className="mb-2 font-semibold">Feedback Quality Scores</h4>
                     <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span>Overall Average</span>
-                        <span className="font-medium">{Math.round(stats.feedbackQuality.averageOverall)}/100</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Clarity</span>
-                        <span className="font-medium">{stats.feedbackQuality.averageClarity.toFixed(1)}/4</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Specificity</span>
-                        <span className="font-medium">{stats.feedbackQuality.averageSpecificity.toFixed(1)}/4</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Actionability</span>
-                        <span className="font-medium">{stats.feedbackQuality.averageActionability.toFixed(1)}/4</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Balance</span>
-                        <span className="font-medium">{stats.feedbackQuality.averageBalance.toFixed(1)}/4</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Learner Engagement</span>
-                        <span className="font-medium">{stats.feedbackQuality.averageEngagement.toFixed(1)}/4</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Tone & Professionalism</span>
-                        <span className="font-medium">{stats.feedbackQuality.averageTone.toFixed(1)}/4</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>High Quality (≥75)</span>
-                        <span className="font-medium">{stats.feedbackQuality.highQualityPercentage.toFixed(0)}%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>AI-Assisted Feedback</span>
-                        <span className="font-medium">{stats.feedbackQuality.aiUsagePercentage.toFixed(0)}%</span>
-                      </div>
+                      {stats.feedbackQuality.averageOverall > 0 && (
+                        <>
+                          <div className="flex justify-between">
+                            <span>Overall Average</span>
+                            <span className="font-medium">{Math.round(stats.feedbackQuality.averageOverall)}/100</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Clarity</span>
+                            <span className="font-medium">{stats.feedbackQuality.averageClarity.toFixed(1)}/4</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Specificity</span>
+                            <span className="font-medium">{stats.feedbackQuality.averageSpecificity.toFixed(1)}/4</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Actionability</span>
+                            <span className="font-medium">{stats.feedbackQuality.averageActionability.toFixed(1)}/4</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Balance</span>
+                            <span className="font-medium">{stats.feedbackQuality.averageBalance.toFixed(1)}/4</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Learner Engagement</span>
+                            <span className="font-medium">{stats.feedbackQuality.averageEngagement.toFixed(1)}/4</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Tone & Professionalism</span>
+                            <span className="font-medium">{stats.feedbackQuality.averageTone.toFixed(1)}/4</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>High Quality (≥75)</span>
+                            <span className="font-medium">{stats.feedbackQuality.highQualityPercentage.toFixed(0)}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>AI-Assisted Feedback</span>
+                            <span className="font-medium">{stats.feedbackQuality.aiUsagePercentage.toFixed(0)}%</span>
+                          </div>
+                        </>
+                      )}
+                      {aiAssistUsage.runs > 0 && (
+                        <div className="flex justify-between">
+                          <span>AI Assist Adoption</span>
+                          <span className="font-medium">
+                            {aiAssistUsage.adoptionRate.toFixed(0)}% ({aiAssistUsage.usedInFinal}/{aiAssistUsage.runs})
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

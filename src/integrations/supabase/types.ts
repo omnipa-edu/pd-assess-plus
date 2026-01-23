@@ -718,6 +718,57 @@ export type Database = {
           },
         ]
       }
+      feedback_ai_runs: {
+        Row: {
+          id: string
+          assessment_id: string | null
+          supervisor_id: string
+          student_id: string
+          chain_id: string
+          inputs: Json
+          result: Json
+          used_in_final_feedback: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          assessment_id?: string | null
+          supervisor_id: string
+          student_id: string
+          chain_id?: string
+          inputs: Json
+          result: Json
+          used_in_final_feedback?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          assessment_id?: string | null
+          supervisor_id?: string
+          student_id?: string
+          chain_id?: string
+          inputs?: Json
+          result?: Json
+          used_in_final_feedback?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_ai_runs_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_ai_runs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       goals: {
         Row: {
           completed_at: string | null
@@ -2058,7 +2109,15 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      student_feedback_digests: {
+        Row: {
+          id: string
+          student_id: string
+          assessment_id: string | null
+          created_at: string
+          learner_digest: Json | null
+        }
+      }
     }
     Functions: {
       admin_send_password_reset: {

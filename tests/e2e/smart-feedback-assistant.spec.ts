@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
  * 
  * Tests:
  * 1. Smart Feedback Assistant appears on supervisor assessment forms
- * 2. Clicking "Improve Feedback" triggers analysis
+ * 2. Clicking "Enhance Feedback" triggers analysis
  * 3. Suggestions panel appears with tabs
  * 4. User can replace feedback with improved version
  * 5. User can insert coaching prompts
@@ -36,8 +36,8 @@ test.describe('Smart Feedback Assistant', () => {
     // Type some feedback
     await feedbackField.fill('Good job on the assessment.');
     
-    // Look for the "Improve Feedback" button
-    const improveButton = page.getByRole('button', { name: /improve feedback/i });
+    // Look for the "Enhance Feedback" button
+    const improveButton = page.getByRole('button', { name: /enhance feedback/i });
     await expect(improveButton).toBeVisible();
     
     // Verify helper text is present
@@ -45,14 +45,14 @@ test.describe('Smart Feedback Assistant', () => {
     await expect(helperText).toBeVisible();
   });
 
-  test('should show suggestions panel when clicking Improve Feedback', async ({ page }) => {
+  test('should show suggestions panel when clicking Enhance Feedback', async ({ page }) => {
     await page.goto('/supervisor/assessments/epa');
     await page.waitForLoadState('networkidle');
     
     const feedbackField = page.locator('textarea[id="narrative"]').first();
     await feedbackField.fill('Good job. Needs improvement.');
     
-    const improveButton = page.getByRole('button', { name: /improve feedback/i });
+    const improveButton = page.getByRole('button', { name: /enhance feedback/i });
     await improveButton.click();
     
     // Wait for loading state

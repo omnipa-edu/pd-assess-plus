@@ -71,6 +71,12 @@ export function TeachingStatisticsCard({ dateRange }: TeachingStatisticsCardProp
     return null;
   }
 
+  const aiAssistUsage = stats.aiAssistUsage ?? {
+    runs: 0,
+    usedInFinal: 0,
+    adoptionRate: 0,
+  };
+
   return (
     <Card className="border-0 bg-gradient-card shadow-card">
       <CardHeader>
@@ -159,23 +165,36 @@ export function TeachingStatisticsCard({ dateRange }: TeachingStatisticsCardProp
         </div>
 
         {/* Feedback quality metrics */}
-        {stats.feedbackQuality.averageOverall > 0 && (
+        {(stats.feedbackQuality.averageOverall > 0 || aiAssistUsage.runs > 0) && (
           <div className="space-y-2">
             <h4 className="text-sm font-semibold">Feedback Quality</h4>
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">High Quality (≥75)</span>
-                <Badge variant="secondary">
-                  {stats.feedbackQuality.highQualityPercentage.toFixed(0)}%
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">AI-Assisted</span>
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" />
-                  {stats.feedbackQuality.aiUsagePercentage.toFixed(0)}%
-                </Badge>
-              </div>
+              {stats.feedbackQuality.averageOverall > 0 && (
+                <>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">High Quality (≥75)</span>
+                    <Badge variant="secondary">
+                      {stats.feedbackQuality.highQualityPercentage.toFixed(0)}%
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">AI-Assisted (scoring)</span>
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      <Sparkles className="h-3 w-3" />
+                      {stats.feedbackQuality.aiUsagePercentage.toFixed(0)}%
+                    </Badge>
+                  </div>
+                </>
+              )}
+              {aiAssistUsage.runs > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">AI Assist Adoption</span>
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" />
+                    {aiAssistUsage.adoptionRate.toFixed(0)}% ({aiAssistUsage.usedInFinal}/{aiAssistUsage.runs})
+                  </Badge>
+                </div>
+              )}
             </div>
           </div>
         )}

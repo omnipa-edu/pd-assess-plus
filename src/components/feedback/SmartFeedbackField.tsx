@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { isSmartFeedbackEnabled } from "@/lib/smartFeedback";
+import { isSmartFeedbackEnabled, type FeedbackContext } from "@/lib/smartFeedback";
 
 import { SmartFeedbackAssistant } from "./SmartFeedbackAssistant";
 
@@ -23,11 +23,7 @@ interface SmartFeedbackFieldProps {
   /** Minimum height in pixels */
   minHeight?: string;
   /** Optional context for better analysis */
-  context?: {
-    epaName?: string;
-    encounterType?: string;
-    learnerLevel?: string;
-  };
+  context?: FeedbackContext;
   /** Additional className for the textarea */
   className?: string;
   /** Additional props to pass to the textarea */

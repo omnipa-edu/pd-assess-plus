@@ -89,6 +89,30 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
     { value: "5", label: "5 - Complete independence", color: "bg-assessment-excellent" }
   ];
 
+  const feedbackContext = {
+    role: "supervisor",
+    discipline: "PA / MD / NP clinical education",
+    encounterType: formData.activity,
+    learnerLevel: associate.year,
+    learner: {
+      level: associate.year,
+      role: "student",
+      specialty: associate.program,
+    },
+    context: {
+      setting: formData.setting || "unspecified",
+      case_type: formData.activity || "direct_observation",
+      complexity: "",
+      risk_level: "",
+    },
+    supervisorId: user?.id || "",
+    studentId: associate.id,
+    assessmentId,
+    rawFeedbackRating: formData.oScore ? Number(formData.oScore) : null,
+    learnerReflection: null,
+    priorGoals: [],
+  };
+
   const handleSubmit = async () => {
     if (!user) {
       toast({
@@ -478,9 +502,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                 placeholder="Describe technical competence, procedures, skills demonstrated..."
                 minHeight="80px"
                 className="border-border bg-background"
-                context={{
-                  encounterType: formData.activity,
-                }}
+                context={feedbackContext}
                 textareaProps={{ id: "technical" }}
               />
             </div>
@@ -496,9 +518,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                 placeholder="Patient interaction, colleague communication, clarity..."
                 minHeight="80px"
                 className="border-border bg-background"
-                context={{
-                  encounterType: formData.activity,
-                }}
+                context={feedbackContext}
                 textareaProps={{ id: "communication" }}
               />
             </div>
@@ -514,9 +534,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                 placeholder="Professional behavior, ethics, patient respect..."
                 minHeight="80px"
                 className="border-border bg-background"
-                context={{
-                  encounterType: formData.activity,
-                }}
+                context={feedbackContext}
                 textareaProps={{ id: "professionalism" }}
               />
             </div>
@@ -532,9 +550,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                 placeholder="Decision-making process, diagnostic thinking, problem-solving..."
                 minHeight="80px"
                 className="border-border bg-background"
-                context={{
-                  encounterType: formData.activity,
-                }}
+                context={feedbackContext}
                 textareaProps={{ id: "reasoning" }}
               />
             </div>
@@ -551,9 +567,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
               placeholder="Comprehensive description of performance, context, and specific examples..."
               minHeight="100px"
               className={validationErrors.narrative ? 'border-destructive bg-background' : 'border-border bg-background'}
-              context={{
-                encounterType: formData.activity,
-              }}
+              context={feedbackContext}
               textareaProps={{ id: "narrative" }}
             />
             {validationErrors.narrative && (
@@ -585,9 +599,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
                   placeholder="How did the physician associate respond to the feedback? Questions asked, understanding demonstrated..."
                   minHeight="60px"
                   className="border-border bg-background"
-                  context={{
-                    encounterType: formData.activity,
-                  }}
+                  context={feedbackContext}
                   textareaProps={{ id: "response" }}
                 />
               </div>

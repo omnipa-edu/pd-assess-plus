@@ -50,7 +50,7 @@ describe('SmartFeedbackAssistant', () => {
       />
     );
 
-    const improveButton = screen.getByRole('button', { name: /improve feedback/i });
+    const improveButton = screen.getByRole('button', { name: /enhance feedback/i });
     await userEvent.click(improveButton);
 
     await waitFor(() => {
@@ -73,7 +73,7 @@ describe('SmartFeedbackAssistant', () => {
       />
     );
 
-    const improveButton = screen.getByRole('button', { name: /improve feedback/i });
+    const improveButton = screen.getByRole('button', { name: /enhance feedback/i });
     await userEvent.click(improveButton);
 
     await waitFor(() => {
@@ -102,7 +102,7 @@ describe('SmartFeedbackAssistant', () => {
       />
     );
 
-    const improveButton = screen.getByRole('button', { name: /improve feedback/i });
+    const improveButton = screen.getByRole('button', { name: /enhance feedback/i });
     await userEvent.click(improveButton);
 
     await waitFor(() => {
@@ -136,7 +136,7 @@ describe('SmartFeedbackAssistant', () => {
       />
     );
 
-    const improveButton = screen.getByRole('button', { name: /improve feedback/i });
+    const improveButton = screen.getByRole('button', { name: /enhance feedback/i });
     await userEvent.click(improveButton);
 
     await waitFor(() => {
@@ -165,7 +165,7 @@ describe('SmartFeedbackAssistant', () => {
       />
     );
 
-    const improveButton = screen.getByRole('button', { name: /improve feedback/i });
+    const improveButton = screen.getByRole('button', { name: /enhance feedback/i });
     await userEvent.click(improveButton);
 
     await waitFor(() => {
@@ -187,7 +187,7 @@ describe('SmartFeedbackAssistant', () => {
       />
     );
 
-    const improveButton = screen.getByRole('button', { name: /improve feedback/i });
+    const improveButton = screen.getByRole('button', { name: /enhance feedback/i });
     expect(improveButton).toBeDisabled();
   });
 
@@ -203,7 +203,7 @@ describe('SmartFeedbackAssistant', () => {
       />
     );
 
-    const improveButton = screen.getByRole('button', { name: /improve feedback/i });
+    const improveButton = screen.getByRole('button', { name: /enhance feedback/i });
     await userEvent.click(improveButton);
 
     await waitFor(() => {
