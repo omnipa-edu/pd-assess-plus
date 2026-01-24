@@ -53,6 +53,12 @@ export function extractUrlFromObject(embedCode: string): string | null {
 export function extractUrlFromEmbedCode(embedCode: string): string | null {
   if (!embedCode || !embedCode.trim()) return null;
 
+  // Instagram blockquote embeds
+  const instagramMatch = embedCode.match(/data-instgrm-permalink=["']([^"']+)["']/i);
+  if (instagramMatch && instagramMatch[1]) {
+    return instagramMatch[1].trim();
+  }
+
   // First, try iframe (most common)
   const iframeUrl = extractUrlFromIframe(embedCode);
   if (iframeUrl) return iframeUrl;
