@@ -17,6 +17,7 @@ import type {
   LegacyWidgetLayout,
   SizePreset,
   DashboardLayoutJsonV3,
+  WidgetAutoMode,
 } from '@/lib/dashboard/types';
 import type { Json } from '@/integrations/supabase/types';
 
@@ -27,18 +28,34 @@ interface UseDashboardLayoutOptions {
 
 export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayoutOptions) {
   const queryClient = useQueryClient();
-  const normalizedDashboardType = dashboardType === 'admin' ? 'learner' : dashboardType;
   const [isEditing, setIsEditing] = useState(false);
   const [draftLayout, setDraftLayout] = useState<LegacyDashboardLayoutJson | null>(null);
   const [savedLayout, setSavedLayout] = useState<LegacyDashboardLayoutJson | null>(null);
   const [aiSuggestions, setAISuggestions] = useState<ResizeSuggestion[]>([]);
+
+  const buildDefaultV2Layout = useCallback((): LegacyDashboardLayoutJson => {
+    const defaultV3Layout = getDefaultLayout(dashboardType) as unknown as DashboardLayoutJsonV3;
+    return {
+      dashboardType,
+      widgets: defaultV3Layout.breakpoints?.desktop?.map((w, idx) => ({
+        widgetId: w.widgetId,
+        order: idx,
+        isVisible: w.isVisible,
+        defaultCollapsed: w.defaultCollapsed,
+        userCollapsed: w.userCollapsed,
+        autoMode: w.autoMode ?? 'manual',
+        size: w.sizePreset === 'compact' ? 'sm' : w.sizePreset === 'wide' ? 'lg' : 'md',
+      })) || [],
+      updatedAt: new Date().toISOString(),
+    };
+  }, [dashboardType]);
 
   // Fetch saved layout from database
   const { data: layoutData, isLoading } = useQuery({
     queryKey: ['dashboard-layout', userId, dashboardType],
     queryFn: async () => {
       if (!userId) {
-        return getDefaultLayout(normalizedDashboardType);
+        return getDefaultLayout(dashboardType);
       }
       const { data, error } = await supabase
         .from('dashboard_layouts')
@@ -53,11 +70,11 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
         // 406 might mean table doesn't exist yet (migration not run)
         if (error.code === 'PGRST116' || error.code === '42P01' || error.message?.includes('does not exist')) {
           console.warn('Dashboard layouts table not found or no data, using default layout:', error.message);
-          return getDefaultLayout(normalizedDashboardType);
+          return getDefaultLayout(dashboardType);
         }
         console.error('Error fetching dashboard layout:', error);
         // For other errors, still return default to prevent breaking the app
-        return getDefaultLayout(normalizedDashboardType);
+        return getDefaultLayout(dashboardType);
       }
 
       if (data?.layout_json) {
@@ -68,19 +85,19 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
         if (layout.version === 3 && layout.breakpoints) {
           console.warn('v3 layout detected but using v2 hook. Consider migrating to useDashboardLayoutV3.');
           // Return default for now - v3 layouts should use v3 hook
-          return getDefaultLayout(normalizedDashboardType) as any;
+          return getDefaultLayout(dashboardType) as any;
         }
         
         // Ensure it has widgets array (v2 format)
         if (!layout.widgets) {
-          return getDefaultLayout(normalizedDashboardType) as any;
+          return getDefaultLayout(dashboardType) as any;
         }
         
         return layout as LegacyDashboardLayoutJson;
       }
 
       // No saved layout, return default
-      return getDefaultLayout(normalizedDashboardType);
+      return getDefaultLayout(dashboardType);
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: Boolean(userId),
@@ -90,11 +107,11 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
   useEffect(() => {
     if (layoutData) {
       setSavedLayout(layoutData);
-      if (!isEditing) {
+      if (!isEditing || !draftLayout) {
         setDraftLayout(layoutData);
       }
     }
-  }, [layoutData, isEditing]);
+  }, [layoutData, isEditing, draftLayout]);
 
   // Generate AI suggestions when editing starts
   useEffect(() => {
@@ -183,8 +200,10 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
     setIsEditing(true);
     if (savedLayout) {
       setDraftLayout({ ...savedLayout });
+    } else {
+      setDraftLayout(buildDefaultV2Layout());
     }
-  }, [savedLayout]);
+  }, [savedLayout, buildDefaultV2Layout]);
 
   // Cancel editing and revert to saved layout
   const cancelEditing = useCallback(() => {
@@ -208,29 +227,17 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
 
   // Reset to default layout
   const resetToDefault = useCallback(async () => {
-    const defaultV3Layout = getDefaultLayout(normalizedDashboardType) as unknown as DashboardLayoutJsonV3;
-    const defaultV2Layout: LegacyDashboardLayoutJson = {
-      dashboardType: normalizedDashboardType,
-      widgets: defaultV3Layout.breakpoints?.desktop?.map((w, idx) => ({
-        widgetId: w.widgetId,
-        order: idx,
-        isVisible: w.isVisible,
-        defaultCollapsed: w.defaultCollapsed,
-        userCollapsed: w.userCollapsed,
-        size: w.sizePreset === 'compact' ? 'sm' : w.sizePreset === 'wide' ? 'lg' : 'md',
-      })) || [],
-      updatedAt: new Date().toISOString(),
-    };
+    const defaultV2Layout = buildDefaultV2Layout();
     setDraftLayout(defaultV2Layout);
     await saveMutation.mutateAsync(defaultV2Layout);
-  }, [normalizedDashboardType, saveMutation]);
+  }, [buildDefaultV2Layout, saveMutation]);
 
   // Apply mobile-optimized widget order based on default mobile layout
   const applyMobileOptimizedLayout = useCallback(async (options?: { autoSave?: boolean }) => {
     const sourceLayout = draftLayout || savedLayout;
     if (!sourceLayout || !sourceLayout.widgets) return false;
 
-    const defaultLayout = getDefaultLayout(normalizedDashboardType) as unknown as DashboardLayoutJsonV3;
+    const defaultLayout = getDefaultLayout(dashboardType) as unknown as DashboardLayoutJsonV3;
     const mobileLayout = [...(defaultLayout.breakpoints?.mobile || [])].sort(
       (a, b) => a.y - b.y || a.x - b.x
     );
@@ -271,13 +278,14 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
       await saveMutation.mutateAsync(layoutToSave);
     }
     return true;
-  }, [draftLayout, savedLayout, normalizedDashboardType, saveMutation]);
+  }, [draftLayout, savedLayout, dashboardType, saveMutation]);
 
   // Move widget to new position
   const moveWidget = useCallback((widgetId: WidgetId, newOrder: number) => {
-    if (!draftLayout || !draftLayout.widgets) return;
+    const sourceLayout = draftLayout ?? savedLayout ?? buildDefaultV2Layout();
+    if (!sourceLayout.widgets) return;
 
-    const updatedWidgets = [...draftLayout.widgets];
+    const updatedWidgets = [...sourceLayout.widgets];
     const widgetIndex = updatedWidgets.findIndex((w) => w.widgetId === widgetId);
     
     if (widgetIndex === -1) return;
@@ -306,58 +314,81 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
     });
 
     setDraftLayout({
-      ...draftLayout,
+      ...sourceLayout,
       widgets: updatedWidgets.sort((a, b) => a.order - b.order),
     });
-  }, [draftLayout]);
+  }, [draftLayout, savedLayout, buildDefaultV2Layout]);
 
   // Toggle widget visibility
   const toggleWidgetVisibility = useCallback((widgetId: WidgetId) => {
-    if (!draftLayout || !draftLayout.widgets) return;
+    const sourceLayout = draftLayout ?? savedLayout ?? buildDefaultV2Layout();
+    if (!sourceLayout.widgets) return;
 
-    const updatedWidgets = draftLayout.widgets.map((w) =>
+    const updatedWidgets = sourceLayout.widgets.map((w) =>
       w.widgetId === widgetId ? { ...w, isVisible: !w.isVisible } : w
     );
 
     setDraftLayout({
-      ...draftLayout,
+      ...sourceLayout,
       widgets: updatedWidgets,
     });
-  }, [draftLayout]);
+  }, [draftLayout, savedLayout, buildDefaultV2Layout]);
 
   // Toggle widget collapse state
   const toggleWidgetCollapse = useCallback((widgetId: WidgetId) => {
-    if (!draftLayout || !draftLayout.widgets) return;
+    const sourceLayout = draftLayout ?? savedLayout ?? buildDefaultV2Layout();
+    if (!sourceLayout.widgets) return;
 
-    const updatedWidgets = draftLayout.widgets.map((w) => {
+    const updatedWidgets = sourceLayout.widgets.map((w) => {
       if (w.widgetId !== widgetId) return w;
       const currentlyCollapsed = w.userCollapsed ?? w.defaultCollapsed;
-      return { ...w, userCollapsed: !currentlyCollapsed };
+      return {
+        ...w,
+        autoMode: w.autoMode && w.autoMode !== 'manual' ? 'manual' : w.autoMode,
+        userCollapsed: !currentlyCollapsed,
+      };
     });
 
     setDraftLayout({
-      ...draftLayout,
+      ...sourceLayout,
       widgets: updatedWidgets,
     });
-  }, [draftLayout]);
+  }, [draftLayout, savedLayout, buildDefaultV2Layout]);
 
   // Set default collapsed state for a widget
   const setDefaultCollapsed = useCallback((widgetId: WidgetId, collapsed: boolean) => {
-    if (!draftLayout || !draftLayout.widgets) return;
+    const sourceLayout = draftLayout ?? savedLayout ?? buildDefaultV2Layout();
+    if (!sourceLayout.widgets) return;
 
-    const updatedWidgets = draftLayout.widgets.map((w) =>
+    const updatedWidgets = sourceLayout.widgets.map((w) =>
       w.widgetId === widgetId ? { ...w, defaultCollapsed: collapsed } : w
     );
 
     setDraftLayout({
-      ...draftLayout,
+      ...sourceLayout,
       widgets: updatedWidgets,
     });
-  }, [draftLayout]);
+  }, [draftLayout, savedLayout, buildDefaultV2Layout]);
+
+  // Set widget auto mode
+  const setAutoMode = useCallback((widgetId: WidgetId, autoMode: WidgetAutoMode) => {
+    const sourceLayout = draftLayout ?? savedLayout ?? buildDefaultV2Layout();
+    if (!sourceLayout.widgets) return;
+
+    const updatedWidgets = sourceLayout.widgets.map((w) =>
+      w.widgetId === widgetId ? { ...w, autoMode } : w
+    );
+
+    setDraftLayout({
+      ...sourceLayout,
+      widgets: updatedWidgets,
+    });
+  }, [draftLayout, savedLayout, buildDefaultV2Layout]);
 
   // Set widget size preset
   const setWidgetSizePreset = useCallback((widgetId: WidgetId, preset: SizePreset) => {
-    if (!draftLayout || !draftLayout.widgets) return;
+    const sourceLayout = draftLayout ?? savedLayout ?? buildDefaultV2Layout();
+    if (!sourceLayout.widgets) return;
 
     // Map v4 preset to v2 size
     const presetToSize = (preset: SizePreset): 'sm' | 'md' | 'lg' => {
@@ -366,50 +397,52 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
       return 'md';
     };
 
-    const updatedWidgets = draftLayout.widgets.map((w) =>
+    const updatedWidgets = sourceLayout.widgets.map((w) =>
       w.widgetId === widgetId ? { ...w, size: presetToSize(preset) } : w
     );
 
     setDraftLayout({
-      ...draftLayout,
+      ...sourceLayout,
       widgets: updatedWidgets,
     });
-  }, [draftLayout]);
+  }, [draftLayout, savedLayout, buildDefaultV2Layout]);
 
   // Add widget to layout
   const addWidget = useCallback((widgetId: WidgetId) => {
-    if (!draftLayout || !draftLayout.widgets) return;
+    const sourceLayout = draftLayout ?? savedLayout ?? buildDefaultV2Layout();
+    if (!sourceLayout.widgets) return;
 
     // Check if widget already exists
-    const exists = draftLayout.widgets.some((w) => w.widgetId === widgetId);
+    const exists = sourceLayout.widgets.some((w) => w.widgetId === widgetId);
     if (exists) {
       // If it exists but is hidden, make it visible
-      const updatedWidgets = draftLayout.widgets.map((w) =>
+      const updatedWidgets = sourceLayout.widgets.map((w) =>
         w.widgetId === widgetId ? { ...w, isVisible: true } : w
       );
       setDraftLayout({
-        ...draftLayout,
+        ...sourceLayout,
         widgets: updatedWidgets,
       });
       return;
     }
 
     // Add new widget at the end
-    const maxOrder = Math.max(...draftLayout.widgets.map((w) => w.order), -1);
+    const maxOrder = Math.max(...sourceLayout.widgets.map((w) => w.order), -1);
     const newWidget: LegacyWidgetLayout = {
       widgetId,
       order: maxOrder + 1,
       isVisible: true,
       defaultCollapsed: false,
       userCollapsed: false,
+      autoMode: 'manual',
       size: 'md',
     };
 
     setDraftLayout({
-      ...draftLayout,
-      widgets: [...draftLayout.widgets, newWidget].sort((a, b) => a.order - b.order),
+      ...sourceLayout,
+      widgets: [...sourceLayout.widgets, newWidget].sort((a, b) => a.order - b.order),
     });
-  }, [draftLayout]);
+  }, [draftLayout, savedLayout, buildDefaultV2Layout]);
 
   // Get visible widgets sorted by order
   const visibleWidgets = draftLayout && draftLayout.widgets
@@ -424,19 +457,7 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
   }, [draftLayout]);
 
   // Ensure we always return a valid v2 layout with widgets array
-  const defaultLayout = getDefaultLayout(normalizedDashboardType) as unknown as DashboardLayoutJsonV3;
-  const defaultV2Layout: LegacyDashboardLayoutJson = {
-    dashboardType: normalizedDashboardType,
-    widgets: defaultLayout.breakpoints?.desktop?.map((w, idx) => ({
-      widgetId: w.widgetId,
-      order: idx,
-      isVisible: w.isVisible,
-      defaultCollapsed: w.defaultCollapsed,
-      userCollapsed: w.userCollapsed,
-      size: w.sizePreset === 'compact' ? 'sm' : w.sizePreset === 'wide' ? 'lg' : 'md',
-    })) || [],
-    updatedAt: new Date().toISOString(),
-  };
+  const defaultV2Layout = buildDefaultV2Layout();
 
   const currentLayout = draftLayout || savedLayout || defaultV2Layout;
   const safeLayout = currentLayout && currentLayout.widgets 
@@ -462,6 +483,7 @@ export function useDashboardLayout({ dashboardType, userId }: UseDashboardLayout
     toggleWidgetVisibility,
     toggleWidgetCollapse,
     setDefaultCollapsed,
+    setAutoMode,
     setWidgetSizePreset,
     addWidget,
     

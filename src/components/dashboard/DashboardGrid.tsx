@@ -74,10 +74,15 @@ function SortableWidgetItem({
   // Widget is collapsed if:
   // - userCollapsed is explicitly true, OR
   // - defaultCollapsed is true and userCollapsed is not explicitly false
-  const isCollapsed = widget.userCollapsed === true 
-    ? true 
-    : widget.userCollapsed === false 
-    ? false 
+  const autoMode = widget.autoMode ?? 'manual';
+  const isCollapsed = autoMode === 'auto_collapse'
+    ? true
+    : autoMode === 'auto_expand'
+    ? false
+    : widget.userCollapsed === true
+    ? true
+    : widget.userCollapsed === false
+    ? false
     : widget.defaultCollapsed;
 
   return (

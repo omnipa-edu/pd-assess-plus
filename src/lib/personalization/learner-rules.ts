@@ -125,7 +125,7 @@ async function getEPATitle(epaCode: string, specialtyId?: string): Promise<strin
       query = query.eq('specialty_id', specialtyId);
     }
 
-    const { data, error } = await query.single();
+    const { data, error } = await query.maybeSingle();
 
     if (error || !data) {
       return `EPA ${epaCode}`;

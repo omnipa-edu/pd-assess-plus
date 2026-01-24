@@ -28,6 +28,7 @@ function createWidgetLayout(
     isVisible: true,
     defaultCollapsed: false,
     userCollapsed: false,
+    autoMode: 'manual',
     sizePreset: preset,
     minW: 2,
     maxW: maxW,
@@ -144,7 +145,35 @@ export const defaultSupervisorLayout: DashboardLayoutJson = {
 /**
  * Get default layout for a dashboard type
  */
-export function getDefaultLayout(dashboardType: 'learner' | 'supervisor'): DashboardLayoutJson {
+export const defaultAdminLayout: DashboardLayoutJson = {
+  dashboardType: 'admin',
+  version: 3,
+  source: 'user',
+  breakpoints: {
+    desktop: [
+      createWidgetLayout('admin_onboarding', 0, 0, 'wide', 'desktop'),
+      createWidgetLayout('admin_stats', 0, 3, 'full', 'desktop'),
+      createWidgetLayout('admin_quick_actions', 0, 7, 'full', 'desktop'),
+      createWidgetLayout('admin_recent_activity', 0, 11, 'full', 'desktop'),
+    ],
+    tablet: [
+      createWidgetLayout('admin_onboarding', 0, 0, 'full', 'tablet'),
+      createWidgetLayout('admin_stats', 0, 3, 'full', 'tablet'),
+      createWidgetLayout('admin_quick_actions', 0, 7, 'full', 'tablet'),
+      createWidgetLayout('admin_recent_activity', 0, 11, 'full', 'tablet'),
+    ],
+    mobile: [
+      createWidgetLayout('admin_onboarding', 0, 0, 'full', 'mobile'),
+      createWidgetLayout('admin_stats', 0, 3, 'full', 'mobile'),
+      createWidgetLayout('admin_quick_actions', 0, 7, 'full', 'mobile'),
+      createWidgetLayout('admin_recent_activity', 0, 11, 'full', 'mobile'),
+    ],
+  },
+  updatedAt: new Date().toISOString(),
+};
+
+export function getDefaultLayout(dashboardType: 'learner' | 'supervisor' | 'admin'): DashboardLayoutJson {
+  if (dashboardType === 'admin') return defaultAdminLayout;
   return dashboardType === 'learner' ? defaultLearnerLayout : defaultSupervisorLayout;
 }
 
@@ -179,10 +208,13 @@ export function migrateLegacyLayout(legacy: any): DashboardLayoutJson {
     
     desktopLayout.defaultCollapsed = widget.defaultCollapsed || false;
     desktopLayout.userCollapsed = widget.userCollapsed || false;
+    desktopLayout.autoMode = widget.autoMode || 'manual';
     tabletLayout.defaultCollapsed = widget.defaultCollapsed || false;
     tabletLayout.userCollapsed = widget.userCollapsed || false;
+    tabletLayout.autoMode = widget.autoMode || 'manual';
     mobileLayout.defaultCollapsed = widget.defaultCollapsed || false;
     mobileLayout.userCollapsed = widget.userCollapsed || false;
+    mobileLayout.autoMode = widget.autoMode || 'manual';
     
     desktop.push(desktopLayout);
     tablet.push(tabletLayout);

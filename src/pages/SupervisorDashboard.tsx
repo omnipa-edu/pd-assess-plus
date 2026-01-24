@@ -360,6 +360,7 @@ const SupervisorDashboard = () => {
           onToggleVisibility={dashboardLayout.toggleWidgetVisibility}
           onToggleCollapse={dashboardLayout.toggleWidgetCollapse}
           onSetDefaultCollapsed={dashboardLayout.setDefaultCollapsed}
+          onSetAutoMode={dashboardLayout.setAutoMode}
           onSetSizePreset={dashboardLayout.setWidgetSizePreset}
           onAddWidget={dashboardLayout.addWidget}
           onSave={handleSaveLayout}

@@ -7,6 +7,7 @@ export type DashboardType = 'learner' | 'supervisor' | 'admin';
 export type Breakpoint = 'mobile' | 'tablet' | 'desktop';
 export type SizePreset = 'compact' | 'standard' | 'wide' | 'full';
 export type LayoutSource = 'user' | 'ai_recommendation';
+export type WidgetAutoMode = 'manual' | 'auto_collapse' | 'auto_expand';
 
 // Column count constraints
 export type ColumnCountDesktop = 1 | 2 | 3 | 4;
@@ -32,7 +33,12 @@ export type WidgetId =
   | 'personalized_view'
   | 'statistics_grid'
   // Shared widgets
-  | 'notifications';
+  | 'notifications'
+  // Admin widgets
+  | 'admin_stats'
+  | 'admin_quick_actions'
+  | 'admin_recent_activity'
+  | 'admin_onboarding';
 
 /**
  * Widget settings (v4)
@@ -42,6 +48,7 @@ export interface WidgetSettings {
   isVisible: boolean;
   defaultCollapsed: boolean;
   userCollapsed: boolean;
+  autoMode?: WidgetAutoMode;
   sizePreset?: SizePreset;
   minW: number;
   maxW: number;
@@ -98,6 +105,7 @@ export interface WidgetGridLayout {
   isVisible: boolean;
   defaultCollapsed: boolean;
   userCollapsed: boolean;
+  autoMode?: WidgetAutoMode;
   sizePreset?: SizePreset;
   minW: number;
   maxW: number;
@@ -126,6 +134,7 @@ export interface LegacyWidgetLayout {
   isVisible: boolean;
   defaultCollapsed: boolean;
   userCollapsed: boolean;
+  autoMode?: WidgetAutoMode;
   size: 'sm' | 'md' | 'lg';
 }
 

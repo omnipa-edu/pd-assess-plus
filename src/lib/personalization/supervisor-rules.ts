@@ -112,7 +112,7 @@ async function getEPATitle(epaCode: string): Promise<string> {
       .eq('code', epaCode)
       .eq('status', 'active')
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
       return `EPA ${epaCode}`;

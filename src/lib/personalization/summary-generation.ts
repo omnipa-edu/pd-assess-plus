@@ -133,15 +133,16 @@ export async function getLearnerSummary(
       .from('learner_personalization_summaries')
       .select('summary, generated_at')
       .eq('learner_id', learnerId)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        // Not found - generate on demand
-        return await generateAndSaveLearnerSummary(learnerId);
-      }
       logger.error('Error fetching learner summary', error);
       return null;
+    }
+
+    if (!data) {
+      // Not found - generate on demand
+      return await generateAndSaveLearnerSummary(learnerId);
     }
 
     return data?.summary as LearnerPersonalizationSummary | null;
@@ -162,15 +163,16 @@ export async function getSupervisorSummary(
       .from('supervisor_personalization_summaries')
       .select('summary, generated_at')
       .eq('supervisor_id', supervisorId)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        // Not found - generate on demand
-        return await generateAndSaveSupervisorSummary(supervisorId);
-      }
       logger.error('Error fetching supervisor summary', error);
       return null;
+    }
+
+    if (!data) {
+      // Not found - generate on demand
+      return await generateAndSaveSupervisorSummary(supervisorId);
     }
 
     return data?.summary as SupervisorPersonalizationSummary | null;

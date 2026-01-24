@@ -20,6 +20,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   DndContext,
   closestCenter,
@@ -40,7 +41,7 @@ import { AddWidgetsDrawer } from '@/components/dashboard/AddWidgetsDrawer';
 import { WidgetSizePresetSelector } from '@/components/dashboard/WidgetSizePresetSelector';
 import { AISuggestionBadge } from '@/components/dashboard/AISuggestionBadge';
 import { getWidgetDefinition } from '@/components/dashboard/widgets/registry';
-import type { LegacyWidgetLayout, WidgetId, SizePreset, Breakpoint } from '@/lib/dashboard/types';
+import type { LegacyWidgetLayout, WidgetId, SizePreset, Breakpoint, DashboardType } from '@/lib/dashboard/types';
 import type { ResizeSuggestion } from '@/lib/dashboard/aiSuggestions';
 
 interface DashboardCustomizeSidebarProps {
@@ -52,6 +53,7 @@ interface DashboardCustomizeSidebarProps {
   onToggleVisibility: (widgetId: WidgetId) => void;
   onToggleCollapse: (widgetId: WidgetId) => void;
   onSetDefaultCollapsed: (widgetId: WidgetId, collapsed: boolean) => void;
+  onSetAutoMode: (widgetId: WidgetId, autoMode: 'manual' | 'auto_collapse' | 'auto_expand') => void;
   onSetSizePreset?: (widgetId: WidgetId, preset: SizePreset) => void;
   onAddWidget: (widgetId: WidgetId) => void;
   onSave: () => void;
@@ -59,7 +61,7 @@ interface DashboardCustomizeSidebarProps {
   onReset: () => void;
   hasUnsavedChanges: boolean;
   isSaving: boolean;
-  dashboardType: 'learner' | 'supervisor';
+  dashboardType: DashboardType;
   aiSuggestions?: ResizeSuggestion[];
   onApplyAISuggestion?: (widgetId: WidgetId, preset: SizePreset) => void;
   onApplyMobileOptimizedLayout?: (options?: { autoSave?: boolean }) => Promise<boolean> | boolean;
@@ -174,6 +176,7 @@ export function DashboardCustomizeSidebar({
   onToggleVisibility,
   onToggleCollapse,
   onSetDefaultCollapsed,
+  onSetAutoMode,
   onSetSizePreset,
   onAddWidget,
   onSave,
@@ -355,6 +358,38 @@ export function DashboardCustomizeSidebar({
                           onSetDefaultCollapsed(selectedWidgetData.widgetId, checked)
                         }
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm">Auto-collapse behavior</Label>
+                      <RadioGroup
+                        value={selectedWidgetData.autoMode ?? 'manual'}
+                        onValueChange={(value) =>
+                          onSetAutoMode(
+                            selectedWidgetData.widgetId,
+                            value as 'manual' | 'auto_collapse' | 'auto_expand'
+                          )
+                        }
+                        className="grid gap-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem id="auto-mode-manual" value="manual" />
+                          <Label htmlFor="auto-mode-manual" className="text-sm text-muted-foreground">
+                            Manual (remember last state)
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem id="auto-mode-collapse" value="auto_collapse" />
+                          <Label htmlFor="auto-mode-collapse" className="text-sm text-muted-foreground">
+                            Auto-collapse on load
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem id="auto-mode-expand" value="auto_expand" />
+                          <Label htmlFor="auto-mode-expand" className="text-sm text-muted-foreground">
+                            Auto-expand on load
+                          </Label>
+                        </div>
+                      </RadioGroup>
                     </div>
                   </div>
                 </div>

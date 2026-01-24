@@ -18,6 +18,10 @@ import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist
 import { LearnerPersonalizedPlan } from '@/components/personalization/LearnerPersonalizedPlan';
 import { SupervisorPersonalizedView } from '@/components/personalization/SupervisorPersonalizedView';
 import { TeachingStatisticsCard } from '@/components/teaching/TeachingStatisticsCard';
+import { AdminStatsWidget } from '@/components/admin/widgets/AdminStatsWidget';
+import { AdminQuickActionsWidget } from '@/components/admin/widgets/AdminQuickActionsWidget';
+import { AdminRecentActivityWidget } from '@/components/admin/widgets/AdminRecentActivityWidget';
+import { AdminOnboardingWidget } from '@/components/admin/widgets/AdminOnboardingWidget';
 
 import type { WidgetId, DashboardType, WidgetGridLayout, SizePreset } from '@/lib/dashboard/types';
 
@@ -92,7 +96,7 @@ export const widgetDefinitions: WidgetDefinition[] = [
     description: 'View and manage your notifications',
     category: 'General',
     allowedRoles: ['learner', 'supervisor', 'admin'],
-    allowedDashboards: ['learner', 'supervisor'],
+    allowedDashboards: ['learner', 'supervisor', 'admin'],
     defaultLayout: {
       desktop: { x: 0, y: 0, w: 3, h: 1, sizePreset: 'compact' },
       tablet: { x: 0, y: 0, w: 2, h: 1, sizePreset: 'compact' },
@@ -330,6 +334,67 @@ export const widgetDefinitions: WidgetDefinition[] = [
     supportsResize: true,
     supportsCollapse: true,
   },
+  // Admin widgets
+  {
+    id: 'admin_onboarding',
+    label: 'Admin Onboarding',
+    description: 'Recommended setup steps for your institution',
+    category: 'Admin',
+    allowedRoles: ['admin'],
+    allowedDashboards: ['admin'],
+    defaultLayout: {
+      desktop: { x: 0, y: 0, w: 6, h: 3, sizePreset: 'wide' },
+      tablet: { x: 0, y: 0, w: 8, h: 3, sizePreset: 'full' },
+      mobile: { x: 0, y: 0, w: 4, h: 3, sizePreset: 'full' },
+    },
+    supportsResize: true,
+    supportsCollapse: true,
+  },
+  {
+    id: 'admin_stats',
+    label: 'Admin Stats',
+    description: 'Institution metrics and key counts',
+    category: 'Admin',
+    allowedRoles: ['admin'],
+    allowedDashboards: ['admin'],
+    defaultLayout: {
+      desktop: { x: 0, y: 3, w: 12, h: 4, sizePreset: 'full' },
+      tablet: { x: 0, y: 3, w: 8, h: 4, sizePreset: 'full' },
+      mobile: { x: 0, y: 3, w: 4, h: 4, sizePreset: 'full' },
+    },
+    supportsResize: true,
+    supportsCollapse: true,
+  },
+  {
+    id: 'admin_quick_actions',
+    label: 'Quick Actions',
+    description: 'Shortcuts to common admin tasks',
+    category: 'Admin',
+    allowedRoles: ['admin'],
+    allowedDashboards: ['admin'],
+    defaultLayout: {
+      desktop: { x: 0, y: 7, w: 12, h: 4, sizePreset: 'full' },
+      tablet: { x: 0, y: 7, w: 8, h: 4, sizePreset: 'full' },
+      mobile: { x: 0, y: 7, w: 4, h: 4, sizePreset: 'full' },
+    },
+    supportsResize: true,
+    supportsCollapse: true,
+  },
+  {
+    id: 'admin_recent_activity',
+    label: 'Recent Activity',
+    description: 'Latest changes across the platform',
+    category: 'Admin',
+    allowedRoles: ['admin'],
+    allowedDashboards: ['admin'],
+    defaultLayout: {
+      desktop: { x: 0, y: 11, w: 12, h: 4, sizePreset: 'full' },
+      tablet: { x: 0, y: 11, w: 8, h: 4, sizePreset: 'full' },
+      mobile: { x: 0, y: 11, w: 4, h: 4, sizePreset: 'full' },
+    },
+    supportsResize: true,
+    supportsCollapse: true,
+  },
 ];
 
 /**
@@ -415,6 +480,14 @@ export function renderWidget(
     case 'statistics_grid':
       // Handled by CustomWidgetRenderer
       return null;
+    case 'admin_onboarding':
+      return <AdminOnboardingWidget />;
+    case 'admin_stats':
+      return <AdminStatsWidget />;
+    case 'admin_quick_actions':
+      return <AdminQuickActionsWidget />;
+    case 'admin_recent_activity':
+      return <AdminRecentActivityWidget />;
     default:
       console.warn(`Unknown widget ID: ${widgetId}`);
       return (
@@ -447,5 +520,12 @@ export const widgetRegistry: Record<DashboardType, Array<{ id: WidgetId; label: 
       description: w.description,
       category: w.category,
     })),
-  admin: [],
+  admin: widgetDefinitions
+    .filter((w) => w.allowedDashboards.includes('admin'))
+    .map((w) => ({
+      id: w.id,
+      label: w.label,
+      description: w.description,
+      category: w.category,
+    })),
 };
