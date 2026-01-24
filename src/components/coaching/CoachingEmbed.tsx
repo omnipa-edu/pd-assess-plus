@@ -103,15 +103,19 @@ export function CoachingEmbed({ url, title, className }: CoachingEmbedProps) {
 
   // Load Instagram embed script when embed HTML is ready
   useEffect(() => {
-    if (instagramEmbed && !scriptLoadedRef.current) {
+    if (instagramEmbed && !scriptLoadedRef.current && !instagramError) {
       // Use the new Instagram embed processor
-      processInstagramEmbeds().then(() => {
-        scriptLoadedRef.current = true;
-      }).catch((error) => {
-        console.error('Error processing Instagram embeds:', error);
+      processInstagramEmbeds().then((ok) => {
+        if (ok) {
+          scriptLoadedRef.current = true;
+          return;
+        }
+        setInstagramError(
+          'Instagram embed script was blocked by the browser or network policy. You can still open the post directly.'
+        );
       });
     }
-  }, [instagramEmbed]);
+  }, [instagramEmbed, instagramError]);
 
   // YouTube embed - prefer new embedInfo, fallback to videoInfo
   const youtubeEmbedUrl = embedInfo?.platform === 'youtube' 

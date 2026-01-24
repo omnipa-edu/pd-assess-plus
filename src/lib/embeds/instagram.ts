@@ -138,15 +138,16 @@ export function ensureInstagramScriptLoaded(): Promise<void> {
  * Process Instagram embeds after DOM changes
  * Call this after rendering Instagram embed markup
  */
-export async function processInstagramEmbeds(): Promise<void> {
+export async function processInstagramEmbeds(): Promise<boolean> {
   try {
     await ensureInstagramScriptLoaded();
-    
+
     if ((window as any).instgrm?.Embeds?.process) {
       (window as any).instgrm.Embeds.process();
     }
-  } catch (error) {
-    console.error('Error processing Instagram embeds:', error);
+    return true;
+  } catch {
+    return false;
   }
 }
 

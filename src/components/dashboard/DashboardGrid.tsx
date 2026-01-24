@@ -94,7 +94,7 @@ function SortableWidgetItem({
       <Card className="relative overflow-visible group">
         {/* Hover-based Edit Controls - Only show on hover when editing */}
         {isEditing && (
-          <div className="absolute right-2 top-2 z-10 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="absolute right-2 top-2 z-10 flex items-center gap-2 opacity-100 transition-opacity duration-200 md:opacity-0 md:group-hover:opacity-100">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
