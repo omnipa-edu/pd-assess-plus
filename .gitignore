@@ -28,3 +28,4 @@ yarn.lock
 *.sln
 *.sw?
 eval/feedback_ai/runs/
+supabase/.temp/

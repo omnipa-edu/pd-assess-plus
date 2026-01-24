@@ -58,5 +58,3 @@ join public.supervisor_calibration_cohort c using (epa_code)
 group by b.supervisor_id, b.epa_code, c.cohort_median;
 
 comment on view public.supervisor_calibration_metrics is 'Per-supervisor calibration metrics with cohort medians and score distribution';
-
-

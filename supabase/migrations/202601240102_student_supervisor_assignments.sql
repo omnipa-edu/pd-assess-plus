@@ -21,30 +21,35 @@ CREATE TABLE IF NOT EXISTS public.student_supervisor_assignments (
   created_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  
+
   -- Prevent exact duplicates
   CONSTRAINT student_supervisor_unique UNIQUE (student_id, supervisor_id, institution_id, program_id)
 );
 
 -- Indexes for performance
-CREATE INDEX IF NOT EXISTS idx_student_supervisor_assignments_supervisor 
+CREATE INDEX IF NOT EXISTS idx_student_supervisor_assignments_supervisor
   ON public.student_supervisor_assignments(supervisor_id, institution_id, program_id);
-CREATE INDEX IF NOT EXISTS idx_student_supervisor_assignments_student 
+
+CREATE INDEX IF NOT EXISTS idx_student_supervisor_assignments_student
   ON public.student_supervisor_assignments(student_id, is_primary);
-CREATE INDEX IF NOT EXISTS idx_student_supervisor_assignments_institution 
+
+CREATE INDEX IF NOT EXISTS idx_student_supervisor_assignments_institution
   ON public.student_supervisor_assignments(institution_id);
-CREATE INDEX IF NOT EXISTS idx_student_supervisor_assignments_program 
+
+CREATE INDEX IF NOT EXISTS idx_student_supervisor_assignments_program
   ON public.student_supervisor_assignments(program_id);
-CREATE INDEX IF NOT EXISTS idx_student_supervisor_assignments_dates 
+
+CREATE INDEX IF NOT EXISTS idx_student_supervisor_assignments_dates
   ON public.student_supervisor_assignments(start_date, end_date);
 
 -- ============================================================================
 -- UPDATED_AT TRIGGER
 -- ============================================================================
 
-DROP TRIGGER IF EXISTS update_student_supervisor_assignments_updated_at 
+DROP TRIGGER IF EXISTS update_student_supervisor_assignments_updated_at
   ON public.student_supervisor_assignments;
-CREATE TRIGGER update_student_supervisor_assignments_updated_at 
+
+CREATE TRIGGER update_student_supervisor_assignments_updated_at
   BEFORE UPDATE ON public.student_supervisor_assignments
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
@@ -56,6 +61,7 @@ ALTER TABLE public.student_supervisor_assignments ENABLE ROW LEVEL SECURITY;
 
 -- Supervisors can view their own assignments
 DROP POLICY IF EXISTS student_supervisor_assignments_view_own ON public.student_supervisor_assignments;
+
 CREATE POLICY student_supervisor_assignments_view_own ON public.student_supervisor_assignments
   FOR SELECT USING (
     supervisor_id = auth.uid() OR
@@ -64,6 +70,7 @@ CREATE POLICY student_supervisor_assignments_view_own ON public.student_supervis
 
 -- Supervisors can insert assignments where they are the supervisor
 DROP POLICY IF EXISTS student_supervisor_assignments_insert_own ON public.student_supervisor_assignments;
+
 CREATE POLICY student_supervisor_assignments_insert_own ON public.student_supervisor_assignments
   FOR INSERT WITH CHECK (
     supervisor_id = auth.uid() AND
@@ -71,13 +78,14 @@ CREATE POLICY student_supervisor_assignments_insert_own ON public.student_superv
     -- Ensure supervisor belongs to the institution
     EXISTS (
       SELECT 1 FROM public.profiles
-      WHERE id = auth.uid() 
+      WHERE id = auth.uid()
         AND institution_id = student_supervisor_assignments.institution_id
     )
   );
 
 -- Supervisors can update their own assignment rows
 DROP POLICY IF EXISTS student_supervisor_assignments_update_own ON public.student_supervisor_assignments;
+
 CREATE POLICY student_supervisor_assignments_update_own ON public.student_supervisor_assignments
   FOR UPDATE USING (
     supervisor_id = auth.uid() OR
@@ -86,6 +94,7 @@ CREATE POLICY student_supervisor_assignments_update_own ON public.student_superv
 
 -- Admins can view all assignments for their org
 DROP POLICY IF EXISTS student_supervisor_assignments_admin_view ON public.student_supervisor_assignments;
+
 CREATE POLICY student_supervisor_assignments_admin_view ON public.student_supervisor_assignments
   FOR SELECT USING (
     EXISTS (
@@ -96,6 +105,7 @@ CREATE POLICY student_supervisor_assignments_admin_view ON public.student_superv
 
 -- Admins can manage all assignments
 DROP POLICY IF EXISTS student_supervisor_assignments_admin_manage ON public.student_supervisor_assignments;
+
 CREATE POLICY student_supervisor_assignments_admin_manage ON public.student_supervisor_assignments
   FOR ALL USING (
     EXISTS (
@@ -133,7 +143,7 @@ STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT 
+  SELECT
     ssa.id AS assignment_id,
     ssa.student_id,
     p.full_name AS student_name,
@@ -166,5 +176,5 @@ $$;
 -- ============================================================================
 
 GRANT ALL ON public.student_supervisor_assignments TO authenticated;
-GRANT EXECUTE ON FUNCTION public.get_supervisor_students(UUID, UUID, UUID, BOOLEAN) TO authenticated;
 
+GRANT EXECUTE ON FUNCTION public.get_supervisor_students(UUID, UUID, UUID, BOOLEAN) TO authenticated;

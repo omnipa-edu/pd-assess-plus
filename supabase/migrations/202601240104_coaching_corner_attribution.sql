@@ -13,11 +13,11 @@ ADD COLUMN IF NOT EXISTS license_note TEXT;
 
 -- Rename video_url to url for consistency (if not already done)
 -- Note: We'll keep video_url for backward compatibility but use url going forward
-DO $$ 
+DO $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                 WHERE table_schema = 'public' 
-                 AND table_name = 'coaching_corner' 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_schema = 'public'
+                 AND table_name = 'coaching_corner'
                  AND column_name = 'url') THEN
     ALTER TABLE public.coaching_corner ADD COLUMN url TEXT;
     -- Copy existing video_url to url
@@ -30,11 +30,11 @@ END $$;
 -- But we can add a check constraint for data integrity
 -- Note: We make this nullable to allow existing records without attribution
 -- Application layer will enforce attribution for new embeds
-DO $$ 
+DO $$
 BEGIN
   IF EXISTS (
-    SELECT 1 FROM information_schema.table_constraints 
-    WHERE constraint_name = 'valid_embed_attribution' 
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_name = 'valid_embed_attribution'
     AND table_name = 'coaching_corner'
     AND table_schema = 'public'
   ) THEN
@@ -51,21 +51,26 @@ END $$;
 -- The existing CHECK constraint should handle 'link' if we add it
 
 -- Add index for attribution queries
-CREATE INDEX IF NOT EXISTS idx_coaching_corner_source_platform 
-ON public.coaching_corner(source_platform) 
+CREATE INDEX IF NOT EXISTS idx_coaching_corner_source_platform
+ON public.coaching_corner(source_platform)
 WHERE source_platform IS NOT NULL;
 
 -- Add index for creator lookups
-CREATE INDEX IF NOT EXISTS idx_coaching_corner_creator 
-ON public.coaching_corner(creator_name) 
+CREATE INDEX IF NOT EXISTS idx_coaching_corner_creator
+ON public.coaching_corner(creator_name)
 WHERE creator_name IS NOT NULL;
 
 -- Comments
 COMMENT ON COLUMN public.coaching_corner.creator_name IS 'Name of the content creator (required for embeds)';
-COMMENT ON COLUMN public.coaching_corner.creator_handle IS 'Optional: Creator handle/channel name (e.g., @username)';
-COMMENT ON COLUMN public.coaching_corner.creator_url IS 'Optional: Link to creator profile/channel';
-COMMENT ON COLUMN public.coaching_corner.source_platform IS 'Platform source: YouTube, Instagram, or Other';
-COMMENT ON COLUMN public.coaching_corner.source_url IS 'Original content URL (same as url for embeds)';
-COMMENT ON COLUMN public.coaching_corner.license_note IS 'Optional: License or permission note (e.g., "Embedded with permission")';
-COMMENT ON COLUMN public.coaching_corner.url IS 'Canonical URL for content (replaces video_url for consistency)';
 
+COMMENT ON COLUMN public.coaching_corner.creator_handle IS 'Optional: Creator handle/channel name (e.g., @username)';
+
+COMMENT ON COLUMN public.coaching_corner.creator_url IS 'Optional: Link to creator profile/channel';
+
+COMMENT ON COLUMN public.coaching_corner.source_platform IS 'Platform source: YouTube, Instagram, or Other';
+
+COMMENT ON COLUMN public.coaching_corner.source_url IS 'Original content URL (same as url for embeds)';
+
+COMMENT ON COLUMN public.coaching_corner.license_note IS 'Optional: License or permission note (e.g., "Embedded with permission")';
+
+COMMENT ON COLUMN public.coaching_corner.url IS 'Canonical URL for content (replaces video_url for consistency)';

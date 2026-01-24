@@ -15,4 +15,3 @@ CREATE POLICY "Admins can update all profiles"
   WITH CHECK (
     public.has_role(auth.uid(), 'admin')
   );
-
