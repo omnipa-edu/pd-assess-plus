@@ -73,6 +73,8 @@ const emptyEditorState: ResourceEditorState = {
   keywordInput: '',
 };
 
+const normalizeUrl = (url: string) => url.trim().toLowerCase();
+
 const toTagPayload = (state: ResourceEditorState): Array<{ tag_type: ResourceTag['tag_type']; tag_value: string }> => [
   ...state.specialtyTags.map((tag) => ({ tag_type: 'specialty' as const, tag_value: tag })),
   ...state.epaTags.map((tag) => ({ tag_type: 'epa' as const, tag_value: tag })),
@@ -120,14 +122,17 @@ export function ResourceLibraryDialog({ open, onOpenChange, onCreated }: Resourc
   };
 
   const checkDuplicateUrl = async (url: string) => {
-    if (!url.trim()) {
+    const normalized = normalizeUrl(url);
+    if (!normalized) {
       setDuplicateUrl(null);
       return;
     }
+    // Match case-insensitively: DB unique index is on lower(url)
     const { data } = await supabase
       .from('resources')
       .select('id, title, status')
-      .eq('url', url.trim())
+      .ilike('url', normalized)
+      .limit(1)
       .maybeSingle();
     if (data) setDuplicateUrl(data as ResourceRow);
     else setDuplicateUrl(null);
@@ -143,13 +148,22 @@ export function ResourceLibraryDialog({ open, onOpenChange, onCreated }: Resourc
       });
       return;
     }
+    if (duplicateUrl) {
+      toast({
+        title: 'Duplicate URL',
+        description: 'This URL is already in the library. Use a different URL or find the existing resource.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
+    const normalizedUrl = normalizeUrl(editorState.url);
     setSaving(true);
     try {
       const tagPayload = toTagPayload(editorState);
       const resource = await adminCreateResource({
         title: editorState.title.trim(),
-        url: editorState.url.trim(),
+        url: normalizedUrl,
         resource_type: editorState.resource_type,
         publisher: editorState.publisher || null,
         summary: editorState.summary || null,
@@ -172,9 +186,14 @@ export function ResourceLibraryDialog({ open, onOpenChange, onCreated }: Resourc
       onCreated?.(resource);
       handleClose(false);
     } catch (error: any) {
+      const msg = error?.message ?? '';
+      const isDuplicateUrl =
+        msg.includes('resources_url_unique') || (msg.includes('duplicate key') && msg.includes('url'));
       toast({
-        title: 'Unable to save resource',
-        description: error?.message ?? 'Please try again.',
+        title: isDuplicateUrl ? 'Duplicate URL' : 'Unable to save resource',
+        description: isDuplicateUrl
+          ? 'This URL is already in the library. Use a different URL or find the existing resource in Admin → Resources.'
+          : msg || 'Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -434,7 +453,7 @@ export function ResourceLibraryDialog({ open, onOpenChange, onCreated }: Resourc
             <Button variant="outline" onClick={() => handleClose(false)}>
               Cancel
             </Button>
-            <Button onClick={saveResource} disabled={saving}>
+            <Button onClick={saveResource} disabled={saving || !!duplicateUrl}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save resource
             </Button>
