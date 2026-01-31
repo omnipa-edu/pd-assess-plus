@@ -1,4 +1,4 @@
-import { FileText, Upload, Users } from 'lucide-react';
+import { BookOpen, FileText, Upload, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +18,13 @@ export function AdminQuickActionsWidget() {
       icon: Upload,
       href: '/admin/coaching',
       color: 'bg-amber-600 text-white dark:bg-amber-700',
+    },
+    {
+      title: 'Resource Library',
+      description: 'View and manage curated resources for learners',
+      icon: BookOpen,
+      href: '/admin/resources',
+      color: 'bg-violet-600 text-white dark:bg-violet-700',
     },
     {
       title: 'Add Specialty',

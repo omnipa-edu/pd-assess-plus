@@ -22,6 +22,7 @@ import { AdminStatsWidget } from '@/components/admin/widgets/AdminStatsWidget';
 import { AdminQuickActionsWidget } from '@/components/admin/widgets/AdminQuickActionsWidget';
 import { AdminRecentActivityWidget } from '@/components/admin/widgets/AdminRecentActivityWidget';
 import { AdminOnboardingWidget } from '@/components/admin/widgets/AdminOnboardingWidget';
+import { AdminResourceLibraryWidget } from '@/components/admin/widgets/AdminResourceLibraryWidget';
 
 import type { WidgetId, DashboardType, WidgetGridLayout, SizePreset } from '@/lib/dashboard/types';
 
@@ -395,6 +396,21 @@ export const widgetDefinitions: WidgetDefinition[] = [
     supportsResize: true,
     supportsCollapse: true,
   },
+  {
+    id: 'admin_resource_library',
+    label: 'Resource Library',
+    description: 'View and manage curated library content',
+    category: 'Admin',
+    allowedRoles: ['admin'],
+    allowedDashboards: ['admin'],
+    defaultLayout: {
+      desktop: { x: 0, y: 15, w: 12, h: 4, sizePreset: 'full' },
+      tablet: { x: 0, y: 15, w: 8, h: 4, sizePreset: 'full' },
+      mobile: { x: 0, y: 15, w: 4, h: 4, sizePreset: 'full' },
+    },
+    supportsResize: true,
+    supportsCollapse: true,
+  },
 ];
 
 /**
@@ -488,6 +504,8 @@ export function renderWidget(
       return <AdminQuickActionsWidget />;
     case 'admin_recent_activity':
       return <AdminRecentActivityWidget />;
+    case 'admin_resource_library':
+      return <AdminResourceLibraryWidget />;
     default:
       console.warn(`Unknown widget ID: ${widgetId}`);
       return (

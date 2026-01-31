@@ -38,7 +38,8 @@ export type WidgetId =
   | 'admin_stats'
   | 'admin_quick_actions'
   | 'admin_recent_activity'
-  | 'admin_onboarding';
+  | 'admin_onboarding'
+  | 'admin_resource_library';
 
 /**
  * Widget settings (v4)
