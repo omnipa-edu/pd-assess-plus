@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { Clock, Link2, Plus, User } from 'lucide-react';
+import { BookmarkPlus, Clock, Link2, Plus, User } from 'lucide-react';
 
+import { ResourceLibraryDialog } from '@/components/resources/ResourceLibraryDialog';
 import { ResourceRecommendationDialog } from '@/components/resources/ResourceRecommendationDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ export function SupervisorRecommendationsCard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [addToLibraryOpen, setAddToLibraryOpen] = useState(false);
   const [students, setStudents] = useState<StudentOption[]>([]);
   const [recommendations, setRecommendations] = useState<Array<ResourceRecommendationRow & { student_name?: string }>>([]);
   const [loading, setLoading] = useState(false);
@@ -87,10 +89,16 @@ export function SupervisorRecommendationsCard() {
               Share curated resources or paste a link with context for your learners.
             </CardDescription>
           </div>
-          <Button onClick={() => setOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Recommend a Resource
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => setOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Recommend a Resource
+            </Button>
+            <Button variant="outline" onClick={() => setAddToLibraryOpen(true)}>
+              <BookmarkPlus className="mr-2 h-4 w-4" />
+              Add to library
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-3 md:grid-cols-3">
@@ -160,6 +168,12 @@ export function SupervisorRecommendationsCard() {
         onOpenChange={setOpen}
         supervisorId={user?.id || ''}
         students={students}
+        onCreated={() => refresh()}
+      />
+
+      <ResourceLibraryDialog
+        open={addToLibraryOpen}
+        onOpenChange={setAddToLibraryOpen}
         onCreated={() => refresh()}
       />
     </>

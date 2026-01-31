@@ -3,21 +3,28 @@
  * Main dashboard for administrators with key metrics and quick actions
  */
 
+import { Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ProtectedAdminRoute } from '@/components/admin/ProtectedAdminRoute';
 import { DashboardCustomizeSidebar } from '@/components/dashboard/DashboardCustomizeSidebar';
 import { DashboardEditControls } from '@/components/dashboard/DashboardEditControls';
 import { DashboardGrid } from '@/components/dashboard/DashboardGrid';
 import { renderWidget } from '@/components/dashboard/widgets/registry';
+import { ResourceLibraryDialog } from '@/components/resources/ResourceLibraryDialog';
+import { Button } from '@/components/ui/button';
 import { DashboardGridSkeleton } from '@/components/ui/skeleton-loaders';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardLayout } from '@/hooks/useDashboardLayout';
 import type { WidgetId } from '@/lib/dashboard/types';
+import { useState } from 'react';
 
 const AdminOverview = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [addResourceOpen, setAddResourceOpen] = useState(false);
   const dashboardLayout = useDashboardLayout({
     dashboardType: 'admin',
     userId: user?.id || '',
@@ -53,14 +60,22 @@ const AdminOverview = () => {
       <AdminLayout>
         <div className="space-y-8">
           {/* Header */}
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Admin Console</h1>
               <p className="mt-2 text-muted-foreground">
                 Manage users, organizations, and assessment frameworks
               </p>
             </div>
-            <DashboardEditControls
+            <div className="flex flex-wrap items-center gap-2">
+              <Button onClick={() => setAddResourceOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add resource
+              </Button>
+              <Button variant="outline" asChild>
+                <Link to="/admin/resources">View resources</Link>
+              </Button>
+              <DashboardEditControls
               isEditing={dashboardLayout.isEditing}
               hasUnsavedChanges={dashboardLayout.hasUnsavedChanges}
               isSaving={dashboardLayout.isSaving}
@@ -69,7 +84,13 @@ const AdminOverview = () => {
               onSave={handleSaveLayout}
               onReset={dashboardLayout.resetToDefault}
             />
+            </div>
           </div>
+
+          <ResourceLibraryDialog
+            open={addResourceOpen}
+            onOpenChange={setAddResourceOpen}
+          />
 
           <DashboardCustomizeSidebar
             open={dashboardLayout.isEditing}

@@ -29,3 +29,5 @@ yarn.lock
 *.sw?
 eval/feedback_ai/runs/
 supabase/.temp/
+.vercel
+.env*.local
