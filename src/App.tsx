@@ -30,6 +30,7 @@ const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
 const SupervisorDashboard = lazy(() => import("./pages/SupervisorDashboard"));
 const CMELog = lazy(() => import("./pages/supervisor/CMELog"));
 const MyStudents = lazy(() => import("./pages/supervisor/MyStudents"));
+const SupervisorResources = lazy(() => import("./pages/supervisor/Resources"));
 const CMETeachingReport = lazy(() => import("./pages/CMETeachingReport"));
 
 // Admin routes - lazy loaded
@@ -103,6 +104,7 @@ const App = () => (
                   <Route path="/student" element={<StudentDashboard />} />
                   <Route path="/supervisor" element={<SupervisorDashboard />} />
                   <Route path="/supervisor/students" element={<MyStudents />} />
+                  <Route path="/supervisor/resources" element={<SupervisorResources />} />
                   <Route path="/supervisor/cme-log" element={<CMELog />} />
                   <Route path="/supervisor/cme-teaching-report" element={<CMETeachingReport />} />
                   

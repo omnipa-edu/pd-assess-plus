@@ -3,7 +3,7 @@
  * Main dashboard for administrators with key metrics and quick actions
  */
 
-import { Plus } from 'lucide-react';
+import { BookOpen, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { AdminLayout } from '@/components/admin/AdminLayout';
@@ -73,7 +73,10 @@ const AdminOverview = () => {
                 Add resource
               </Button>
               <Button variant="outline" asChild>
-                <Link to="/admin/resources">View resources</Link>
+                <Link to="/admin/resources">
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  View resources
+                </Link>
               </Button>
               <DashboardEditControls
               isEditing={dashboardLayout.isEditing}

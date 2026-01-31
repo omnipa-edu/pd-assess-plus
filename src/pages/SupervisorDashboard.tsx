@@ -13,7 +13,7 @@ import {
   AlertTriangle,
   UserCircle
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import AssessmentDashboard from "@/components/AssessmentDashboard";
 import { AchievementDisplay } from "@/components/achievements/AchievementDisplay";
@@ -315,6 +315,12 @@ const SupervisorDashboard = () => {
                   >
                     <Users className="mr-2 h-4 w-4" />
                     <span className="hidden sm:inline">My Students</span>
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/supervisor/resources">
+                      <BookOpen className="mr-2 h-4 w-4" />
+                      <span className="hidden sm:inline">View resources</span>
+                    </Link>
                   </Button>
                   <Button 
                     variant="outline"
