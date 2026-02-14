@@ -311,7 +311,7 @@ export default function RigidNasalEndoscopyForm({ associate }: RigidNasalEndosco
           <CardDescription>Score each 0–2. Total: {anatomicalTotal} / {anatomicalMax} ({anatomicalPercent}%)</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="rounded-md border border-blue-800 bg-blue-50 px-4 py-3 text-blue-900">
+          <div className="w-fit rounded-md border border-blue-800 bg-blue-50 px-4 py-3 text-blue-900">
             <span className="font-bold">Scoring</span>: 0 = Not Seen | 1 = Partial View | 2 = Clearly Visualized
           </div>
           {ANATOMICAL_ITEMS.map(({ key, label }) => (
@@ -341,7 +341,9 @@ export default function RigidNasalEndoscopyForm({ associate }: RigidNasalEndosco
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Section IV – Global Performance Rating</CardTitle>
-          <CardDescription>Rate each category from 1 (Poor) to 5 (Excellent)</CardDescription>
+          <div className="mt-1.5 w-fit rounded-md border border-blue-800 bg-blue-50 px-4 py-3 text-blue-900">
+            Rate each category from 1 (Poor) to 5 (Excellent)
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {[
