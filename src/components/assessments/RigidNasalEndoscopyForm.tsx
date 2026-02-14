@@ -339,7 +339,10 @@ export default function RigidNasalEndoscopyForm({ associate }: RigidNasalEndosco
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Section IV – Global Performance Rating</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-base">Section IV – Global Performance Rating</CardTitle>
+          <CardDescription>Rate each category from 1 (Poor) to 5 (Excellent)</CardDescription>
+        </CardHeader>
         <CardContent className="space-y-6">
           {[
             { ratingKey: "anatomyRating" as const, commentKey: "anatomyComment" as const, label: "Anatomy Knowledge & Visualization", placeholder: "Optional comments..." },
