@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 
 import { ArrowLeft, User, FileText } from "lucide-react";
 
+import RigidNasalEndoscopyForm from "@/components/assessments/RigidNasalEndoscopyForm";
 import DirectObservationForm from "@/components/DirectObservationForm";
 import EPAObservationForm from "@/components/EPAObservationForm";
 import NarrativeAssessmentForm from "@/components/NarrativeAssessmentForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +24,7 @@ interface PhysicianAssociate {
 
 interface AssessmentDashboardProps {
   onBack: () => void;
-  defaultTab?: 'epa-observation' | 'direct-observation' | 'narrative';
+  defaultTab?: 'epa-observation' | 'direct-observation' | 'narrative' | 'procedure-competency';
 }
 
 // Constants
@@ -53,10 +55,13 @@ const ERROR_CODES = {
  * @param onBack - Callback function to navigate back to the previous screen
  * @param defaultTab - Default tab to show when a student is selected
  */
+const PROCEDURE_OPTIONS = [{ code: "rigid_nasal_endoscopy", label: "Rigid Nasal Endoscopy" }] as const;
+
 const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: AssessmentDashboardProps) => {
   const [selectedAssociate, setSelectedAssociate] = useState<string | null>(null);
   const [associates, setAssociates] = useState<PhysicianAssociate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProcedureCode, setSelectedProcedureCode] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -355,7 +360,7 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
 
         <main className="container mx-auto px-6 py-8">
           <Tabs defaultValue={defaultTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-secondary">
+            <TabsList className="grid w-full grid-cols-4 bg-secondary">
               <TabsTrigger value="epa-observation" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 EPA Observation
               </TabsTrigger>
@@ -364,6 +369,9 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
               </TabsTrigger>
               <TabsTrigger value="narrative" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 Narrative Assessment
+              </TabsTrigger>
+              <TabsTrigger value="procedure-competency" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                Procedure competency
               </TabsTrigger>
             </TabsList>
 
@@ -377,6 +385,30 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
             
             <TabsContent value="narrative" className="space-y-4">
               <NarrativeAssessmentForm associate={associate!} />
+            </TabsContent>
+
+            <TabsContent value="procedure-competency" className="mt-6 space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Procedure</CardTitle>
+                  <CardDescription>Select a procedure to complete a competency evaluation</CardDescription>
+                  <div className="pt-2">
+                    <Select value={selectedProcedureCode ?? ""} onValueChange={(v) => setSelectedProcedureCode(v || null)}>
+                      <SelectTrigger className="w-full max-w-xs">
+                        <SelectValue placeholder="Select procedure" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PROCEDURE_OPTIONS.map(({ code, label }) => (
+                          <SelectItem key={code} value={code}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardHeader>
+              </Card>
+              {selectedProcedureCode === "rigid_nasal_endoscopy" && (
+                <RigidNasalEndoscopyForm associate={associate!} />
+              )}
             </TabsContent>
           </Tabs>
         </main>
