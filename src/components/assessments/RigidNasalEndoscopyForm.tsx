@@ -1,11 +1,12 @@
 import { useState } from "react";
 
+import { SmartFeedbackField } from "@/components/feedback/SmartFeedbackField";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import VoiceRecorder from "@/components/VoiceRecorder";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,13 +32,6 @@ const ANATOMICAL_ITEMS = [
   { key: "sphenoethmoidalRecess", label: "Sphenoethmoidal Recess" },
   { key: "nasopharynx", label: "Nasopharynx" },
   { key: "overall", label: "Overall" },
-] as const;
-const STAGES = [
-  { key: "stage1", label: "Stage 1" },
-  { key: "stage2", label: "Stage 2" },
-  { key: "stage3", label: "Stage 3" },
-  { key: "stage4", label: "Stage 4" },
-  { key: "stage5", label: "Stage 5" },
 ] as const;
 const ENTRUSTMENT_OPTIONS = [
   { value: "not_ready", label: "Not Ready" },
@@ -70,15 +64,33 @@ export default function RigidNasalEndoscopyForm({ associate }: RigidNasalEndosco
     sphenoethmoidalRecess: null as number | null,
     nasopharynx: null as number | null,
     overall: null as number | null,
-    // Section IV
-    stage1: false,
-    stage2: false,
-    stage3: false,
-    stage4: false,
-    stage5: false,
-    // Section VI
+    // Section IV – Global Performance Rating
+    anatomyRating: "" as string,
+    anatomyComment: "",
+    handlingRating: "" as string,
+    handlingComment: "",
+    safetyRating: "" as string,
+    safetyComment: "",
+    infectionRating: "" as string,
+    infectionComment: "",
+    // Section V – Entrustment
     entrustmentLevel: "" as string,
   });
+
+  const feedbackContext = {
+    role: "supervisor",
+    discipline: "PA / MD / NP clinical education",
+    encounterType: "rigid_nasal_endoscopy",
+    learnerLevel: associate.year,
+    learner: { level: associate.year, role: "student", specialty: associate.program },
+    context: { setting: formData.setting || "unspecified", case_type: "rigid_nasal_endoscopy", complexity: formData.difficulty || "", risk_level: "" },
+    supervisorId: user?.id || "",
+    studentId: associate.id,
+    assessmentId: null,
+    rawFeedbackRating: null,
+    learnerReflection: null,
+    priorGoals: [],
+  };
 
   const anatomicalTotal =
     [formData.vestibuleSeptum, formData.inferiorTurbinateMeatus, formData.middleTurbinateMeatus, formData.sphenoethmoidalRecess, formData.nasopharynx, formData.overall]
@@ -86,10 +98,6 @@ export default function RigidNasalEndoscopyForm({ associate }: RigidNasalEndosco
       .reduce((a, b) => a + b, 0);
   const anatomicalMax = 12;
   const anatomicalPercent = anatomicalMax > 0 ? Math.round((anatomicalTotal / anatomicalMax) * 100) : 0;
-
-  const stageKeys = STAGES.map((s) => s.key) as (keyof typeof formData)[];
-  const highestStage = [...stageKeys].reverse().find((k) => formData[k] === true);
-  const highestStageLabel = highestStage ? STAGES.find((s) => s.key === highestStage)?.label ?? "" : "—";
 
   const buildEvaluationData = () => ({
     header: {
@@ -118,14 +126,12 @@ export default function RigidNasalEndoscopyForm({ associate }: RigidNasalEndosco
       percentage: anatomicalPercent,
     },
     sectionIV: {
-      stage1: formData.stage1,
-      stage2: formData.stage2,
-      stage3: formData.stage3,
-      stage4: formData.stage4,
-      stage5: formData.stage5,
-      highestStageAchieved: highestStage ?? null,
+      anatomyKnowledge: { rating: formData.anatomyRating ? Number(formData.anatomyRating) : null, comments: formData.anatomyComment || null },
+      scopeHandling: { rating: formData.handlingRating ? Number(formData.handlingRating) : null, comments: formData.handlingComment || null },
+      patientSafety: { rating: formData.safetyRating ? Number(formData.safetyRating) : null, comments: formData.safetyComment || null },
+      infectionControl: { rating: formData.infectionRating ? Number(formData.infectionRating) : null, comments: formData.infectionComment || null },
     },
-    sectionVI: {
+    sectionV: {
       entrustmentLevel: formData.entrustmentLevel || null,
     },
   });
@@ -133,6 +139,10 @@ export default function RigidNasalEndoscopyForm({ associate }: RigidNasalEndosco
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
     if (!formData.entrustmentLevel) errors.entrustmentLevel = "Entrustment level is required.";
+    if (!formData.anatomyRating) errors.anatomyRating = "Anatomy Knowledge rating is required.";
+    if (!formData.handlingRating) errors.handlingRating = "Scope Handling rating is required.";
+    if (!formData.safetyRating) errors.safetyRating = "Patient Safety rating is required.";
+    if (!formData.infectionRating) errors.infectionRating = "Infection Control rating is required.";
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -301,8 +311,11 @@ export default function RigidNasalEndoscopyForm({ associate }: RigidNasalEndosco
           <CardDescription>Score each 0–2. Total: {anatomicalTotal} / {anatomicalMax} ({anatomicalPercent}%)</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="rounded-md border border-blue-800 bg-blue-50 px-4 py-3 text-blue-900">
+            <span className="font-bold">Scoring</span>: 0 = Not Seen | 1 = Partial View | 2 = Clearly Visualized
+          </div>
           {ANATOMICAL_ITEMS.map(({ key, label }) => (
-            <div key={key} className="flex flex-wrap items-center gap-2">
+            <div key={key} className="flex flex-col gap-2">
               <Label className="shrink-0">{label}</Label>
               <RadioGroup
                 value={formData[key]?.toString() ?? ""}
@@ -326,22 +339,53 @@ export default function RigidNasalEndoscopyForm({ associate }: RigidNasalEndosco
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Section IV – Developmental Progression</CardTitle>
-          <CardDescription>Highest stage achieved: {highestStageLabel}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {STAGES.map(({ key, label }) => (
-            <div key={key} className="flex items-center space-x-2">
-              <Checkbox id={key} checked={!!formData[key as keyof typeof formData]} onCheckedChange={(c) => update(key as keyof typeof formData, !!c)} />
-              <Label htmlFor={key} className="cursor-pointer">{label}</Label>
+        <CardHeader><CardTitle className="text-base">Section IV – Global Performance Rating</CardTitle></CardHeader>
+        <CardContent className="space-y-6">
+          {[
+            { ratingKey: "anatomyRating" as const, commentKey: "anatomyComment" as const, label: "Anatomy Knowledge & Visualization", placeholder: "Optional comments..." },
+            { ratingKey: "handlingRating" as const, commentKey: "handlingComment" as const, label: "Scope Handling & Technique", placeholder: "Optional comments..." },
+            { ratingKey: "safetyRating" as const, commentKey: "safetyComment" as const, label: "Patient Safety & Comfort", placeholder: "Optional comments..." },
+            { ratingKey: "infectionRating" as const, commentKey: "infectionComment" as const, label: "Infection Control & Scope Care", placeholder: "Optional comments..." },
+          ].map(({ ratingKey, commentKey, label, placeholder }) => (
+            <div key={ratingKey} className="space-y-2">
+              <Label>{label}</Label>
+              <RadioGroup value={formData[ratingKey]} onValueChange={(v) => update(ratingKey, v)} className="flex flex-wrap gap-2">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <Label
+                    key={n}
+                    htmlFor={`${ratingKey}-${n}`}
+                    className="flex min-h-12 min-w-[3rem] cursor-pointer items-center justify-center gap-2 rounded-lg border border-border px-4 py-3 hover:bg-secondary/50 active:bg-secondary/50 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:ring-2 has-[[data-state=checked]]:ring-ring"
+                  >
+                    <RadioGroupItem value={String(n)} id={`${ratingKey}-${n}`} />
+                    <span>{n}</span>
+                  </Label>
+                ))}
+              </RadioGroup>
+              {validationErrors[ratingKey] && (
+                <p className="text-sm text-destructive">{validationErrors[ratingKey]}</p>
+              )}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor={`comment-${commentKey}`}>Comments (optional)</Label>
+                  <VoiceRecorder onTranscription={(text) => setFormData((prev) => ({ ...prev, [commentKey]: text }))} />
+                </div>
+                <SmartFeedbackField
+                  value={formData[commentKey]}
+                  onChange={(value) => setFormData((prev) => ({ ...prev, [commentKey]: value }))}
+                  placeholder={placeholder}
+                  minHeight="80px"
+                  className="border-border bg-background"
+                  context={feedbackContext}
+                  textareaProps={{ id: `comment-${commentKey}` } as React.TextareaHTMLAttributes<HTMLTextAreaElement>}
+                />
+              </div>
             </div>
           ))}
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Section VI – Entrustment Level</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Section V – Entrustment Level</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           <RadioGroup value={formData.entrustmentLevel} onValueChange={(v) => update("entrustmentLevel", v)} className="space-y-2">
             {ENTRUSTMENT_OPTIONS.map(({ value, label }) => (
