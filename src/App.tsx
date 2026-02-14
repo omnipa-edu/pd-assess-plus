@@ -53,6 +53,7 @@ const ReadinessAdmin = lazy(() => import("./pages/admin/Readiness"));
 const CoachingTime = lazy(() => import("./pages/admin/CoachingTime"));
 const SupervisorAssignments = lazy(() => import("./pages/admin/SupervisorAssignments"));
 const ResourcesAdmin = lazy(() => import("./pages/admin/Resources"));
+const Procedures = lazy(() => import("./pages/admin/Procedures"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -114,6 +115,7 @@ const App = () => (
                   <Route path="/admin/departments" element={<Departments />} />
                   <Route path="/admin/specialties" element={<Specialties />} />
                   <Route path="/admin/epas" element={<EPAs />} />
+                  <Route path="/admin/procedures" element={<Procedures />} />
                   <Route path="/admin/users" element={<Users />} />
                   <Route path="/admin/supervisors" element={<Supervisors />} />
                   <Route path="/admin/activity" element={<ActivityLog />} />

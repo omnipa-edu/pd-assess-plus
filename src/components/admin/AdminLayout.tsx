@@ -57,6 +57,7 @@ const navigationSections = [
     items: [
       { label: 'Specialties', href: '/admin/specialties', icon: FileText },
       { label: 'EPAs', href: '/admin/epas', icon: FileText },
+      { label: 'Procedures', href: '/admin/procedures', icon: FileText },
     ]
   },
   {

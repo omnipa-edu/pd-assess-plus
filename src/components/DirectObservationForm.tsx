@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Eye, Target, MessageSquare } from "lucide-react";
 
@@ -55,21 +55,35 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
   const [recommendationOpenKey, setRecommendationOpenKey] = useState(0);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [procedures, setProcedures] = useState<Array<{ id: string; code: string; title: string }>>([]);
+  const [proceduresLoading, setProceduresLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const activities = [
-    "Patient History Taking",
-    "Physical Examination", 
-    "Procedure Performance",
-    "Patient Counseling",
-    "Interdisciplinary Rounds",
-    "Emergency Response",
-    "Diagnostic Interpretation",
-    "Treatment Planning",
-    "Family Conference",
-    "Handover Communication"
-  ];
+  useEffect(() => {
+    const load = async () => {
+      setProceduresLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("procedures")
+          .select("id, code, title")
+          .eq("status", "active")
+          .order("title");
+        if (error) throw error;
+        setProcedures((data || []) as Array<{ id: string; code: string; title: string }>);
+      } catch (e) {
+        console.error("Failed to load procedures:", e);
+        toast({
+          title: "Could not load procedures",
+          description: "Activity list may be empty. Ask an admin to add procedures.",
+          variant: "destructive",
+        });
+      } finally {
+        setProceduresLoading(false);
+      }
+    };
+    load();
+  }, [toast]);
 
   const competencies = [
     "Medical Expert",
@@ -289,30 +303,44 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="activity">Activity Observed</Label>
-              <Select 
-                value={formData.activity} 
+              <Select
+                value={formData.activity}
                 onValueChange={(value) => {
-                  setFormData({...formData, activity: value});
+                  setFormData({ ...formData, activity: value });
                   if (validationErrors.activity) {
-                    setValidationErrors(prev => {
+                    setValidationErrors((prev) => {
                       const next = { ...prev };
                       delete next.activity;
                       return next;
                     });
                   }
                 }}
+                disabled={proceduresLoading}
               >
                 <SelectTrigger className="border-border bg-background">
-                  <SelectValue placeholder="Select activity" />
+                  <SelectValue
+                    placeholder={
+                      proceduresLoading
+                        ? "Loading..."
+                        : procedures.length === 0
+                          ? "No procedures defined"
+                          : "Select activity"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  {activities.map((activity) => (
-                    <SelectItem key={activity} value={activity}>
-                      {activity}
+                  {procedures.map((proc) => (
+                    <SelectItem key={proc.id} value={proc.title}>
+                      {proc.title}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {!proceduresLoading && procedures.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  No procedures available. An admin can add them under Admin → Procedures.
+                </p>
+              )}
               <FormFieldError error={validationErrors.activity} />
             </div>
 
