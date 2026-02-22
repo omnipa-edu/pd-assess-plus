@@ -49,6 +49,7 @@ const ProcedureLibrary = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterSpecialtyId, setFilterSpecialtyId] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [extendedSchemaAvailable, setExtendedSchemaAvailable] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { hasRole } = useAuth();
@@ -62,23 +63,37 @@ const ProcedureLibrary = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [procsRes, specRes] = await Promise.all([
-        supabase
-          .from("procedures")
-          .select("id, code, title, description, status, specialty_id, indications, contraindications, tags, created_at, updated_at")
-          .order("title"),
-        supabase.from("specialties").select("id, name").eq("is_active", true).order("name"),
-      ]);
-      if (procsRes.error) throw procsRes.error;
+      const specRes = await supabase.from("specialties").select("id, name").eq("is_active", true).order("name");
       if (specRes.error) throw specRes.error;
-
-      const procs = (procsRes.data || []) as ProcedureLibraryItem[];
       const specs = (specRes.data || []) as { id: string; name: string }[];
       setSpecialties(specs);
 
+      const extendedColumns = "id, code, title, description, status, specialty_id, indications, contraindications, tags, created_at, updated_at";
+      const baseColumns = "id, code, title, description, status, created_at, updated_at";
+      let procsRes = await supabase
+        .from("procedures")
+        .select(extendedColumns)
+        .order("title");
+
+      if (procsRes.error) {
+        setExtendedSchemaAvailable(false);
+        procsRes = await supabase
+          .from("procedures")
+          .select(baseColumns)
+          .order("title");
+      } else {
+        setExtendedSchemaAvailable(true);
+      }
+      if (procsRes.error) throw procsRes.error;
+
+      const procs = (procsRes.data || []) as ProcedureLibraryItem[];
       const specialtyIds = new Set(specs.map((s) => s.id));
       const withSpecialty = procs.map((p) => ({
         ...p,
+        specialty_id: p.specialty_id ?? null,
+        indications: p.indications ?? null,
+        contraindications: p.contraindications ?? null,
+        tags: p.tags ?? null,
         specialty: p.specialty_id && specialtyIds.has(p.specialty_id)
           ? specs.find((s) => s.id === p.specialty_id) ?? null
           : null,
@@ -147,7 +162,7 @@ const ProcedureLibrary = () => {
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <Label className="whitespace-nowrap">Status</Label>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <Select value={filterStatus || "all"} onValueChange={setFilterStatus}>
                 <SelectTrigger className="w-[130px]">
                   <SelectValue />
                 </SelectTrigger>
@@ -159,22 +174,26 @@ const ProcedureLibrary = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-2">
-              <Label className="whitespace-nowrap">Specialty</Label>
-              <Select value={filterSpecialtyId} onValueChange={setFilterSpecialtyId}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  {specialties.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {extendedSchemaAvailable && (
+              <div className="flex items-center gap-2">
+                <Label className="whitespace-nowrap">Specialty</Label>
+                <Select value={filterSpecialtyId || "all"} onValueChange={setFilterSpecialtyId}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    {specialties
+                      .filter((s) => s.id != null && String(s.id).trim() !== "")
+                      .map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="relative flex-1 min-w-[200px] max-w-md">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
