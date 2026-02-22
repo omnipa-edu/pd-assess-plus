@@ -30,7 +30,7 @@ const ProcedureLibraryNew = () => {
   const [code, setCode] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [specialtyId, setSpecialtyId] = useState<string>("");
+  const [specialtyId, setSpecialtyId] = useState<string>("__none__");
   const [indications, setIndications] = useState("");
   const [contraindications, setContraindications] = useState("");
   const [tags, setTags] = useState("");
@@ -86,7 +86,7 @@ const ProcedureLibraryNew = () => {
           title: title.trim(),
           description: description.trim() || null,
           status: "draft",
-          specialty_id: specialtyId || null,
+          specialty_id: specialtyId === "__none__" ? null : specialtyId,
           indications: indicationsArr,
           contraindications: contraindicationsArr,
           tags: tagsArr,
@@ -198,17 +198,19 @@ const ProcedureLibraryNew = () => {
 
                 <div className="space-y-2">
                   <Label>Specialty</Label>
-                  <Select value={specialtyId} onValueChange={setSpecialtyId} disabled={loadingSpecs}>
+                  <Select value={specialtyId || "__none__"} onValueChange={setSpecialtyId} disabled={loadingSpecs}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select specialty" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
-                      {specialties.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.name}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="__none__">None</SelectItem>
+                      {specialties
+                        .filter((s) => s.id != null && String(s.id).trim() !== "")
+                        .map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>

@@ -405,15 +405,17 @@ const ProcedureLibraryEdit = () => {
               <div className="space-y-2">
                 <Label>Specialty</Label>
                 <Select
-                  value={procedure.specialty_id || ""}
-                  onValueChange={(v) => updateProcedure({ specialty_id: v || null })}
+                  value={procedure.specialty_id || "__none__"}
+                  onValueChange={(v) => updateProcedure({ specialty_id: v === "__none__" ? null : v })}
                 >
                   <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
-                    {specialties.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                    ))}
+                    <SelectItem value="__none__">None</SelectItem>
+                    {specialties
+                      .filter((s) => s.id != null && String(s.id).trim() !== "")
+                      .map((s) => (
+                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -540,7 +542,7 @@ const ProcedureLibraryEdit = () => {
                           />
                           <div className="flex flex-wrap items-center gap-2">
                             <Select
-                              value={item.type}
+                              value={item.type || "free_text"}
                               onValueChange={(v) => updateItem(section.id, item.id, { type: v as ItemType })}
                             >
                               <SelectTrigger className="w-[180px]">
