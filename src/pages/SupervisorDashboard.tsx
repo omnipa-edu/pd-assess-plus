@@ -322,6 +322,18 @@ const SupervisorDashboard = () => {
                       <span className="hidden sm:inline">View resources</span>
                     </Link>
                   </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/supervisor/run-assessment">
+                      <ClipboardList className="mr-2 h-4 w-4" />
+                      <span className="hidden sm:inline">Run</span> assessment
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/supervisor/observations">
+                      <FileText className="mr-2 h-4 w-4" />
+                      <span className="hidden sm:inline">Observations</span>
+                    </Link>
+                  </Button>
                   <Button 
                     variant="outline"
                     onClick={() => setShowProfileDialog(true)}

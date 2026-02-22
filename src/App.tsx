@@ -32,6 +32,10 @@ const CMELog = lazy(() => import("./pages/supervisor/CMELog"));
 const MyStudents = lazy(() => import("./pages/supervisor/MyStudents"));
 const SupervisorResources = lazy(() => import("./pages/supervisor/Resources"));
 const CMETeachingReport = lazy(() => import("./pages/CMETeachingReport"));
+const RunAssessment = lazy(() => import("./pages/supervisor/RunAssessment"));
+const SupervisorAssessmentForm = lazy(() => import("./pages/supervisor/SupervisorAssessmentForm"));
+const ObservationsList = lazy(() => import("./pages/supervisor/ObservationsList"));
+const ObservationDetail = lazy(() => import("./pages/supervisor/ObservationDetail"));
 
 // Admin routes - lazy loaded
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -54,6 +58,15 @@ const CoachingTime = lazy(() => import("./pages/admin/CoachingTime"));
 const SupervisorAssignments = lazy(() => import("./pages/admin/SupervisorAssignments"));
 const ResourcesAdmin = lazy(() => import("./pages/admin/Resources"));
 const Procedures = lazy(() => import("./pages/admin/Procedures"));
+const ProcedureLibrary = lazy(() => import("./pages/admin/ProcedureLibrary"));
+const ProcedureLibraryDetail = lazy(() => import("./pages/admin/ProcedureLibraryDetail"));
+const ProcedureLibraryNew = lazy(() => import("./pages/admin/ProcedureLibraryNew"));
+const ProcedureLibraryEdit = lazy(() => import("./pages/admin/ProcedureLibraryEdit"));
+const ProcedureLibraryImport = lazy(() => import("./pages/admin/ProcedureLibraryImport"));
+const ProgramAssessments = lazy(() => import("./pages/admin/ProgramAssessments"));
+const ProgramCohortAssessments = lazy(() => import("./pages/admin/ProgramCohortAssessments"));
+const ButtonDefinitions = lazy(() => import("./pages/admin/ButtonDefinitions"));
+const ButtonSets = lazy(() => import("./pages/admin/ButtonSets"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -108,6 +121,10 @@ const App = () => (
                   <Route path="/supervisor/resources" element={<SupervisorResources />} />
                   <Route path="/supervisor/cme-log" element={<CMELog />} />
                   <Route path="/supervisor/cme-teaching-report" element={<CMETeachingReport />} />
+                  <Route path="/supervisor/run-assessment" element={<RunAssessment />} />
+                  <Route path="/supervisor/assessment/new" element={<SupervisorAssessmentForm />} />
+                  <Route path="/supervisor/observations" element={<ObservationsList />} />
+                  <Route path="/supervisor/observations/:id" element={<ObservationDetail />} />
                   
                   {/* NEW Admin Console Routes */}
                   <Route path="/admin" element={<AdminOverview />} />
@@ -116,6 +133,15 @@ const App = () => (
                   <Route path="/admin/specialties" element={<Specialties />} />
                   <Route path="/admin/epas" element={<EPAs />} />
                   <Route path="/admin/procedures" element={<Procedures />} />
+                  <Route path="/admin/procedure-library" element={<ProcedureLibrary />} />
+                  <Route path="/admin/procedure-library/import" element={<ProcedureLibraryImport />} />
+                  <Route path="/admin/procedure-library/new" element={<ProcedureLibraryNew />} />
+                  <Route path="/admin/procedure-library/:id" element={<ProcedureLibraryDetail />} />
+                  <Route path="/admin/procedure-library/:id/edit" element={<ProcedureLibraryEdit />} />
+                  <Route path="/admin/program-assessments" element={<ProgramAssessments />} />
+                  <Route path="/admin/program-assessments/:cohortId" element={<ProgramCohortAssessments />} />
+                  <Route path="/admin/button-definitions" element={<ButtonDefinitions />} />
+                  <Route path="/admin/button-sets" element={<ButtonSets />} />
                   <Route path="/admin/users" element={<Users />} />
                   <Route path="/admin/supervisors" element={<Supervisors />} />
                   <Route path="/admin/activity" element={<ActivityLog />} />
