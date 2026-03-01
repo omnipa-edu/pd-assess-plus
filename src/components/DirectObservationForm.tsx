@@ -338,7 +338,7 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
               </Select>
               {!proceduresLoading && procedures.length === 0 && (
                 <p className="text-xs text-muted-foreground">
-                  No procedures available. An admin can add them under Admin → Procedures.
+                  No procedures available. An admin can add them under Admin → Procedure Library.
                 </p>
               )}
               <FormFieldError error={validationErrors.activity} />

@@ -42,11 +42,19 @@ export interface FormSection {
   items: FormItem[];
 }
 
+export interface BuilderModeProps {
+  selectedSectionId?: string | null;
+  selectedItemId?: string | null;
+  onSectionClick: (sectionId: string) => void;
+  onItemClick: (sectionId: string, itemId: string) => void;
+}
+
 export interface AssessmentFormRendererProps {
   sections: FormSection[];
   formResponses: Record<string, unknown>;
   onChange: (itemId: string, value: unknown) => void;
   disabled?: boolean;
+  builderMode?: BuilderModeProps;
 }
 
 export function AssessmentFormRenderer({
@@ -54,27 +62,83 @@ export function AssessmentFormRenderer({
   formResponses,
   onChange,
   disabled = false,
+  builderMode,
 }: AssessmentFormRendererProps) {
   const sortedSections = [...sections].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   return (
     <div className="space-y-6">
-      {sortedSections.map((section) => (
-        <div key={section.id} className="rounded-lg border bg-card p-4">
-          <h3 className="mb-4 text-lg font-semibold">{section.title}</h3>
-          <div className="space-y-4">
-            {(section.items || []).map((item) => (
-              <FormItemField
-                key={item.id}
-                item={item}
-                value={formResponses[item.id]}
-                onChange={(v) => onChange(item.id, v)}
-                disabled={disabled}
-              />
-            ))}
+      {sortedSections.map((section) => {
+        const sectionEl = (
+          <div key={section.id} className="rounded-lg border bg-card p-4">
+            <h3 className="mb-4 text-lg font-semibold">{section.title}</h3>
+            <div className="space-y-4">
+              {(section.items || []).map((item) => {
+                const itemEl = (
+                  <FormItemField
+                    key={item.id}
+                    item={item}
+                    value={formResponses[item.id]}
+                    onChange={(v) => onChange(item.id, v)}
+                    disabled={disabled}
+                  />
+                );
+                if (builderMode) {
+                  return (
+                    <div
+                      key={item.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        builderMode.onItemClick(section.id, item.id);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          builderMode.onItemClick(section.id, item.id);
+                        }
+                      }}
+                      className={`cursor-pointer rounded-md p-2 -m-2 transition-colors ${
+                        builderMode.selectedItemId === item.id
+                          ? "ring-2 ring-primary bg-primary/5"
+                          : "hover:bg-muted/50"
+                      }`}
+                    >
+                      {itemEl}
+                    </div>
+                  );
+                }
+                return itemEl;
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+        if (builderMode) {
+          return (
+            <div
+              key={section.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => builderMode.onSectionClick(section.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  builderMode.onSectionClick(section.id);
+                }
+              }}
+              className={`cursor-pointer rounded-lg transition-colors ${
+                builderMode.selectedSectionId === section.id && !builderMode.selectedItemId
+                  ? "ring-2 ring-primary"
+                  : ""
+              }`}
+            >
+              {sectionEl}
+            </div>
+          );
+        }
+        return sectionEl;
+      })}
     </div>
   );
 }

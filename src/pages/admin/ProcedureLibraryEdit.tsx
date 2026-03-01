@@ -4,9 +4,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { ArrowLeft, ChevronDown, ChevronUp, GripVertical, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 
+import { ProcedureFormBuilder } from "@/components/assessments/ProcedureFormBuilder";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { ProtectedAdminRoute } from "@/components/admin/ProtectedAdminRoute";
 import { Badge } from "@/components/ui/badge";
@@ -463,153 +464,23 @@ const ProcedureLibraryEdit = () => {
 
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Assessment form</CardTitle>
-                  <CardDescription>Sections and items (checklist, Likert, entrustment, etc.)</CardDescription>
-                </div>
-                <Button type="button" variant="outline" size="sm" onClick={addSection}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add section
-                </Button>
-              </div>
+              <CardTitle>Assessment form</CardTitle>
+              <CardDescription>
+                Build the form with a live preview. Add sections and items, then click in the preview to edit.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {sections.length === 0 && (
-                <p className="text-muted-foreground">No sections yet. Add a section to build the form.</p>
-              )}
-              {sections.map((section, sIdx) => (
-                <Card key={section.id} className="border-dashed">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center gap-2">
-                      <GripVertical className="h-4 w-4 text-muted-foreground" />
-                      <Input
-                        className="flex-1 font-medium"
-                        value={section.title}
-                        onChange={(e) => updateSection(section.id, { title: e.target.value })}
-                        placeholder="Section title"
-                      />
-                      <div className="flex items-center gap-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => moveSection(sIdx, "up")}
-                          disabled={sIdx === 0}
-                        >
-                          <ChevronUp className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => moveSection(sIdx, "down")}
-                          disabled={sIdx === sections.length - 1}
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeSection(section.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 pt-1">
-                      <Label className="text-xs">Collapsible</Label>
-                      <input
-                        type="checkbox"
-                        checked={section.collapsible}
-                        onChange={(e) => updateSection(section.id, { collapsible: e.target.checked })}
-                      />
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3 pt-0">
-                    {section.items.map((item, iIdx) => (
-                      <div
-                        key={item.id}
-                        className="flex items-start gap-2 rounded-md border bg-muted/30 p-2"
-                      >
-                        <GripVertical className="mt-2 h-4 w-4 shrink-0 text-muted-foreground" />
-                        <div className="min-w-0 flex-1 space-y-2">
-                          <Input
-                            value={item.label}
-                            onChange={(e) => updateItem(section.id, item.id, { label: e.target.value })}
-                            placeholder="Item label"
-                          />
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Select
-                              value={item.type || "free_text"}
-                              onValueChange={(v) => updateItem(section.id, item.id, { type: v as ItemType })}
-                            >
-                              <SelectTrigger className="w-[180px]">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {ITEM_TYPES.map((t) => (
-                                  <SelectItem key={t.value} value={t.value}>
-                                    {t.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Label className="flex items-center gap-1 text-sm">
-                              <input
-                                type="checkbox"
-                                checked={item.required}
-                                onChange={(e) =>
-                                  updateItem(section.id, item.id, { required: e.target.checked })
-                                }
-                              />
-                              Required
-                            </Label>
-                          </div>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => moveItem(section.id, iIdx, "up")}
-                            disabled={iIdx === 0}
-                          >
-                            <ChevronUp className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => moveItem(section.id, iIdx, "down")}
-                            disabled={iIdx === section.items.length - 1}
-                          >
-                            <ChevronDown className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeItem(section.id, item.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => addItem(section.id)}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add item
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+            <CardContent>
+              <ProcedureFormBuilder
+                sections={sections}
+                addSection={addSection}
+                addItem={addItem}
+                updateSection={updateSection}
+                updateItem={updateItem}
+                removeSection={removeSection}
+                removeItem={removeItem}
+                moveSection={moveSection}
+                moveItem={moveItem}
+              />
             </CardContent>
           </Card>
         </div>

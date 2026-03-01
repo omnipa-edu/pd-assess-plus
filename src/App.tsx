@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardGridSkeleton } from "@/components/ui/skeleton-loaders";
@@ -57,7 +57,6 @@ const ReadinessAdmin = lazy(() => import("./pages/admin/Readiness"));
 const CoachingTime = lazy(() => import("./pages/admin/CoachingTime"));
 const SupervisorAssignments = lazy(() => import("./pages/admin/SupervisorAssignments"));
 const ResourcesAdmin = lazy(() => import("./pages/admin/Resources"));
-const Procedures = lazy(() => import("./pages/admin/Procedures"));
 const ProcedureLibrary = lazy(() => import("./pages/admin/ProcedureLibrary"));
 const ProcedureLibraryDetail = lazy(() => import("./pages/admin/ProcedureLibraryDetail"));
 const ProcedureLibraryNew = lazy(() => import("./pages/admin/ProcedureLibraryNew"));
@@ -132,7 +131,7 @@ const App = () => (
                   <Route path="/admin/departments" element={<Departments />} />
                   <Route path="/admin/specialties" element={<Specialties />} />
                   <Route path="/admin/epas" element={<EPAs />} />
-                  <Route path="/admin/procedures" element={<Procedures />} />
+                  <Route path="/admin/procedures" element={<Navigate to="/admin/procedure-library" replace />} />
                   <Route path="/admin/procedure-library" element={<ProcedureLibrary />} />
                   <Route path="/admin/procedure-library/import" element={<ProcedureLibraryImport />} />
                   <Route path="/admin/procedure-library/new" element={<ProcedureLibraryNew />} />

@@ -57,7 +57,6 @@ const navigationSections = [
     items: [
       { label: 'Specialties', href: '/admin/specialties', icon: FileText },
       { label: 'EPAs', href: '/admin/epas', icon: FileText },
-      { label: 'Procedures', href: '/admin/procedures', icon: FileText },
       { label: 'Procedure Library', href: '/admin/procedure-library', icon: FileText },
       { label: 'Program Assessments', href: '/admin/program-assessments', icon: FileText },
       { label: 'Button definitions', href: '/admin/button-definitions', icon: FileText },
