@@ -2,7 +2,7 @@
  * Admin Help page – instructions for performing admin tasks
  */
 
-import { HelpCircle, Home, Building2, Users, FileText, Upload, Lightbulb, Settings } from "lucide-react";
+import { HelpCircle, Home, Building2, Users, FileText, Upload, Lightbulb, Settings, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -14,6 +14,23 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+const ADMIN_DEFINITIONS: { term: string; definition: string }[] = [
+  { term: "Activity log", definition: "Chronological record of system events and user/admin actions." },
+  { term: "Button definition", definition: "A reusable config for one button: label, icon, action type, and optional visibility rules." },
+  { term: "Button set", definition: "A named group of button definitions for a context (e.g. card, form), assignable to procedures or program-procedures." },
+  { term: "Coaching Corner", definition: "Curated tips, videos, and coaching content shown to learners and supervisors." },
+  { term: "Department", definition: "Sub-unit of an institution; used for organizing users and programs." },
+  { term: "EPA", definition: "Entrustable Professional Activity; a unit of work that can be entrusted to a trainee once they demonstrate competence." },
+  { term: "Institution", definition: "Top-level organizational unit (e.g. hospital, university)." },
+  { term: "Procedure", definition: "A defined clinical or training activity with metadata and an assessment form (sections/items)." },
+  { term: "Procedure Library", definition: "Central list of procedures; create, edit, and publish procedures and their forms here." },
+  { term: "Program / cohort", definition: "A training program or cohort; procedures can be assigned per cohort for assessments." },
+  { term: "Promo code", definition: "Discount code for subscriptions, with optional expiry and usage limits." },
+  { term: "Specialty", definition: "Medical or training specialty used to organize procedures and filter content." },
+  { term: "Supervisor assignment", definition: "Link between a supervisor and a learner (or program) so the supervisor can assess and coach that learner." },
+  { term: "WYSIWYG", definition: "\"What you see is what you get\"; the procedure form builder shows a live preview as you edit." },
+];
 
 const AdminHelp = () => (
   <ProtectedAdminRoute>
@@ -32,6 +49,26 @@ const AdminHelp = () => (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Definitions
+            </CardTitle>
+            <CardDescription>Key terms used in the admin console</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid gap-3 sm:grid-cols-2">
+              {ADMIN_DEFINITIONS.map(({ term, definition }) => (
+                <div key={term} className="space-y-1">
+                  <dt className="font-medium text-foreground">{term}</dt>
+                  <dd className="text-sm text-muted-foreground">{definition}</dd>
+                </div>
+              ))}
+            </dl>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
               <Home className="h-5 w-5" />
               Dashboard
             </CardTitle>
@@ -42,13 +79,21 @@ const AdminHelp = () => (
               <AccordionItem value="overview">
                 <AccordionTrigger>How to view the admin overview</AccordionTrigger>
                 <AccordionContent>
-                  Go to <Link to="/admin" className="font-medium text-primary underline">Overview</Link> to see key metrics, quick actions, and recent activity. You can customize which widgets appear by clicking “Customize” and reordering, adding, or removing dashboard widgets.
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Go to <Link to="/admin" className="font-medium text-primary underline">Overview</Link>.</li>
+                    <li>Review key metrics, quick actions, and recent activity on the page.</li>
+                    <li>To change which widgets appear, click <strong>Customize</strong>, then reorder, add, or remove dashboard widgets and click <strong>Save</strong>.</li>
+                  </ol>
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="activity">
                 <AccordionTrigger>How to check the activity log</AccordionTrigger>
                 <AccordionContent>
-                  Go to <Link to="/admin/activity" className="font-medium text-primary underline">Activity Log</Link> to view a chronological list of system events, including user actions, admin changes, and important updates.
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Go to <Link to="/admin/activity" className="font-medium text-primary underline">Activity Log</Link>.</li>
+                    <li>Browse the chronological list of system events (user actions, admin changes, and other updates).</li>
+                    <li>Use search or filters if available to find specific events.</li>
+                  </ol>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -68,13 +113,23 @@ const AdminHelp = () => (
               <AccordionItem value="institutions">
                 <AccordionTrigger>How to manage institutions</AccordionTrigger>
                 <AccordionContent>
-                  Go to <Link to="/admin/institutions" className="font-medium text-primary underline">Institutions</Link>. Add an institution with name and optional details. Edit or deactivate institutions as needed. Institutions are top-level organizational units.
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Go to <Link to="/admin/institutions" className="font-medium text-primary underline">Institutions</Link>.</li>
+                    <li>Click <strong>Add institution</strong> (or equivalent) and enter the institution name and any optional details.</li>
+                    <li>To edit, open an institution and update its fields, then save.</li>
+                    <li>To deactivate, use the edit form or status control if available.</li>
+                  </ol>
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="departments">
                 <AccordionTrigger>How to manage departments</AccordionTrigger>
                 <AccordionContent>
-                  Go to <Link to="/admin/departments" className="font-medium text-primary underline">Departments</Link>. Create departments and link them to institutions. Assign users and programs to departments for organizational hierarchy.
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Go to <Link to="/admin/departments" className="font-medium text-primary underline">Departments</Link>.</li>
+                    <li>Click to create a new department and enter its name.</li>
+                    <li>Link the department to an institution using the institution selector.</li>
+                    <li>Assign users and programs to departments as needed for your organizational hierarchy.</li>
+                  </ol>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -94,13 +149,23 @@ const AdminHelp = () => (
               <AccordionItem value="users">
                 <AccordionTrigger>How to manage users</AccordionTrigger>
                 <AccordionContent>
-                  Go to <Link to="/admin/users" className="font-medium text-primary underline">Users</Link> to view all users. You can assign roles (learner, supervisor, admin), update profiles, and manage access. Use the search and filters to find specific users.
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Go to <Link to="/admin/users" className="font-medium text-primary underline">Users</Link>.</li>
+                    <li>Use search and filters to find specific users.</li>
+                    <li>Open a user to assign roles (learner, supervisor, admin), update profile fields, or manage access.</li>
+                    <li>Save your changes.</li>
+                  </ol>
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="supervisors">
                 <AccordionTrigger>How to add or manage supervisors</AccordionTrigger>
                 <AccordionContent>
-                  Go to <Link to="/admin/supervisors" className="font-medium text-primary underline">Supervisors</Link> to list supervisors. Users must have the supervisor role. Use <Link to="/admin/supervisor-assignments" className="font-medium text-primary underline">Supervisor Assignments</Link> to assign supervisors to students or programs.
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Ensure the user has the <strong>supervisor</strong> role (manage via <Link to="/admin/users" className="font-medium text-primary underline">Users</Link>).</li>
+                    <li>Go to <Link to="/admin/supervisors" className="font-medium text-primary underline">Supervisors</Link> to see the list of supervisors.</li>
+                    <li>Go to <Link to="/admin/supervisor-assignments" className="font-medium text-primary underline">Supervisor Assignments</Link> to assign supervisors to students or programs.</li>
+                    <li>Select the supervisor and the learner (or program), then save the assignment.</li>
+                  </ol>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -120,37 +185,71 @@ const AdminHelp = () => (
               <AccordionItem value="specialties">
                 <AccordionTrigger>How to manage specialties</AccordionTrigger>
                 <AccordionContent>
-                  Go to <Link to="/admin/specialties" className="font-medium text-primary underline">Specialties</Link> to define medical or training specialties. Specialties are used to organize procedures and filter content.
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Go to <Link to="/admin/specialties" className="font-medium text-primary underline">Specialties</Link>.</li>
+                    <li>Add a new specialty or edit an existing one; enter name and any required fields.</li>
+                    <li>Save. Specialties are used to organize procedures and filter content elsewhere in the app.</li>
+                  </ol>
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="epas">
                 <AccordionTrigger>How to manage EPAs</AccordionTrigger>
                 <AccordionContent>
-                  Go to <Link to="/admin/epas" className="font-medium text-primary underline">EPAs</Link> to create and edit Entrustable Professional Activities. Each EPA has a title, description, and can be linked to milestones. Use <Link to="/admin/epas/import" className="font-medium text-primary underline">Import EPAs</Link> to bulk-import from CSV.
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Go to <Link to="/admin/epas" className="font-medium text-primary underline">EPAs</Link> to create or edit EPAs.</li>
+                    <li>Click to add a new EPA; enter title, description, and code. Link to milestones if your setup uses them.</li>
+                    <li>Save. To bulk-import EPAs, go to <Link to="/admin/epas/import" className="font-medium text-primary underline">Import EPAs</Link>.</li>
+                    <li>Upload a CSV with columns matching the EPA schema (e.g. title, description, code); fix any validation errors, then confirm the import.</li>
+                  </ol>
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="procedure-library">
                 <AccordionTrigger>How to use the Procedure Library</AccordionTrigger>
                 <AccordionContent>
-                  Go to <Link to="/admin/procedure-library" className="font-medium text-primary underline">Procedure Library</Link> to manage procedure-based assessments. Click “New procedure” to create one. For each procedure you can set metadata (code, title, specialty, indications, contraindications, tags), build the assessment form with sections and items (checklist, free text, likert, etc.), and publish when ready. Use the WYSIWYG form builder to add sections and items, then click in the live preview to edit.
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Go to <Link to="/admin/procedure-library" className="font-medium text-primary underline">Procedure Library</Link>.</li>
+                    <li>Click <strong>New procedure</strong>.</li>
+                    <li>In <strong>Metadata</strong>, enter code, title, description, specialty, indications, contraindications, and tags.</li>
+                    <li>In <strong>Assessment form</strong>, use the form builder: click <strong>Add section</strong>, then <strong>Add item</strong> in each section; choose item types (e.g. checklist, free text, likert).</li>
+                    <li>Use the live preview on the right to click and edit section or item labels.</li>
+                    <li>Click <strong>Save new version</strong> to save a draft.</li>
+                    <li>When ready, click <strong>Publish</strong> so the procedure is active.</li>
+                  </ol>
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="program-assessments">
                 <AccordionTrigger>How to configure program assessments</AccordionTrigger>
                 <AccordionContent>
-                  Go to <Link to="/admin/program-assessments" className="font-medium text-primary underline">Program Assessments</Link> to assign procedures to program cohorts. Select a cohort and choose which procedures from the library apply to that program.
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Go to <Link to="/admin/program-assessments" className="font-medium text-primary underline">Program Assessments</Link>.</li>
+                    <li>Select the program or cohort you want to configure.</li>
+                    <li>Choose which procedures from the Procedure Library apply to that cohort.</li>
+                    <li>Save. Supervisors and learners in that cohort will see those procedures for assessments.</li>
+                  </ol>
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="button-definitions">
                 <AccordionTrigger>How to configure button definitions</AccordionTrigger>
                 <AccordionContent>
-                  Go to <Link to="/admin/button-definitions" className="font-medium text-primary underline">Button definitions</Link> to create global button configs (label, icon, action, visibility rules). Each definition specifies what happens when the button is clicked (e.g., navigate, open modal).
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Go to <Link to="/admin/button-definitions" className="font-medium text-primary underline">Button definitions</Link>.</li>
+                    <li>Create a new definition or edit an existing one.</li>
+                    <li>Set label, icon, variant, size, and tooltip. Set <strong>action type</strong> (e.g. NAVIGATE, OPEN_MODAL, SET_FIELD_VALUE) and <strong>action payload</strong> (e.g. route path or modal name).</li>
+                    <li>Optionally add visibility rules (roles, screen size, procedure status).</li>
+                    <li>Save. The definition can then be added to button sets.</li>
+                  </ol>
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="button-sets">
                 <AccordionTrigger>How to configure button sets</AccordionTrigger>
                 <AccordionContent>
-                  Go to <Link to="/admin/button-sets" className="font-medium text-primary underline">Button sets</Link> to group button definitions for card, form, or workflow contexts. Add definitions to a set, reorder them, and attach sets to procedures or program-procedures.
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Go to <Link to="/admin/button-sets" className="font-medium text-primary underline">Button sets</Link>.</li>
+                    <li>Create a new set or open an existing one; set name, description, and context (card, form, or workflow).</li>
+                    <li>Add button definitions to the set and reorder them with the controls provided.</li>
+                    <li>Attach the set to a procedure (procedure-level) or to a program-procedure (program-level override) as needed.</li>
+                    <li>Save. The buttons will appear in the chosen context for the assigned procedure or program-procedure.</li>
+                  </ol>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -170,7 +269,12 @@ const AdminHelp = () => (
               <AccordionItem value="import-epas">
                 <AccordionTrigger>How to import EPAs from CSV</AccordionTrigger>
                 <AccordionContent>
-                  Go to <Link to="/admin/epas/import" className="font-medium text-primary underline">Import EPAs</Link>. Upload a CSV file with columns matching the EPA schema (e.g., title, description, code). The importer will validate and create or update EPAs. Check for validation errors before confirming.
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Go to <Link to="/admin/epas/import" className="font-medium text-primary underline">Import EPAs</Link>.</li>
+                    <li>Prepare a CSV with columns matching the EPA schema (e.g. title, description, code).</li>
+                    <li>Upload the file. Review any validation errors and fix them in your CSV or in the importer.</li>
+                    <li>Confirm the import to create or update EPAs.</li>
+                  </ol>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -190,13 +294,23 @@ const AdminHelp = () => (
               <AccordionItem value="coaching">
                 <AccordionTrigger>How to manage Coaching Corner</AccordionTrigger>
                 <AccordionContent>
-                  Go to <Link to="/admin/coaching" className="font-medium text-primary underline">Coaching Corner</Link> to add tips, videos, and other coaching content. Content can be pinned, categorized, and shown to learners and supervisors.
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Go to <Link to="/admin/coaching" className="font-medium text-primary underline">Coaching Corner</Link>.</li>
+                    <li>Add a new item: enter title, body text, and optional video link or media.</li>
+                    <li>Set category and visibility (e.g. learner, supervisor, both). Optionally pin the item so it appears first.</li>
+                    <li>Save. Content will appear in the Coaching Corner for the selected audience.</li>
+                  </ol>
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="resources">
                 <AccordionTrigger>How to manage Resources</AccordionTrigger>
                 <AccordionContent>
-                  Go to <Link to="/admin/resources" className="font-medium text-primary underline">Resources</Link> to add learning resources (links, documents). Set visibility (student, supervisor, or both) and organize by category. Supervisors can recommend resources to students.
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Go to <Link to="/admin/resources" className="font-medium text-primary underline">Resources</Link>.</li>
+                    <li>Add a new resource: enter title, URL or upload, type (e.g. article, video), and category.</li>
+                    <li>Set visibility to student, supervisor, or both.</li>
+                    <li>Save. The resource will appear in the library; supervisors can recommend it to students.</li>
+                  </ol>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -216,7 +330,12 @@ const AdminHelp = () => (
               <AccordionItem value="promo-codes">
                 <AccordionTrigger>How to manage promo codes</AccordionTrigger>
                 <AccordionContent>
-                  Go to <Link to="/admin/promo-codes" className="font-medium text-primary underline">Promo Codes</Link> to create and manage discount codes for subscriptions. Create codes with optional expiry and usage limits.
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Go to <Link to="/admin/promo-codes" className="font-medium text-primary underline">Promo Codes</Link>.</li>
+                    <li>Click to create a new promo code; enter the code string and any discount or eligibility rules.</li>
+                    <li>Set optional expiry date and usage limits.</li>
+                    <li>Save. Users can apply the code at subscription or checkout.</li>
+                  </ol>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
