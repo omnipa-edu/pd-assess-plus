@@ -66,6 +66,8 @@ const ProgramAssessments = lazy(() => import("./pages/admin/ProgramAssessments")
 const ProgramCohortAssessments = lazy(() => import("./pages/admin/ProgramCohortAssessments"));
 const ButtonDefinitions = lazy(() => import("./pages/admin/ButtonDefinitions"));
 const ButtonSets = lazy(() => import("./pages/admin/ButtonSets"));
+const AdminHelp = lazy(() => import("./pages/admin/AdminHelp"));
+const SupervisorHelp = lazy(() => import("./pages/supervisor/SupervisorHelp"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -124,6 +126,7 @@ const App = () => (
                   <Route path="/supervisor/assessment/new" element={<SupervisorAssessmentForm />} />
                   <Route path="/supervisor/observations" element={<ObservationsList />} />
                   <Route path="/supervisor/observations/:id" element={<ObservationDetail />} />
+                  <Route path="/supervisor/help" element={<SupervisorHelp />} />
                   
                   {/* NEW Admin Console Routes */}
                   <Route path="/admin" element={<AdminOverview />} />
@@ -153,6 +156,7 @@ const App = () => (
                   <Route path="/admin/coaching-time" element={<CoachingTime />} />
                   <Route path="/admin/supervisor-assignments" element={<SupervisorAssignments />} />
                   <Route path="/admin/resources" element={<ResourcesAdmin />} />
+                  <Route path="/admin/help" element={<AdminHelp />} />
                   
                   {/* Legacy Admin Routes (to be migrated) */}
                   <Route path="/admin/legacy" element={<AdminDashboard />} />

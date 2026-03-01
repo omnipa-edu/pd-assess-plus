@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
 
-import { 
-  ClipboardList, 
-  Users, 
-  BookOpen, 
-  TrendingUp, 
+import {
+  ClipboardList,
+  Users,
+  BookOpen,
+  TrendingUp,
   Plus,
   GraduationCap,
   FileText,
   CheckCircle,
   LogOut,
   AlertTriangle,
-  UserCircle
+  UserCircle,
+  HelpCircle
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -320,6 +321,12 @@ const SupervisorDashboard = () => {
                     <Link to="/supervisor/resources">
                       <BookOpen className="mr-2 h-4 w-4" />
                       <span className="hidden sm:inline">View resources</span>
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/supervisor/help">
+                      <HelpCircle className="mr-2 h-4 w-4" />
+                      <span className="hidden sm:inline">Help</span>
                     </Link>
                   </Button>
                   <Button variant="outline" size="sm" asChild>

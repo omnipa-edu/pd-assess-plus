@@ -17,7 +17,8 @@ import {
   LogOut,
   Home,
   Settings,
-  Lightbulb
+  Lightbulb,
+  HelpCircle
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -80,6 +81,12 @@ const navigationSections = [
     title: 'Billing',
     items: [
       { label: 'Promo Codes', href: '/admin/promo-codes', icon: Settings },
+    ]
+  },
+  {
+    title: 'Support',
+    items: [
+      { label: 'Help', href: '/admin/help', icon: HelpCircle },
     ]
   },
 ];
