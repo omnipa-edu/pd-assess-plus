@@ -1,4 +1,4 @@
-import { ClipboardList, Eye, FileText, Users, BookOpen, Stethoscope } from "lucide-react";
+import { ClipboardList, Eye, FileText, Users, BookOpen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,12 +22,12 @@ const NewAssessmentDialog = ({ open, onOpenChange, onAssessmentSelect }: NewAsse
       value: "epa-observation" as const
     },
     {
-      type: "Quick observation (O-Score + narrative)",
-      description: "Real-time supervision note with O-Score and narrative feedback (simplified form). Does not use the Procedure Library.",
+      type: "Direct observation",
+      description: "Procedure-based observation: choose cohort, procedure, and learner from the Procedure Library. Opens Run Assessment; saves to Observations.",
       icon: Eye,
       color: "text-accent",
       bgColor: "bg-accent-light",
-      value: "direct-observation" as const
+      value: "procedure-from-library" as const
     },
     {
       type: "Narrative Assessment",
@@ -44,14 +44,6 @@ const NewAssessmentDialog = ({ open, onOpenChange, onAssessmentSelect }: NewAsse
       color: "text-warning",
       bgColor: "bg-yellow-50",
       value: null
-    },
-    {
-      type: "Procedure from library",
-      description: "Use a procedure's form from the Procedure Library (by cohort and procedure). Opens Run Assessment.",
-      icon: Stethoscope,
-      color: "text-destructive",
-      bgColor: "bg-red-50",
-      value: "procedure-from-library" as const
     },
     {
       type: "ITER/ITAR",

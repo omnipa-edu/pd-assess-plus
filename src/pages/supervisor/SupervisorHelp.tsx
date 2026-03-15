@@ -17,15 +17,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 const SUPERVISOR_DEFINITIONS: { term: string; definition: string }[] = [
   { term: "Benchmark", definition: "Reference comparison (e.g. peer or cohort) for teaching or assessment metrics." },
   { term: "CME", definition: "Continuing Medical Education; time spent on teaching/coaching can be logged for CME documentation." },
-  { term: "Procedure-based observation", definition: "Assessment created via Run Assessment: choose cohort, procedure (from the Procedure Library), and learner; uses that procedure's form. Saves to Observations." },
-  { term: "Quick observation", definition: "Simplified assessment from New Assessment: select a learner, then complete the O-Score and narrative form. Does not use the Procedure Library; appears in the learner's assessment history." },
-  { term: "EPA", definition: "Entrustable Professional Activity; a unit of work assessed for entrustment." },
+  { term: "Direct observation (procedure-based)", definition: "Assessment using a procedure from the Procedure Library: you select cohort, procedure, and learner, then complete the procedure's form. Stored in Observations. Use Run Assessment (or New Assessment → Direct observation)." },
+  { term: "EPA (observation)", definition: "Entrustable Professional Activity assessment: entrustment level and milestones. Stored in EPA tables; started from New Assessment." },
   { term: "Entrustment (level)", definition: "Rating of how much supervision a learner needs for an EPA (e.g. full independence vs. prompting)." },
   { term: "Milestone", definition: "A specific capability within an EPA used for finer-grained assessment." },
-  { term: "Narrative Assessment", definition: "Qualitative assessment without EPA/procedure structure; free-form feedback." },
+  { term: "Narrative assessment", definition: "Qualitative, free-form feedback (strengths, areas for improvement, next steps). No procedure or EPA structure. Started from New Assessment." },
   { term: "NCCPA Category II", definition: "Category of CME that can be documented via teaching/coaching logs." },
-  { term: "Observation", definition: "A single submitted assessment (EPA, procedure-based, Quick observation, or Narrative). The Observations list shows procedure-based observations from Run Assessment." },
-  { term: "Procedure", definition: "A defined activity from the Procedure Library; used in Run Assessment for procedure-based observation forms." },
+  { term: "Observation", definition: "A submitted assessment (EPA, procedure-based, or Narrative). The Observations list shows procedure-based observations from Run Assessment." },
+  { term: "Procedure", definition: "A defined activity from the Procedure Library; used in Run Assessment for procedure-based (direct) observation forms." },
   { term: "Resource recommendation", definition: "A resource from the library that you recommend to a specific learner; they see it in Recommended by your supervisor." },
   { term: "Widget", definition: "A dashboard block (e.g. Teaching Statistics, CME Summary) that can be shown, hidden, or reordered." },
 ];
@@ -163,9 +162,28 @@ const SupervisorHelp = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ClipboardList className="h-5 w-5" />
+                When to use Run Assessment vs New Assessment
+              </CardTitle>
+              <CardDescription>One path for procedure-based observation; New Assessment for EPA and narrative (or to open Run Assessment)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                <li><strong className="text-foreground">Run Assessment</strong> — Use for <strong>procedure-based (direct) observation</strong>: you choose cohort, then a procedure from the Procedure Library, then the learner, and complete that procedure's form. The result appears in Observations. Use when the encounter is a defined procedure with a checklist or versioned form.</li>
+                <li><strong className="text-foreground">New Assessment</strong> — Use for <strong>EPA Observation</strong> (entrustment and milestones), <strong>Narrative Assessment</strong> (free-form feedback), or to start a procedure-based flow (choose <strong>Direct observation</strong> to open Run Assessment). Use when you want EPA or narrative, or when you prefer to pick the learner first and then open Run Assessment for a procedure.</li>
+              </ul>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Run Assessment = procedure from library, one path. New Assessment = pick type then learner (or open Run Assessment for procedure).
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5" />
                 Running assessments
               </CardTitle>
-              <CardDescription>When to use which: procedure with checklist/versioned form → Run Assessment; EPA, quick O-Score note, or narrative → New Assessment.</CardDescription>
+              <CardDescription>Step-by-step for each assessment type</CardDescription>
             </CardHeader>
             <CardContent>
               <Accordion type="single" collapsible className="w-full">
@@ -174,16 +192,16 @@ const SupervisorHelp = () => {
                   <AccordionContent>
                   <ol className="list-decimal list-inside space-y-2 text-sm">
                     <li>Click the <strong>New Assessment</strong> button in the header, or use Quick Actions on the dashboard.</li>
-                    <li>Choose <strong>EPA Observation</strong>, <strong>Quick observation (O-Score + narrative)</strong>, <strong>Narrative Assessment</strong>, or <strong>Procedure from library</strong> (opens Run Assessment).</li>
+                    <li>Choose <strong>EPA Observation</strong>, <strong>Direct observation</strong> (opens Run Assessment), or <strong>Narrative Assessment</strong>.</li>
                     <li>Select the learner where needed and follow the form to complete the assessment.</li>
                   </ol>
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="run-assessment">
-                  <AccordionTrigger>Run assessment (procedure from library)</AccordionTrigger>
+                  <AccordionTrigger>Run assessment (procedure-based / direct observation)</AccordionTrigger>
                   <AccordionContent>
                   <ol className="list-decimal list-inside space-y-2 text-sm">
-                    <li>Click <Link to="/supervisor/run-assessment" className="font-medium text-primary underline">Run assessment</Link> in the header (or choose <strong>Procedure from library</strong> in the New Assessment dialog).</li>
+                    <li>Click <Link to="/supervisor/run-assessment" className="font-medium text-primary underline">Run assessment</Link> in the header (or choose <strong>Direct observation</strong> in the New Assessment dialog).</li>
                     <li>Select the cohort (program), then the procedure from the Procedure Library, then the learner.</li>
                     <li>Complete the procedure-specific form: checklists, scales, and free-text fields.</li>
                     <li>Click <strong>Save as draft</strong> or <strong>Submit</strong>. The assessment appears in <Link to="/supervisor/observations" className="font-medium text-primary underline">Observations</Link>.</li>
@@ -198,16 +216,6 @@ const SupervisorHelp = () => {
                     <li>Select the learner, EPA, and milestone.</li>
                     <li>Document your observation and provide entrustment ratings.</li>
                     <li>Use the narrative and feedback fields to give specific, actionable feedback, then save or submit.</li>
-                  </ol>
-                </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="quick-observation">
-                  <AccordionTrigger>How to complete a Quick observation (O-Score + narrative)</AccordionTrigger>
-                  <AccordionContent>
-                  <ol className="list-decimal list-inside space-y-2 text-sm">
-                    <li>Click <strong>New Assessment</strong>, then choose <strong>Quick observation (O-Score + narrative)</strong>.</li>
-                    <li>Select the learner, then complete the simplified form (activity, O-Score, narrative feedback).</li>
-                    <li>Submit. This does not use the Procedure Library; the learner sees it in their assessment history.</li>
                   </ol>
                 </AccordionContent>
                 </AccordionItem>
@@ -232,7 +240,7 @@ const SupervisorHelp = () => {
                 <FileText className="h-5 w-5" />
                 Observations
               </CardTitle>
-              <CardDescription>View procedure-based observations from Run Assessment. Quick observations (O-Score + narrative) appear in the learner's assessment history.</CardDescription>
+              <CardDescription>View procedure-based observations created via Run Assessment.</CardDescription>
             </CardHeader>
             <CardContent>
               <Accordion type="single" collapsible className="w-full">
@@ -242,7 +250,7 @@ const SupervisorHelp = () => {
                   <ol className="list-decimal list-inside space-y-2 text-sm">
                     <li>Click <Link to="/supervisor/observations" className="font-medium text-primary underline">Observations</Link> in the header.</li>
                     <li>This list shows procedure-based observations (created via Run Assessment). Browse or filter by learner, procedure, date, or status.</li>
-                    <li>Click any observation to view its full details. For Quick observations (O-Score + narrative), open the learner in My Students to see their assessment history.</li>
+                    <li>Click any observation to view its full details.</li>
                   </ol>
                 </AccordionContent>
                 </AccordionItem>

@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 
 import { ArrowLeft, User, FileText, ExternalLink } from "lucide-react";
 
-import DirectObservationForm from "@/components/DirectObservationForm";
 import EPAObservationForm from "@/components/EPAObservationForm";
 import NarrativeAssessmentForm from "@/components/NarrativeAssessmentForm";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,7 @@ interface PhysicianAssociate {
   program: string;
   year: string;
   supervisor: string;
+  cohort_id: string | null;
 }
 
 interface AssessmentDashboardProps {
@@ -76,31 +76,60 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
     loadStudents();
   }, []);
 
-  // Load procedures from Procedure Library for the procedure-competency tab (active procedures with a form version)
+  // Load procedures for the procedure-competency tab: when an associate is selected and has cohort_id, use program_procedures for that cohort; else all active procedures with a form
+  const selectedAssociateData = selectedAssociate ? associates.find((a) => a.id === selectedAssociate) : null;
   useEffect(() => {
+    if (!selectedAssociateData) {
+      setProcedureOptions([]);
+      setSelectedProcedureId(null);
+      return;
+    }
     let cancelled = false;
     setProcedureOptionsLoading(true);
-    supabase
-      .from("procedures")
-      .select("id, code, title")
-      .eq("status", "active")
-      .not("latest_version_id", "is", null)
-      .order("title")
-      .then(({ data, error }) => {
+    setSelectedProcedureId(null);
+    const cohortId = selectedAssociateData.cohort_id;
+    const loadProcedures = async () => {
+      if (cohortId) {
+        const { data: ppData } = await supabase
+          .from("program_procedures")
+          .select("id, procedure_id")
+          .eq("program_cohort_id", cohortId)
+          .order("display_order");
         if (cancelled) return;
-        if (error) {
+        const list = (ppData || []) as { id: string; procedure_id: string }[];
+        if (list.length === 0) {
           setProcedureOptions([]);
           return;
         }
-        setProcedureOptions((data as ProcedureOption[]) || []);
-      })
-      .finally(() => {
-        if (!cancelled) setProcedureOptionsLoading(false);
-      });
+        const { data, error } = await supabase
+          .from("procedures")
+          .select("id, code, title")
+          .in("id", list.map((p) => p.procedure_id))
+          .eq("status", "active")
+          .not("latest_version_id", "is", null)
+          .order("title");
+        if (cancelled) return;
+        if (error) setProcedureOptions([]);
+        else setProcedureOptions((data as ProcedureOption[]) || []);
+      } else {
+        const { data, error } = await supabase
+          .from("procedures")
+          .select("id, code, title")
+          .eq("status", "active")
+          .not("latest_version_id", "is", null)
+          .order("title");
+        if (cancelled) return;
+        if (error) setProcedureOptions([]);
+        else setProcedureOptions((data as ProcedureOption[]) || []);
+      }
+    };
+    loadProcedures().finally(() => {
+      if (!cancelled) setProcedureOptionsLoading(false);
+    });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [selectedAssociateData?.id, selectedAssociateData?.cohort_id]);
 
   /**
    * Loads students assigned to the current supervisor.
@@ -139,7 +168,8 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
               id,
               full_name,
               program,
-              year_of_training
+              year_of_training,
+              cohort_id
             )
           `)
           .eq('supervisor_id', user.id)
@@ -158,6 +188,7 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
               full_name?: string;
               program?: string;
               year_of_training?: string;
+              cohort_id?: string | null;
             };
           };
           
@@ -169,6 +200,7 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
               program: assignment.student.program || DEFAULT_VALUES.STUDENT.PROGRAM,
               year: assignment.student.year_of_training || DEFAULT_VALUES.STUDENT.YEAR,
               supervisor: DEFAULT_VALUES.SUPERVISOR.YOU, // Will be updated with actual supervisor name
+              cohort_id: assignment.student.cohort_id ?? null,
             }));
 
           // Load supervisor names
@@ -300,7 +332,7 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
           // This is a last resort when user_roles doesn't have students
           const { data: allProfiles, error: profilesError } = await supabase
             .from('profiles')
-            .select('id, full_name, program, year_of_training')
+            .select('id, full_name, program, year_of_training, cohort_id')
             .order('full_name');
           
           if (profilesError) {
@@ -313,18 +345,19 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
           
           logger.debug(`Ultimate fallback: Loaded ${(allProfiles || []).length} profiles`);
           
-          students = (allProfiles || []).map((profile: { id: string; full_name?: string; program?: string; year_of_training?: string }) => ({
+          students = (allProfiles || []).map((profile: { id: string; full_name?: string; program?: string; year_of_training?: string; cohort_id?: string | null }) => ({
             id: profile.id,
             name: profile.full_name || DEFAULT_VALUES.STUDENT.NAME,
             program: profile.program || DEFAULT_VALUES.STUDENT.PROGRAM,
             year: profile.year_of_training || DEFAULT_VALUES.STUDENT.YEAR,
             supervisor: DEFAULT_VALUES.STUDENT.SUPERVISOR,
+            cohort_id: profile.cohort_id ?? null,
           }));
         } else {
           // Then fetch profiles for those students
           const { data, error } = await supabase
             .from('profiles')
-            .select('id, full_name, program, year_of_training')
+            .select('id, full_name, program, year_of_training, cohort_id')
             .in('id', studentIds)
             .order('full_name');
 
@@ -335,12 +368,13 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
 
           logger.debug(`Fallback: Loaded ${(data || []).length} student profiles`);
 
-          students = (data || []).map((profile: { id: string; full_name?: string; program?: string; year_of_training?: string }) => ({
+          students = (data || []).map((profile: { id: string; full_name?: string; program?: string; year_of_training?: string; cohort_id?: string | null }) => ({
             id: profile.id,
             name: profile.full_name || DEFAULT_VALUES.STUDENT.NAME,
             program: profile.program || DEFAULT_VALUES.STUDENT.PROGRAM,
             year: profile.year_of_training || DEFAULT_VALUES.STUDENT.YEAR,
             supervisor: DEFAULT_VALUES.STUDENT.SUPERVISOR,
+            cohort_id: profile.cohort_id ?? null,
           }));
         }
       }
@@ -399,7 +433,7 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
                 EPA Observation
               </TabsTrigger>
               <TabsTrigger value="direct-observation" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Quick observation (O-Score + narrative)
+                Direct observation
               </TabsTrigger>
               <TabsTrigger value="narrative" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 Narrative Assessment
@@ -413,8 +447,28 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
               <EPAObservationForm associate={associate!} />
             </TabsContent>
             
-            <TabsContent value="direct-observation" className="space-y-4">
-              <DirectObservationForm associate={associate!} />
+            <TabsContent value="direct-observation" className="mt-6 space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Procedure-based observation</CardTitle>
+                  <CardDescription>
+                    Complete a procedure-based observation for this learner using the Procedure Library. You will choose cohort, procedure, and then complete the form; the assessment is saved to Observations.
+                  </CardDescription>
+                  <div className="pt-2">
+                    <Button
+                      onClick={() => {
+                        const params = new URLSearchParams({ learnerId: associate!.id });
+                        if (associate!.cohort_id) params.set("cohortId", associate!.cohort_id);
+                        navigate(`/supervisor/run-assessment?${params.toString()}`);
+                      }}
+                      className="gap-2"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Open Run Assessment for this learner
+                    </Button>
+                  </div>
+                </CardHeader>
+              </Card>
             </TabsContent>
             
             <TabsContent value="narrative" className="space-y-4">
@@ -426,7 +480,9 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
                 <CardHeader>
                   <CardTitle className="text-lg">Procedure from library</CardTitle>
                   <CardDescription>
-                    Procedure-based assessments use the Procedure Library and appear in Observations. Select a procedure, then open the form to complete the assessment for this learner.
+                    {associate!.cohort_id
+                      ? "Procedures assigned to this learner's cohort. Same procedure form and Observations as Run Assessment."
+                      : "No cohort assigned; showing all procedures. Assign a cohort to see only this program's procedures. Same procedure form and Observations as Run Assessment."}
                   </CardDescription>
                   <div className="flex flex-wrap items-end gap-3 pt-2">
                     <Select
@@ -447,11 +503,14 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
                     </Select>
                     {selectedProcedureId && (
                       <Button
-                        onClick={() =>
-                          navigate(
-                            `/supervisor/assessment/new?procedureId=${selectedProcedureId}&learnerId=${associate!.id}`
-                          )
-                        }
+                        onClick={() => {
+                          const params = new URLSearchParams({
+                            procedureId: selectedProcedureId,
+                            learnerId: associate!.id,
+                          });
+                          if (associate!.cohort_id) params.set("cohortId", associate!.cohort_id);
+                          navigate(`/supervisor/assessment/new?${params.toString()}`);
+                        }}
                         className="gap-2"
                       >
                         <ExternalLink className="h-4 w-4" />

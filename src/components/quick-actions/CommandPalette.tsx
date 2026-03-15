@@ -131,10 +131,10 @@ export function CommandPalette() {
           },
           {
             id: 'direct-observation',
-            label: 'Direct Observation',
+            label: 'Direct Observation (Run Assessment)',
             group: 'Quick Actions',
             action: () => {
-              navigate('/dashboard');
+              navigate('/supervisor/run-assessment');
               setOpen(false);
             },
           },

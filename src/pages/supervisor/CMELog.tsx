@@ -329,7 +329,7 @@ const CMELog = () => {
                   const route = session.wba_type === 'epa' 
                     ? `/supervisor/epa/${session.wba_id}`
                     : session.wba_type === 'direct_observation'
-                    ? `/supervisor/direct-observation/${session.wba_id}`
+                    ? '/supervisor/observations'
                     : `/supervisor/narrative/${session.wba_id}`;
                   navigate(route);
                 }}

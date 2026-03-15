@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { ArrowLeft, ArrowRight, ClipboardList } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +45,7 @@ interface LearnerOption {
 
 const RunAssessment = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
   const [procedures, setProcedures] = useState<ProgramProcedure[]>([]);
@@ -55,6 +56,14 @@ const RunAssessment = () => {
   const [loadingCohorts, setLoadingCohorts] = useState(true);
   const [loadingProcedures, setLoadingProcedures] = useState(false);
   const [loadingLearners, setLoadingLearners] = useState(false);
+
+  // Pre-select learner and/or cohort from URL (e.g. from AssessmentDashboard "Direct observation" tab)
+  useEffect(() => {
+    const learnerIdParam = searchParams.get("learnerId");
+    const cohortIdParam = searchParams.get("cohortId");
+    if (learnerIdParam) setLearnerId(learnerIdParam);
+    if (cohortIdParam) setCohortId(cohortIdParam);
+  }, [searchParams]);
 
   useEffect(() => {
     supabase
