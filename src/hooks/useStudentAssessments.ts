@@ -33,15 +33,26 @@ interface NarrativeAssessment {
   supervisor_id: string;
 }
 
+interface ProcedureObservation {
+  id: string;
+  created_at: string;
+  status: string;
+  procedure_id: string;
+  observer_id: string;
+  comments: string | null;
+  procedure?: { code: string; title: string };
+  observer?: { full_name: string | null };
+}
+
 export function useStudentAssessments() {
   const { user } = useAuth();
 
   return useQuery({
     queryKey: ['student-assessments', user?.id],
     queryFn: async () => {
-      if (!user) return { epa: [], direct: [], narrative: [] };
+      if (!user) return { epa: [], direct: [], narrative: [], procedure: [] };
 
-      const [epaData, directData, narrativeData] = await Promise.all([
+      const [epaData, directData, narrativeData, procedureData] = await Promise.all([
         supabase
           .from('epa_assessments')
           .select('id, created_at, epa_number, rating, feedback, observations, supervisor_id')
@@ -57,12 +68,40 @@ export function useStudentAssessments() {
           .select('id, created_at, assessment_period, strengths, areas_for_growth, overall_progression, supervisor_id')
           .eq('student_id', user.id)
           .order('created_at', { ascending: false }),
+        supabase
+          .from('observations')
+          .select('id, created_at, status, procedure_id, observer_id, comments')
+          .eq('learner_id', user.id)
+          .order('created_at', { ascending: false }),
       ]);
+
+      const rawProcedure = (procedureData.data || []) as ProcedureObservation[];
+      let procedure: ProcedureObservation[] = rawProcedure;
+      if (rawProcedure.length > 0) {
+        const procedureIds = [...new Set(rawProcedure.map((row) => row.procedure_id))];
+        const observerIds = [...new Set(rawProcedure.map((row) => row.observer_id))];
+        const [{ data: procedures }, { data: observers }] = await Promise.all([
+          supabase.from('procedures').select('id, code, title').in('id', procedureIds),
+          supabase.from('profiles').select('id, full_name').in('id', observerIds),
+        ]);
+        const procedureMap = new Map(
+          (procedures || []).map((proc: { id: string; code: string; title: string }) => [proc.id, proc])
+        );
+        const observerMap = new Map(
+          (observers || []).map((observer: { id: string; full_name: string | null }) => [observer.id, observer])
+        );
+        procedure = rawProcedure.map((row) => ({
+          ...row,
+          procedure: procedureMap.get(row.procedure_id),
+          observer: observerMap.get(row.observer_id),
+        }));
+      }
 
       return {
         epa: (epaData.data || []) as EPAAssessment[],
         direct: (directData.data || []) as DirectObservationAssessment[],
         narrative: (narrativeData.data || []) as NarrativeAssessment[],
+        procedure,
       };
     },
     enabled: !!user,

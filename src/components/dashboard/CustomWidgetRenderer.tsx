@@ -6,6 +6,7 @@
 import { ReactNode } from 'react';
 
 import { ClipboardList, BookOpen } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 import { EpaTrajectoryView } from '@/components/benchmarks/EpaTrajectoryView';
 import ReadinessCard from '@/components/ReadinessCard';
@@ -35,6 +36,7 @@ interface CustomWidgetRendererProps {
     epa: any[];
     direct: any[];
     narrative: any[];
+    procedure?: any[];
   };
   onEpaClick?: (epaCode: string) => void;
   selectedEpa?: string | null;
@@ -103,14 +105,36 @@ export function CustomWidgetRenderer({
     case 'recent_assessments':
       if (!assessmentsData) return null;
 
-      const { epa, direct, narrative } = assessmentsData;
+      const { epa, direct, narrative, procedure = [] } = assessmentsData;
+      const unifiedObservations = [
+        ...direct.map((assessment: any) => ({
+          kind: 'legacy-direct',
+          id: assessment.id,
+          created_at: assessment.created_at,
+          title: assessment.procedure_type,
+          rating: assessment.performance_rating,
+          feedback: assessment.feedback,
+        })),
+        ...procedure.map((assessment: any) => ({
+          kind: 'procedure',
+          id: assessment.id,
+          created_at: assessment.created_at,
+          title: assessment.procedure?.title ?? assessment.procedure_id,
+          code: assessment.procedure?.code ?? '',
+          status: assessment.status,
+          observer: assessment.observer?.full_name ?? assessment.observer_id,
+          comments: assessment.comments,
+        })),
+      ].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
 
       return (
         <div className={className}>
           <Tabs defaultValue="epa" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="epa">EPA Assessments</TabsTrigger>
-              <TabsTrigger value="direct">Direct Observations</TabsTrigger>
+              <TabsTrigger value="observations">Observations (Legacy + Procedure)</TabsTrigger>
               <TabsTrigger value="narrative">Narrative Assessments</TabsTrigger>
             </TabsList>
 
@@ -171,32 +195,52 @@ export function CustomWidgetRenderer({
               )}
             </TabsContent>
 
-            <TabsContent value="direct" className="space-y-4">
-              {direct.length === 0 ? (
+            <TabsContent value="observations" className="space-y-4">
+              {unifiedObservations.length === 0 ? (
                 <EmptyState
                   icon={BookOpen}
                   title={content.emptyStates.assessments.student.title}
                   description={content.emptyStates.assessments.student.description}
                 />
               ) : (
-                direct.map((assessment: any) => (
+                unifiedObservations.map((assessment: any) => (
                   <Card key={assessment.id}>
                     <CardHeader>
                       <div className="flex items-start justify-between">
-                        <CardTitle>{assessment.procedure_type}</CardTitle>
-                        <Badge>{assessment.performance_rating}</Badge>
+                        <CardTitle>{assessment.title}</CardTitle>
+                        {assessment.kind === 'legacy-direct' ? (
+                          <Badge>{assessment.rating}</Badge>
+                        ) : (
+                          <Badge variant={assessment.status === 'submitted' ? 'default' : 'secondary'}>
+                            {assessment.status}
+                          </Badge>
+                        )}
                       </div>
                       <CardDescription>
-                        {new Date(assessment.created_at).toLocaleDateString()}
+                        {assessment.kind === 'legacy-direct'
+                          ? `Legacy direct observation · ${new Date(assessment.created_at).toLocaleDateString()}`
+                          : `${assessment.code || ''} · Observed by ${assessment.observer} · ${new Date(assessment.created_at).toLocaleDateString()}`}
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
+                    <CardContent className="space-y-2">
+                      {assessment.kind === 'legacy-direct' ? (
                         <div>
                           <p className="text-sm font-medium">Feedback</p>
                           <p className="text-sm text-muted-foreground">{assessment.feedback}</p>
                         </div>
-                      </div>
+                      ) : assessment.comments ? (
+                        <div>
+                          <p className="text-sm font-medium">Comments</p>
+                          <p className="text-sm text-muted-foreground">{assessment.comments}</p>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No comments were provided for this observation.</p>
+                      )}
+                      {assessment.kind === 'procedure' && (
+                        <Button variant="outline" size="sm" asChild>
+                          <Link to={`/student/observations/${assessment.id}`}>View full observation</Link>
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
                 ))

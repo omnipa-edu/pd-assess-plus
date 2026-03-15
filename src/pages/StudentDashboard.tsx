@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 
-import { Loader2, LogOut, ClipboardList, BookOpen } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Loader2, LogOut, ClipboardList, BookOpen, FileText, HelpCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { AchievementDisplay } from '@/components/achievements/AchievementDisplay';
 import { EpaTrajectoryView } from '@/components/benchmarks/EpaTrajectoryView';
@@ -293,6 +293,22 @@ const StudentDashboard = () => {
               onSave={handleSaveLayout}
               onReset={dashboardLayout.resetToDefault}
             />
+            {!dashboardLayout.isEditing && (
+              <>
+                <Button variant="outline" asChild>
+                  <Link to="/student/observations">
+                    <FileText className="mr-2 h-4 w-4" />
+                    My observations
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link to="/student/help">
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    Help
+                  </Link>
+                </Button>
+              </>
+            )}
             <Button variant="outline" onClick={handleSignOut}>
               <LogOut className="mr-2 h-4 w-4" />
               Sign Out

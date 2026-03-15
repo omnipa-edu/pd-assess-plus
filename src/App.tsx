@@ -36,6 +36,9 @@ const RunAssessment = lazy(() => import("./pages/supervisor/RunAssessment"));
 const SupervisorAssessmentForm = lazy(() => import("./pages/supervisor/SupervisorAssessmentForm"));
 const ObservationsList = lazy(() => import("./pages/supervisor/ObservationsList"));
 const ObservationDetail = lazy(() => import("./pages/supervisor/ObservationDetail"));
+const LearnerObservationsList = lazy(() => import("./pages/student/LearnerObservationsList"));
+const LearnerObservationDetail = lazy(() => import("./pages/student/LearnerObservationDetail"));
+const LearnerHelp = lazy(() => import("./pages/student/LearnerHelp"));
 
 // Admin routes - lazy loaded
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -117,6 +120,9 @@ const App = () => (
                   <Route path="/auth/reset-password" element={<ResetPassword />} />
                   <Route path="/auth/update-password" element={<UpdatePassword />} />
                   <Route path="/student" element={<StudentDashboard />} />
+                  <Route path="/student/observations" element={<LearnerObservationsList />} />
+                  <Route path="/student/observations/:id" element={<LearnerObservationDetail />} />
+                  <Route path="/student/help" element={<LearnerHelp />} />
                   <Route path="/supervisor" element={<SupervisorDashboard />} />
                   <Route path="/supervisor/students" element={<MyStudents />} />
                   <Route path="/supervisor/resources" element={<SupervisorResources />} />
