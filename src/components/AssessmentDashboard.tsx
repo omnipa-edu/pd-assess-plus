@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { ArrowLeft, User, FileText } from "lucide-react";
+import { ArrowLeft, User, FileText, ExternalLink } from "lucide-react";
 
-import RigidNasalEndoscopyForm from "@/components/assessments/RigidNasalEndoscopyForm";
 import DirectObservationForm from "@/components/DirectObservationForm";
 import EPAObservationForm from "@/components/EPAObservationForm";
 import NarrativeAssessmentForm from "@/components/NarrativeAssessmentForm";
@@ -46,26 +46,60 @@ const ERROR_CODES = {
   RELATION_NOT_EXIST: '42p01',
 } as const;
 
+/** Procedure from Procedure Library (id, code, title) for the competency tab */
+interface ProcedureOption {
+  id: string;
+  code: string;
+  title: string;
+}
+
 /**
  * Assessment Dashboard Component
  * 
  * Displays a list of physician associates (students) and allows supervisors
- * to select a student and create assessments (EPA, Direct Observation, or Narrative).
+ * to select a student and create assessments (EPA, Quick observation, Narrative, or Procedure from library).
  * 
  * @param onBack - Callback function to navigate back to the previous screen
  * @param defaultTab - Default tab to show when a student is selected
  */
-const PROCEDURE_OPTIONS = [{ code: "rigid_nasal_endoscopy", label: "Rigid Nasal Endoscopy" }] as const;
-
 const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: AssessmentDashboardProps) => {
+  const navigate = useNavigate();
   const [selectedAssociate, setSelectedAssociate] = useState<string | null>(null);
   const [associates, setAssociates] = useState<PhysicianAssociate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProcedureCode, setSelectedProcedureCode] = useState<string | null>(null);
+  const [procedureOptions, setProcedureOptions] = useState<ProcedureOption[]>([]);
+  const [procedureOptionsLoading, setProcedureOptionsLoading] = useState(false);
+  const [selectedProcedureId, setSelectedProcedureId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     loadStudents();
+  }, []);
+
+  // Load procedures from Procedure Library for the procedure-competency tab (active procedures with a form version)
+  useEffect(() => {
+    let cancelled = false;
+    setProcedureOptionsLoading(true);
+    supabase
+      .from("procedures")
+      .select("id, code, title")
+      .eq("status", "active")
+      .not("latest_version_id", "is", null)
+      .order("title")
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          setProcedureOptions([]);
+          return;
+        }
+        setProcedureOptions((data as ProcedureOption[]) || []);
+      })
+      .finally(() => {
+        if (!cancelled) setProcedureOptionsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   /**
@@ -365,7 +399,7 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
                 EPA Observation
               </TabsTrigger>
               <TabsTrigger value="direct-observation" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Direct Observation
+                Quick observation (O-Score + narrative)
               </TabsTrigger>
               <TabsTrigger value="narrative" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 Narrative Assessment
@@ -390,25 +424,43 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
             <TabsContent value="procedure-competency" className="mt-6 space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Procedure</CardTitle>
-                  <CardDescription>Select a procedure to complete a competency evaluation</CardDescription>
-                  <div className="pt-2">
-                    <Select value={selectedProcedureCode ?? ""} onValueChange={(v) => setSelectedProcedureCode(v || null)}>
-                      <SelectTrigger className="w-full max-w-xs">
-                        <SelectValue placeholder="Select procedure" />
+                  <CardTitle className="text-lg">Procedure from library</CardTitle>
+                  <CardDescription>
+                    Procedure-based assessments use the Procedure Library and appear in Observations. Select a procedure, then open the form to complete the assessment for this learner.
+                  </CardDescription>
+                  <div className="flex flex-wrap items-end gap-3 pt-2">
+                    <Select
+                      value={selectedProcedureId ?? ""}
+                      onValueChange={(v) => setSelectedProcedureId(v || null)}
+                      disabled={procedureOptionsLoading}
+                    >
+                      <SelectTrigger className="w-full max-w-md">
+                        <SelectValue placeholder={procedureOptionsLoading ? "Loading procedures…" : "Select procedure"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {PROCEDURE_OPTIONS.map(({ code, label }) => (
-                          <SelectItem key={code} value={code}>{label}</SelectItem>
+                        {procedureOptions.map((proc) => (
+                          <SelectItem key={proc.id} value={proc.id}>
+                            {proc.title}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    {selectedProcedureId && (
+                      <Button
+                        onClick={() =>
+                          navigate(
+                            `/supervisor/assessment/new?procedureId=${selectedProcedureId}&learnerId=${associate!.id}`
+                          )
+                        }
+                        className="gap-2"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Open procedure form
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
               </Card>
-              {selectedProcedureCode === "rigid_nasal_endoscopy" && (
-                <RigidNasalEndoscopyForm associate={associate!} />
-              )}
             </TabsContent>
           </Tabs>
         </main>

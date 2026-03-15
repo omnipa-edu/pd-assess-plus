@@ -25,6 +25,7 @@ const ADMIN_DEFINITIONS: { term: string; definition: string }[] = [
   { term: "Institution", definition: "Top-level organizational unit (e.g. hospital, university)." },
   { term: "Procedure", definition: "A defined clinical or training activity with metadata and an assessment form (sections/items)." },
   { term: "Procedure Library", definition: "Central list of procedures; create, edit, and publish procedures and their forms here." },
+  { term: "Program Assessment", definition: "Configuration that maps procedures to a specific program cohort so supervisors can run those assessments for that cohort." },
   { term: "Program / cohort", definition: "A training program or cohort; procedures can be assigned per cohort for assessments." },
   { term: "Promo code", definition: "Discount code for subscriptions, with optional expiry and usage limits." },
   { term: "Specialty", definition: "Medical or training specialty used to organize procedures and filter content." },
@@ -220,17 +221,28 @@ const AdminHelp = () => (
               <AccordionItem value="program-assessments">
                 <AccordionTrigger>How to configure program assessments</AccordionTrigger>
                 <AccordionContent>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    Program Assessments is the admin setup that powers supervisor
+                    <Link to="/supervisor/run-assessment" className="ml-1 font-medium text-primary underline">
+                      Run Assessment
+                    </Link>
+                    . Supervisors only see procedures assigned to the selected cohort.
+                  </p>
                   <ol className="list-decimal list-inside space-y-2 text-sm">
                     <li>Go to <Link to="/admin/program-assessments" className="font-medium text-primary underline">Program Assessments</Link>.</li>
                     <li>Select the program or cohort you want to configure.</li>
                     <li>Choose which procedures from the Procedure Library apply to that cohort.</li>
-                    <li>Save. Supervisors and learners in that cohort will see those procedures for assessments.</li>
+                    <li>Save. Supervisors use these assignments in <Link to="/supervisor/run-assessment" className="font-medium text-primary underline">Run Assessment</Link> for that cohort.</li>
+                    <li>If a procedure is not assigned to a cohort here, it will not appear in Run Assessment for that cohort.</li>
                   </ol>
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="button-definitions">
                 <AccordionTrigger>How to configure button definitions</AccordionTrigger>
                 <AccordionContent>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    Use button definitions when you need a reusable single action (for example a procedure-specific quick action, form helper, or navigation control) that can be applied consistently across multiple workflows.
+                  </p>
                   <ol className="list-decimal list-inside space-y-2 text-sm">
                     <li>Go to <Link to="/admin/button-definitions" className="font-medium text-primary underline">Button definitions</Link>.</li>
                     <li>Create a new definition or edit an existing one.</li>
@@ -243,6 +255,9 @@ const AdminHelp = () => (
               <AccordionItem value="button-sets">
                 <AccordionTrigger>How to configure button sets</AccordionTrigger>
                 <AccordionContent>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    Use button sets to group related definitions by context (card, form, workflow). Start with a shared baseline set, then apply procedure-level or program-level overrides only when a cohort needs different actions.
+                  </p>
                   <ol className="list-decimal list-inside space-y-2 text-sm">
                     <li>Go to <Link to="/admin/button-sets" className="font-medium text-primary underline">Button sets</Link>.</li>
                     <li>Create a new set or open an existing one; set name, description, and context (card, form, or workflow).</li>
@@ -250,6 +265,55 @@ const AdminHelp = () => (
                     <li>Attach the set to a procedure (procedure-level) or to a program-procedure (program-level override) as needed.</li>
                     <li>Save. The buttons will appear in the chosen context for the assigned procedure or program-procedure.</li>
                   </ol>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Analytics &amp; Quality
+            </CardTitle>
+            <CardDescription>Readiness, calibration, and accreditation reporting status</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="accreditation-status">
+                <AccordionTrigger>Accreditation (implemented)</AccordionTrigger>
+                <AccordionContent>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    <Link to="/admin/accreditation" className="font-medium text-primary underline">Accreditation</Link> is functional today. You can choose a reporting range, generate an accreditation evidence pack, and download the result as a file for review and submission.
+                  </p>
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Open <Link to="/admin/accreditation" className="font-medium text-primary underline">Accreditation</Link>.</li>
+                    <li>Select date range and optional specialty filter.</li>
+                    <li>Generate the pack, then download the produced export file.</li>
+                  </ol>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="calibration-status">
+                <AccordionTrigger>Calibration (limited / coming soon)</AccordionTrigger>
+                <AccordionContent>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    <Link to="/admin/calibration" className="font-medium text-primary underline">Calibration</Link> currently provides layout and filter scaffolding, but reporting data integration is still in progress. Treat this as a preview of planned supervisor alignment analytics.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    This page may not appear in the sidebar yet; use the direct route while integration is being completed.
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="readiness-status">
+                <AccordionTrigger>Readiness (limited / coming soon)</AccordionTrigger>
+                <AccordionContent>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    <Link to="/admin/readiness" className="font-medium text-primary underline">Readiness</Link> currently shows a page shell for stalled learner monitoring, with full analytics data wiring still in progress.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    This page may not appear in the sidebar yet; use the direct route while integration is being completed.
+                  </p>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

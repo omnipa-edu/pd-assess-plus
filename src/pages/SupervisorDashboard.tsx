@@ -12,7 +12,8 @@ import {
   LogOut,
   AlertTriangle,
   UserCircle,
-  HelpCircle
+  HelpCircle,
+  Stethoscope
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -470,6 +471,16 @@ const SupervisorDashboard = () => {
                 <BookOpen className="mr-3 h-4 w-4 text-muted-foreground" />
                 Narrative Assessment
               </Button>
+              <Button 
+                variant="outline" 
+                className="h-12 w-full justify-start border-border hover:border-primary hover:bg-primary-light"
+                asChild
+              >
+                <Link to="/supervisor/run-assessment">
+                  <Stethoscope className="mr-3 h-4 w-4 text-primary" />
+                  Run procedure assessment
+                </Link>
+              </Button>
             </CardContent>
           </Card>
 
@@ -545,6 +556,11 @@ const SupervisorDashboard = () => {
         open={showNewAssessment} 
         onOpenChange={setShowNewAssessment}
         onAssessmentSelect={(type) => {
+          if (type === 'procedure-from-library') {
+            setShowNewAssessment(false);
+            navigate('/supervisor/run-assessment');
+            return;
+          }
           setSelectedAssessmentType(type);
           setCurrentView('new-assessment');
         }}

@@ -100,7 +100,9 @@ const ObservationsList = () => {
       </Button>
       <div>
         <h1 className="text-3xl font-bold">Observations</h1>
-        <p className="mt-2 text-muted-foreground">View and filter assessment observations.</p>
+        <p className="mt-2 text-muted-foreground">
+          Procedure-based observations created via Run Assessment. For Quick observations (O-Score + narrative), see the learner's assessment history in My Students.
+        </p>
       </div>
       <Card>
         <CardHeader>

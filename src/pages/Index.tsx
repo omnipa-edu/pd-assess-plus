@@ -28,7 +28,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { user, hasRole, signOut, loading, roles } = useAuth();
   const [currentView, setCurrentView] = useState<'dashboard' | 'new-assessment'>('dashboard');
-  const [selectedAssessmentType, setSelectedAssessmentType] = useState<'epa-observation' | 'direct-observation' | 'narrative'>('epa-observation');
+  const [selectedAssessmentType, setSelectedAssessmentType] = useState<'epa-observation' | 'direct-observation' | 'narrative' | 'procedure-from-library'>('epa-observation');
   const [showNewAssessment, setShowNewAssessment] = useState(false);
 
   useEffect(() => {
@@ -300,6 +300,11 @@ const Index = () => {
         open={showNewAssessment} 
         onOpenChange={setShowNewAssessment}
         onAssessmentSelect={(type) => {
+          if (type === 'procedure-from-library') {
+            setShowNewAssessment(false);
+            navigate('/supervisor/run-assessment');
+            return;
+          }
           setSelectedAssessmentType(type);
           setCurrentView('new-assessment');
         }}

@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 interface NewAssessmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAssessmentSelect: (type: 'epa-observation' | 'direct-observation' | 'narrative') => void;
+  onAssessmentSelect: (type: 'epa-observation' | 'direct-observation' | 'narrative' | 'procedure-from-library') => void;
 }
 
 const NewAssessmentDialog = ({ open, onOpenChange, onAssessmentSelect }: NewAssessmentDialogProps) => {
@@ -22,8 +22,8 @@ const NewAssessmentDialog = ({ open, onOpenChange, onAssessmentSelect }: NewAsse
       value: "epa-observation" as const
     },
     {
-      type: "Direct Observation", 
-      description: "Real-time supervision and feedback documentation",
+      type: "Quick observation (O-Score + narrative)",
+      description: "Real-time supervision note with O-Score and narrative feedback (simplified form). Does not use the Procedure Library.",
       icon: Eye,
       color: "text-accent",
       bgColor: "bg-accent-light",
@@ -46,12 +46,12 @@ const NewAssessmentDialog = ({ open, onOpenChange, onAssessmentSelect }: NewAsse
       value: null
     },
     {
-      type: "Procedure Assessment",
-      description: "Technical skill evaluation with competency markers",
+      type: "Procedure from library",
+      description: "Use a procedure's form from the Procedure Library (by cohort and procedure). Opens Run Assessment.",
       icon: Stethoscope,
       color: "text-destructive",
       bgColor: "bg-red-50",
-      value: null
+      value: "procedure-from-library" as const
     },
     {
       type: "ITER/ITAR",
@@ -81,7 +81,7 @@ const NewAssessmentDialog = ({ open, onOpenChange, onAssessmentSelect }: NewAsse
               key={index}
               className="cursor-pointer border-border transition-all duration-300 hover:border-primary/20 hover:shadow-card"
               onClick={() => {
-                if (assessment.value) {
+                if (assessment.value !== null && assessment.value !== undefined) {
                   onAssessmentSelect(assessment.value);
                   onOpenChange(false);
                 }

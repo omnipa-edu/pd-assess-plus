@@ -169,6 +169,77 @@ Complete audit trail of all admin actions.
 - **Import:** Bulk import operation
 - **Bulk Update:** Bulk status change
 
+### 9. **Procedure Library** (`/admin/procedure-library`)
+Create and maintain procedure metadata and assessment form versions used in observation workflows.
+
+**Features:**
+- Create, edit, and publish procedure versions
+- WYSIWYG assessment form builder (sections/items)
+- Specialty tagging and metadata fields
+- Import flow for procedure library content
+
+### 10. **Program Assessments** (`/admin/program-assessments`)
+Assign procedures to specific program cohorts.
+
+**Features:**
+- Cohort-based configuration via Program Cohort Assessments
+- Add/remove procedures per cohort
+- Procedure display order controls
+
+**Critical Workflow Link:**
+- Program Assessments drives what supervisors can select in **Run Assessment** (`/supervisor/run-assessment`)
+- If a procedure is not assigned to a cohort in Program Assessments, it does not appear in Run Assessment for that cohort
+
+### 11. **Button Definitions** (`/admin/button-definitions`)
+Define reusable action buttons used in assessment UI contexts.
+
+**When to use:**
+- You need one reusable action pattern (navigate, open modal, set field value)
+- You want consistent quick actions across multiple procedures/workflows
+
+### 12. **Button Sets** (`/admin/button-sets`)
+Group button definitions by context and attach them to procedures or program-procedure overrides.
+
+**When to use:**
+- You need coordinated groups of actions for forms/cards/workflows
+- You want a default shared set with selective cohort or procedure overrides
+
+### 13. **Accreditation** (`/admin/accreditation`)
+Generate accreditation evidence packs for reporting periods.
+
+**Current Status:** Implemented  
+**Features:**
+- Range and specialty filters
+- Pack generation via edge function
+- Downloadable export output
+
+### 14. **Calibration** (`/admin/calibration`)
+Supervisor calibration analytics workspace.
+
+**Current Status:** Limited / coming soon  
+**Current Scope:**
+- Page layout and filters are present
+- Data integration for calibration metrics is still in progress
+
+### 15. **Readiness** (`/admin/readiness`)
+Learner readiness analytics workspace.
+
+**Current Status:** Limited / coming soon  
+**Current Scope:**
+- Stalled learner monitoring layout exists
+- Backend analytics wiring is still in progress
+
+### Feature Status Snapshot
+
+| Feature | Status | Notes |
+|---|---|---|
+| Program Assessments | Implemented | Cohort-procedure assignment used by supervisor Run Assessment |
+| Button Definitions | Implemented | Reusable action-level configuration |
+| Button Sets | Implemented | Grouping/override layer for definitions |
+| Accreditation | Implemented | End-to-end generation/export flow available |
+| Calibration | Limited / coming soon | UI scaffold; analytics integration pending |
+| Readiness | Limited / coming soon | UI scaffold; analytics integration pending |
+
 ---
 
 ## 🔐 Security
@@ -252,9 +323,22 @@ src/
 │   ├── Departments.tsx          # Departments CRUD
 │   ├── Specialties.tsx          # Specialties CRUD
 │   ├── EPAs.tsx                 # EPAs CRUD with bulk actions
+│   ├── ProcedureLibrary.tsx     # Procedure library list
+│   ├── ProcedureLibraryDetail.tsx # Procedure detail/version view
+│   ├── ProcedureLibraryNew.tsx  # Procedure creation
+│   ├── ProcedureLibraryEdit.tsx # Procedure editing
+│   ├── ProcedureLibraryImport.tsx # Procedure import
+│   ├── ProgramAssessments.tsx   # Cohort selection
+│   ├── ProgramCohortAssessments.tsx # Cohort procedure assignment
+│   ├── ButtonDefinitions.tsx    # Button definition CRUD
+│   ├── ButtonSets.tsx           # Button set management
+│   ├── Accreditation.tsx        # Accreditation export generation
+│   ├── Calibration.tsx          # Calibration analytics workspace (in progress)
+│   ├── Readiness.tsx            # Readiness analytics workspace (in progress)
 │   ├── Users.tsx                # User management
 │   ├── Supervisors.tsx          # Supervisor view
-│   └── ActivityLog.tsx          # Audit log viewer
+│   ├── ActivityLog.tsx          # Audit log viewer
+│   └── AdminHelp.tsx            # Admin help and workflow guidance
 │
 ├── components/admin/
 │   ├── AdminLayout.tsx          # Sidebar navigation
