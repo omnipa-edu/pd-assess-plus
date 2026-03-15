@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const LEARNER_DEFINITIONS: { term: string; definition: string }[] = [
-  { term: "Direct Observation", definition: "A procedure-based assessment completed by a supervisor using a procedure form." },
+  { term: "Direct Observation", definition: "Legacy direct observation feedback completed by a supervisor outside the procedure form workflow." },
   { term: "EPA", definition: "Entrustable Professional Activity; a unit of work supervisors assess for readiness and entrustment." },
   { term: "Feedback digest", definition: "AI-generated summary of your recent feedback with strengths, growth priorities, and next actions." },
   { term: "Narrative Assessment", definition: "Free-text feedback not tied to a specific EPA or procedure form." },
@@ -114,17 +114,27 @@ const LearnerHelp = () => {
                 <ClipboardList className="h-5 w-5" />
                 Assessments and observations
               </CardTitle>
-              <CardDescription>View your procedure observations and assessment feedback</CardDescription>
+              <CardDescription>Use one assessments feed to review EPA, direct, narrative, and procedure feedback</CardDescription>
             </CardHeader>
             <CardContent>
               <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="view-observations">
-                  <AccordionTrigger>How to view your observations</AccordionTrigger>
+                <AccordionItem value="view-assessments">
+                  <AccordionTrigger>How to view all your assessments</AccordionTrigger>
                   <AccordionContent>
                     <ol className="list-inside list-decimal space-y-2 text-sm">
-                      <li>Click <Link to="/student/observations" className="font-medium text-primary underline">My observations</Link> from your dashboard header.</li>
-                      <li>Use filters for status, procedure, and date range to find specific assessments.</li>
-                      <li>Click <strong>View</strong> on any row to open the full form responses and comments.</li>
+                      <li>Click <Link to="/student/assessments" className="font-medium text-primary underline">My assessments</Link> from your dashboard header.</li>
+                      <li>Use filters for assessment type and date range to find the feedback you need.</li>
+                      <li>Procedure observations include a <strong>View</strong> action that opens the full read-only form and comments.</li>
+                    </ol>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="use-dashboard">
+                  <AccordionTrigger>How to use the dashboard effectively</AccordionTrigger>
+                  <AccordionContent>
+                    <ol className="list-inside list-decimal space-y-2 text-sm">
+                      <li>Open <strong>Recent Assessments</strong> to review newest feedback quickly, then use <strong>All Recent</strong> for one combined timeline.</li>
+                      <li>Use <strong>Readiness</strong> cards to track EPA progress over time and identify where more observations are needed.</li>
+                      <li>Customize widget layout so your most important metrics are visible first.</li>
                     </ol>
                   </AccordionContent>
                 </AccordionItem>
@@ -135,6 +145,16 @@ const LearnerHelp = () => {
                       <li><strong>Draft</strong> means your supervisor has started an assessment but has not submitted it yet.</li>
                       <li><strong>Submitted</strong> means the assessment is finalized and ready for review.</li>
                       <li>If expected feedback is missing, contact your supervisor to confirm submission.</li>
+                    </ol>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="interpret-feedback">
+                  <AccordionTrigger>How to interpret your feedback</AccordionTrigger>
+                  <AccordionContent>
+                    <ol className="list-inside list-decimal space-y-2 text-sm">
+                      <li>Use ratings/status to understand performance level and completion state for each assessment.</li>
+                      <li>Look for repeated strengths and growth themes across EPA, narrative, and procedure observations.</li>
+                      <li>Convert one growth theme into a concrete goal before your next observed case.</li>
                     </ol>
                   </AccordionContent>
                 </AccordionItem>

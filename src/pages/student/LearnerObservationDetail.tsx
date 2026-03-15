@@ -89,7 +89,7 @@ const LearnerObservationDetail = () => {
       <div className="container max-w-3xl py-8">
         <p className="text-muted-foreground">Observation not found.</p>
         <Button variant="link" asChild>
-          <Link to="/student/observations">Back to list</Link>
+          <Link to="/student/assessments">Back to assessments</Link>
         </Button>
       </div>
     );
@@ -100,9 +100,9 @@ const LearnerObservationDetail = () => {
   return (
     <div className="container max-w-3xl space-y-6 py-8">
       <Button variant="ghost" size="sm" asChild>
-        <Link to="/student/observations">
+        <Link to="/student/assessments">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to observations
+          Back to assessments
         </Link>
       </Button>
 

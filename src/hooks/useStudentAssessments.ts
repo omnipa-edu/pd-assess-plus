@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 import { useAuth } from './useAuth';
 
-interface EPAAssessment {
+export interface EPAAssessment {
   id: string;
   created_at: string;
   epa_number: string;
@@ -14,7 +14,7 @@ interface EPAAssessment {
   supervisor_id: string;
 }
 
-interface DirectObservationAssessment {
+export interface DirectObservationAssessment {
   id: string;
   created_at: string;
   procedure_type: string;
@@ -23,7 +23,7 @@ interface DirectObservationAssessment {
   supervisor_id: string;
 }
 
-interface NarrativeAssessment {
+export interface NarrativeAssessment {
   id: string;
   created_at: string;
   assessment_period: string;
@@ -33,13 +33,14 @@ interface NarrativeAssessment {
   supervisor_id: string;
 }
 
-interface ProcedureObservation {
+export interface ProcedureObservation {
   id: string;
   created_at: string;
   status: string;
   procedure_id: string;
   observer_id: string;
   comments: string | null;
+  submitted_at: string | null;
   procedure?: { code: string; title: string };
   observer?: { full_name: string | null };
 }
@@ -70,7 +71,7 @@ export function useStudentAssessments() {
           .order('created_at', { ascending: false }),
         supabase
           .from('observations')
-          .select('id, created_at, status, procedure_id, observer_id, comments')
+          .select('id, created_at, status, procedure_id, observer_id, comments, submitted_at')
           .eq('learner_id', user.id)
           .order('created_at', { ascending: false }),
       ]);

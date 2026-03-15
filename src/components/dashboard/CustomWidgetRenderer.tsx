@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { content } from '@/content/strings';
+import { buildLearnerAssessmentFeed, type LearnerAssessmentFeedItem } from '@/hooks/useLearnerAssessmentFeed';
 import { DEFAULT_READINESS } from '@/lib/readiness/config';
 import type { WidgetId } from '@/lib/dashboard/types';
 
@@ -106,37 +107,68 @@ export function CustomWidgetRenderer({
       if (!assessmentsData) return null;
 
       const { epa, direct, narrative, procedure = [] } = assessmentsData;
-      const unifiedObservations = [
-        ...direct.map((assessment: any) => ({
-          kind: 'legacy-direct',
-          id: assessment.id,
-          created_at: assessment.created_at,
-          title: assessment.procedure_type,
-          rating: assessment.performance_rating,
-          feedback: assessment.feedback,
-        })),
-        ...procedure.map((assessment: any) => ({
-          kind: 'procedure',
-          id: assessment.id,
-          created_at: assessment.created_at,
-          title: assessment.procedure?.title ?? assessment.procedure_id,
-          code: assessment.procedure?.code ?? '',
-          status: assessment.status,
-          observer: assessment.observer?.full_name ?? assessment.observer_id,
-          comments: assessment.comments,
-        })),
-      ].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      const allRecentFeed = buildLearnerAssessmentFeed({ epa, direct, narrative, procedure });
+      const unifiedObservations = allRecentFeed.filter(
+        (item) => item.type === 'direct' || item.type === 'procedure'
+      );
+      const renderUnifiedFeedCard = (assessment: LearnerAssessmentFeedItem) => (
+        <Card key={`${assessment.type}-${assessment.id}`}>
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <CardTitle>{assessment.title}</CardTitle>
+              {assessment.statusOrRating && (
+                <Badge variant={assessment.type === 'procedure' && assessment.statusOrRating === 'submitted' ? 'default' : 'secondary'}>
+                  {assessment.statusOrRating}
+                </Badge>
+              )}
+            </div>
+            <CardDescription>
+              {assessment.type === 'procedure'
+                ? `${assessment.subtitle} · Observed by ${assessment.observerName ?? 'Unknown'} · ${new Date(assessment.created_at).toLocaleDateString()}`
+                : `${assessment.subtitle} · ${new Date(assessment.created_at).toLocaleDateString()}`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {assessment.summaryText ? (
+              <p className="text-sm text-muted-foreground">{assessment.summaryText}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground">No additional comments were provided.</p>
+            )}
+            {assessment.detailHref && (
+              <Button variant="outline" size="sm" asChild>
+                <Link to={assessment.detailHref}>View full observation</Link>
+              </Button>
+            )}
+          </CardContent>
+        </Card>
       );
 
       return (
         <div className={className}>
-          <Tabs defaultValue="epa" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs defaultValue="all" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="all">All Recent</TabsTrigger>
               <TabsTrigger value="epa">EPA Assessments</TabsTrigger>
               <TabsTrigger value="observations">Observations (Legacy + Procedure)</TabsTrigger>
               <TabsTrigger value="narrative">Narrative Assessments</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="all" className="space-y-4">
+              {allRecentFeed.length === 0 ? (
+                <EmptyState
+                  icon={ClipboardList}
+                  title={content.emptyStates.assessments.student.title}
+                  description={content.emptyStates.assessments.student.description}
+                />
+              ) : (
+                <>
+                  {allRecentFeed.map((assessment) => renderUnifiedFeedCard(assessment))}
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/student/assessments">Open full assessments list</Link>
+                  </Button>
+                </>
+              )}
+            </TabsContent>
 
             <TabsContent value="epa" className="space-y-4" ref={epaSectionRef}>
               {epa.length === 0 ? (
@@ -203,47 +235,7 @@ export function CustomWidgetRenderer({
                   description={content.emptyStates.assessments.student.description}
                 />
               ) : (
-                unifiedObservations.map((assessment: any) => (
-                  <Card key={assessment.id}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <CardTitle>{assessment.title}</CardTitle>
-                        {assessment.kind === 'legacy-direct' ? (
-                          <Badge>{assessment.rating}</Badge>
-                        ) : (
-                          <Badge variant={assessment.status === 'submitted' ? 'default' : 'secondary'}>
-                            {assessment.status}
-                          </Badge>
-                        )}
-                      </div>
-                      <CardDescription>
-                        {assessment.kind === 'legacy-direct'
-                          ? `Legacy direct observation · ${new Date(assessment.created_at).toLocaleDateString()}`
-                          : `${assessment.code || ''} · Observed by ${assessment.observer} · ${new Date(assessment.created_at).toLocaleDateString()}`}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {assessment.kind === 'legacy-direct' ? (
-                        <div>
-                          <p className="text-sm font-medium">Feedback</p>
-                          <p className="text-sm text-muted-foreground">{assessment.feedback}</p>
-                        </div>
-                      ) : assessment.comments ? (
-                        <div>
-                          <p className="text-sm font-medium">Comments</p>
-                          <p className="text-sm text-muted-foreground">{assessment.comments}</p>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">No comments were provided for this observation.</p>
-                      )}
-                      {assessment.kind === 'procedure' && (
-                        <Button variant="outline" size="sm" asChild>
-                          <Link to={`/student/observations/${assessment.id}`}>View full observation</Link>
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))
+                unifiedObservations.map((assessment) => renderUnifiedFeedCard(assessment))
               )}
             </TabsContent>
 

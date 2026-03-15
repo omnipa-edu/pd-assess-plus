@@ -296,9 +296,9 @@ const StudentDashboard = () => {
             {!dashboardLayout.isEditing && (
               <>
                 <Button variant="outline" asChild>
-                  <Link to="/student/observations">
+                  <Link to="/student/assessments">
                     <FileText className="mr-2 h-4 w-4" />
-                    My observations
+                    My assessments
                   </Link>
                 </Button>
                 <Button variant="outline" asChild>

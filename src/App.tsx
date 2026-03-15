@@ -37,6 +37,7 @@ const SupervisorAssessmentForm = lazy(() => import("./pages/supervisor/Superviso
 const ObservationsList = lazy(() => import("./pages/supervisor/ObservationsList"));
 const ObservationDetail = lazy(() => import("./pages/supervisor/ObservationDetail"));
 const LearnerObservationsList = lazy(() => import("./pages/student/LearnerObservationsList"));
+const LearnerAssessmentsList = lazy(() => import("./pages/student/LearnerAssessmentsList"));
 const LearnerObservationDetail = lazy(() => import("./pages/student/LearnerObservationDetail"));
 const LearnerHelp = lazy(() => import("./pages/student/LearnerHelp"));
 
@@ -120,6 +121,7 @@ const App = () => (
                   <Route path="/auth/reset-password" element={<ResetPassword />} />
                   <Route path="/auth/update-password" element={<UpdatePassword />} />
                   <Route path="/student" element={<StudentDashboard />} />
+                  <Route path="/student/assessments" element={<LearnerAssessmentsList />} />
                   <Route path="/student/observations" element={<LearnerObservationsList />} />
                   <Route path="/student/observations/:id" element={<LearnerObservationDetail />} />
                   <Route path="/student/help" element={<LearnerHelp />} />
