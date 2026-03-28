@@ -1,5 +1,44 @@
 import { supabase } from "@/integrations/supabase/client";
 
+/** Thrown when `supervisor_feedback_requests` (or RPC) is not deployed on the linked Supabase project. */
+export class FeedbackRequestsSchemaUnavailableError extends Error {
+  override readonly name = "FeedbackRequestsSchemaUnavailableError";
+
+  constructor() {
+    super(
+      "Feedback requests are not enabled on this database. Run migration 202603271000_quick_feedback_and_requests.sql on Supabase (or `supabase db push`)."
+    );
+  }
+}
+
+/**
+ * PostgREST returns PGRST205 when the table is missing from the schema cache (migration not applied).
+ */
+export function isFeedbackRequestsUnavailableError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { code?: string; message?: string; details?: string; hint?: string };
+  const parts = [e.message, e.details, e.hint].filter(Boolean).join(" ").toLowerCase();
+  if (e.code === "PGRST205") return true;
+  if (parts.includes("supervisor_feedback_requests")) {
+    if (
+      parts.includes("schema cache") ||
+      parts.includes("does not exist") ||
+      parts.includes("not found")
+    ) {
+      return true;
+    }
+  }
+  if (
+    parts.includes("create_supervisor_feedback_request") &&
+    (parts.includes("does not exist") ||
+      parts.includes("could not find") ||
+      parts.includes("schema cache"))
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export type SupervisorFeedbackRequestStatus = "open" | "fulfilled" | "cancelled";
 
 export interface SupervisorFeedbackRequestRow {
@@ -26,7 +65,12 @@ export async function createSupervisorFeedbackRequest(
     p_message: message ?? null,
   });
 
-  if (error) throw error;
+  if (error) {
+    if (isFeedbackRequestsUnavailableError(error)) {
+      throw new FeedbackRequestsSchemaUnavailableError();
+    }
+    throw error;
+  }
   let parsed: { id?: string } = {};
   if (typeof data === "string") {
     try {
@@ -74,7 +118,12 @@ export async function fetchSupervisorFeedbackRequests(
   }
 
   const { data, error } = await q;
-  if (error) throw error;
+  if (error) {
+    if (isFeedbackRequestsUnavailableError(error)) {
+      throw new FeedbackRequestsSchemaUnavailableError();
+    }
+    throw error;
+  }
   return (data || []) as SupervisorFeedbackRequestWithStudent[];
 }
 
@@ -87,5 +136,10 @@ export async function updateSupervisorFeedbackRequestStatus(
     .update({ status, updated_at: new Date().toISOString() })
     .eq("id", requestId);
 
-  if (error) throw error;
+  if (error) {
+    if (isFeedbackRequestsUnavailableError(error)) {
+      throw new FeedbackRequestsSchemaUnavailableError();
+    }
+    throw error;
+  }
 }

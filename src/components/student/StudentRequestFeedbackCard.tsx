@@ -27,6 +27,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
   createSupervisorFeedbackRequest,
+  FeedbackRequestsSchemaUnavailableError,
   notifyFeedbackRequestEmail,
 } from "@/lib/feedbackRequests";
 
@@ -109,6 +110,14 @@ export function StudentRequestFeedbackCard() {
       setOpen(false);
       setMessage("");
     } catch (e: unknown) {
+      if (e instanceof FeedbackRequestsSchemaUnavailableError) {
+        toast({
+          title: "Feature not enabled on server",
+          description: e.message,
+          variant: "destructive",
+        });
+        return;
+      }
       const msg = e instanceof Error ? e.message : "Request failed.";
       toast({
         title: "Could not send request",
