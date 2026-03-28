@@ -436,7 +436,7 @@ export type Database = {
           clinical_setting: string | null
           complexity: string | null
           created_at: string | null
-          epa_number: string
+          epa_number: string | null
           feedback: string | null
           feedback_time_minutes: number | null
           id: string
@@ -455,7 +455,7 @@ export type Database = {
           clinical_setting?: string | null
           complexity?: string | null
           created_at?: string | null
-          epa_number: string
+          epa_number?: string | null
           feedback?: string | null
           feedback_time_minutes?: number | null
           id?: string
@@ -474,7 +474,7 @@ export type Database = {
           clinical_setting?: string | null
           complexity?: string | null
           created_at?: string | null
-          epa_number?: string
+          epa_number?: string | null
           feedback?: string | null
           feedback_time_minutes?: number | null
           id?: string
@@ -714,6 +714,80 @@ export type Database = {
             columns: ["supervisor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supervisor_feedback_requests: {
+        Row: {
+          id: string
+          student_id: string
+          supervisor_id: string
+          message: string | null
+          status: Database["public"]["Enums"]["supervisor_feedback_request_status"]
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          student_id: string
+          supervisor_id: string
+          message?: string | null
+          status?: Database["public"]["Enums"]["supervisor_feedback_request_status"]
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string
+          supervisor_id?: string
+          message?: string | null
+          status?: Database["public"]["Enums"]["supervisor_feedback_request_status"]
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supervisor_feedback_requests_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supervisor_feedback_requests_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback_request_email_log: {
+        Row: {
+          feedback_request_id: string
+          sent_at: string
+          delivery_status: string
+        }
+        Insert: {
+          feedback_request_id: string
+          sent_at?: string
+          delivery_status?: string
+        }
+        Update: {
+          feedback_request_id?: string
+          sent_at?: string
+          delivery_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_request_email_log_feedback_request_id_fkey"
+            columns: ["feedback_request_id"]
+            isOneToOne: true
+            referencedRelation: "supervisor_feedback_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -2161,6 +2235,10 @@ export type Database = {
         }
         Returns: string
       }
+      create_supervisor_feedback_request: {
+        Args: { p_message?: string | null; p_supervisor_id: string }
+        Returns: Json
+      }
       create_student_account: {
         Args: {
           p_email: string
@@ -2416,6 +2494,7 @@ export type Database = {
         | "weekly_summary"
         | "system_announcement"
       subscription_plan: "free" | "standard" | "pro" | "enterprise"
+      supervisor_feedback_request_status: "open" | "fulfilled" | "cancelled"
       subscription_status:
         | "inactive"
         | "active"
@@ -2608,6 +2687,7 @@ export const Constants = {
         "weekly_summary",
         "system_announcement",
       ],
+      supervisor_feedback_request_status: ["open", "fulfilled", "cancelled"],
       subscription_plan: ["free", "standard", "pro", "enterprise"],
       subscription_status: [
         "inactive",

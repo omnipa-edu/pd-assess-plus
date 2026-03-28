@@ -1,4 +1,4 @@
-import { ClipboardList, Eye, FileText, Users, BookOpen } from "lucide-react";
+import { ClipboardList, Eye, FileText, Users, BookOpen, Zap } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,17 +8,27 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 interface NewAssessmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAssessmentSelect: (type: 'epa-observation' | 'direct-observation' | 'narrative' | 'procedure-from-library') => void;
+  onAssessmentSelect: (
+    type: 'quick-feedback' | 'epa-observation' | 'direct-observation' | 'narrative' | 'procedure-from-library'
+  ) => void;
 }
 
 const NewAssessmentDialog = ({ open, onOpenChange, onAssessmentSelect }: NewAssessmentDialogProps) => {
   const assessmentTypes = [
     {
-      type: "EPA Observation",
-      description: "Entrustable Professional Activity assessment with O score",
-      icon: ClipboardList,
+      type: "Quick feedback",
+      description: "Learner, O-score, and narrative—optional EPA. Fast path; same EPA assessment record.",
+      icon: Zap,
       color: "text-primary",
       bgColor: "bg-primary-light",
+      value: "quick-feedback" as const
+    },
+    {
+      type: "Full EPA observation",
+      description: "Step-by-step EPA form with full RX-OCR fields",
+      icon: ClipboardList,
+      color: "text-primary",
+      bgColor: "bg-teal-50",
       value: "epa-observation" as const
     },
     {

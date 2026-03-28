@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import {
   ClipboardList,
@@ -13,11 +14,14 @@ import {
   AlertTriangle,
   UserCircle,
   HelpCircle,
-  Stethoscope
+  Stethoscope,
+  Zap,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
-import AssessmentDashboard from "@/components/AssessmentDashboard";
+import AssessmentDashboard, { type AssessmentDashboardTab } from "@/components/AssessmentDashboard";
+import { LayoutModeToggle } from "@/components/layout/LayoutModeToggle";
+import { SupervisorFeedbackRequestsCard } from "@/components/supervisor/SupervisorFeedbackRequestsCard";
 import { AchievementDisplay } from "@/components/achievements/AchievementDisplay";
 import { SupervisorBenchmarkView } from "@/components/benchmarks/SupervisorBenchmarkView";
 import { CMESummaryCard } from "@/components/cme/CMESummaryCard";
@@ -56,10 +60,12 @@ import type { WidgetId } from "@/lib/dashboard/types";
 
 const SupervisorDashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const { signOut, hasRole, loading, profile, user } = useAuth();
   const [currentView, setCurrentView] = useState<'dashboard' | 'new-assessment'>('dashboard');
-  const [selectedAssessmentType, setSelectedAssessmentType] = useState<'epa-observation' | 'direct-observation' | 'narrative'>('epa-observation');
+  const [selectedAssessmentType, setSelectedAssessmentType] = useState<AssessmentDashboardTab>("quick-feedback");
   const [showNewAssessment, setShowNewAssessment] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [profileForm, setProfileForm] = useState({
@@ -81,6 +87,23 @@ const SupervisorDashboard = () => {
       });
     }
   }, [profile]);
+
+  useEffect(() => {
+    const a = searchParams.get("assessment");
+    if (a === "quick" || a === "quick-feedback") {
+      setSelectedAssessmentType("quick-feedback");
+      setCurrentView("new-assessment");
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    const st = location.state as { openQuickAssessment?: boolean } | null;
+    if (!st?.openQuickAssessment) return;
+    setSelectedAssessmentType("quick-feedback");
+    setCurrentView("new-assessment");
+    navigate(".", { replace: true, state: {} });
+  }, [location.state, navigate]);
   
   const handleSaveProfile = async () => {
     if (!profile) return;
@@ -281,7 +304,12 @@ const SupervisorDashboard = () => {
   ];
 
   if (currentView === 'new-assessment') {
-    return <AssessmentDashboard onBack={() => setCurrentView('dashboard')} defaultTab={selectedAssessmentType} />;
+    return (
+      <AssessmentDashboard
+        onBack={() => setCurrentView('dashboard')}
+        defaultTab={selectedAssessmentType}
+      />
+    );
   }
 
   return (
@@ -297,7 +325,8 @@ const SupervisorDashboard = () => {
                 <p className="text-sm text-muted-foreground">Supervisor Dashboard</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex flex-wrap items-center gap-2 md:gap-4">
+              {!dashboardLayout.isEditing && <LayoutModeToggle />}
               {!dashboardLayout.isEditing && <NotificationCenter />}
               <DashboardEditControls
                 isEditing={dashboardLayout.isEditing}
@@ -426,6 +455,8 @@ const SupervisorDashboard = () => {
 
         <SupervisorRecommendationsCard />
 
+        <SupervisorFeedbackRequestsCard />
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Quick Actions */}
@@ -442,12 +473,23 @@ const SupervisorDashboard = () => {
                 variant="outline" 
                 className="h-12 w-full justify-start border-border hover:bg-primary-light"
                 onClick={() => {
+                  setSelectedAssessmentType('quick-feedback');
+                  setCurrentView('new-assessment');
+                }}
+              >
+                <Zap className="mr-3 h-4 w-4 text-primary" />
+                Quick feedback
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-12 w-full justify-start border-border hover:bg-primary-light/80"
+                onClick={() => {
                   setSelectedAssessmentType('epa-observation');
                   setCurrentView('new-assessment');
                 }}
               >
                 <ClipboardList className="mr-3 h-4 w-4 text-primary" />
-                EPA Observation
+                Full EPA observation
               </Button>
               <Button 
                 variant="outline" 
@@ -561,7 +603,11 @@ const SupervisorDashboard = () => {
             navigate('/supervisor/run-assessment');
             return;
           }
-          setSelectedAssessmentType(type);
+          setSelectedAssessmentType(
+            type === 'direct-observation' || type === 'narrative' || type === 'epa-observation' || type === 'quick-feedback'
+              ? type
+              : 'quick-feedback'
+          );
           setCurrentView('new-assessment');
         }}
       />

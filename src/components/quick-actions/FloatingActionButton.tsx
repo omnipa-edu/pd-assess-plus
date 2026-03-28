@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Plus, X, ClipboardList, FileText, BookOpen } from 'lucide-react';
+import { Plus, X, ClipboardList, FileText, BookOpen, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
@@ -25,13 +25,20 @@ export function FloatingActionButton() {
 
   const quickActions: QuickAction[] = [
     {
+      label: 'Quick feedback',
+      icon: <Zap className="h-4 w-4" />,
+      onClick: () => {
+        navigate('/supervisor?assessment=quick');
+        setOpen(false);
+      },
+      variant: 'default',
+    },
+    {
       label: 'EPA Observation',
       icon: <ClipboardList className="h-4 w-4" />,
       onClick: () => {
         navigate('/supervisor');
         setOpen(false);
-        // The supervisor dashboard will handle opening the assessment dialog
-        // You may need to pass state or use a global state management solution
       },
       variant: 'default',
     },

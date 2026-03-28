@@ -28,3 +28,6 @@ enabled = true
 
 [functions.voice-to-text]
 verify_jwt = false
+
+[functions.notify-feedback-request]
+verify_jwt = true

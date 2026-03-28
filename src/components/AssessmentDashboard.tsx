@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { ArrowLeft, User, FileText, ExternalLink } from "lucide-react";
 
 import EPAObservationForm from "@/components/EPAObservationForm";
+import QuickFeedbackForm from "@/components/QuickFeedbackForm";
+import { LayoutModeToggle } from "@/components/layout/LayoutModeToggle";
 import NarrativeAssessmentForm from "@/components/NarrativeAssessmentForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useLayoutDensity } from "@/contexts/LayoutDensityContext";
 import { logger } from "@/lib/logger";
 
 interface PhysicianAssociate {
@@ -22,9 +25,16 @@ interface PhysicianAssociate {
   cohort_id: string | null;
 }
 
+export type AssessmentDashboardTab =
+  | "quick-feedback"
+  | "epa-observation"
+  | "direct-observation"
+  | "narrative"
+  | "procedure-competency";
+
 interface AssessmentDashboardProps {
   onBack: () => void;
-  defaultTab?: 'epa-observation' | 'direct-observation' | 'narrative' | 'procedure-competency';
+  defaultTab?: AssessmentDashboardTab;
 }
 
 // Constants
@@ -62,9 +72,12 @@ interface ProcedureOption {
  * @param onBack - Callback function to navigate back to the previous screen
  * @param defaultTab - Default tab to show when a student is selected
  */
-const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: AssessmentDashboardProps) => {
+const AssessmentDashboard = ({ onBack, defaultTab = "quick-feedback" }: AssessmentDashboardProps) => {
   const navigate = useNavigate();
+  const { density } = useLayoutDensity();
+  const compactLayout = useMemo(() => density === "compact", [density]);
   const [selectedAssociate, setSelectedAssociate] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<AssessmentDashboardTab>(defaultTab);
   const [associates, setAssociates] = useState<PhysicianAssociate[]>([]);
   const [loading, setLoading] = useState(true);
   const [procedureOptions, setProcedureOptions] = useState<ProcedureOption[]>([]);
@@ -75,6 +88,10 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
   useEffect(() => {
     loadStudents();
   }, []);
+
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
 
   // Load procedures for the procedure-competency tab: when an associate is selected and has cohort_id, use program_procedures for that cohort; else all active procedures with a form
   const selectedAssociateData = selectedAssociate ? associates.find((a) => a.id === selectedAssociate) : null;
@@ -406,7 +423,7 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
       <div className="min-h-screen bg-background">
         <header className="border-b bg-card shadow-card">
           <div className="container mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center space-x-4">
               <Button 
                 variant="ghost" 
@@ -422,26 +439,37 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
                   </p>
                 </div>
               </div>
+              <LayoutModeToggle />
             </div>
           </div>
         </header>
 
         <main className="container mx-auto px-6 py-8">
-          <Tabs defaultValue={defaultTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-secondary">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as AssessmentDashboardTab)} className="w-full">
+            <TabsList className="flex h-auto min-h-11 w-full flex-wrap justify-start gap-1 bg-secondary p-1">
+              <TabsTrigger
+                value="quick-feedback"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                Quick feedback
+              </TabsTrigger>
               <TabsTrigger value="epa-observation" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                EPA Observation
+                Full EPA
               </TabsTrigger>
               <TabsTrigger value="direct-observation" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 Direct observation
               </TabsTrigger>
               <TabsTrigger value="narrative" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Narrative Assessment
+                Narrative
               </TabsTrigger>
               <TabsTrigger value="procedure-competency" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Procedure competency
+                Procedure
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="quick-feedback" className="mt-6">
+              <QuickFeedbackForm associate={associate!} compactLayout={compactLayout} />
+            </TabsContent>
 
             <TabsContent value="epa-observation" className="mt-6">
               <EPAObservationForm associate={associate!} />
@@ -531,7 +559,7 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card shadow-card">
         <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center space-x-4">
               <Button 
                 variant="ghost" 
@@ -546,6 +574,7 @@ const AssessmentDashboard = ({ onBack, defaultTab = 'epa-observation' }: Assessm
                 <p className="text-sm text-muted-foreground">Select a physician associate to begin assessment</p>
               </div>
             </div>
+            <LayoutModeToggle />
           </div>
         </div>
       </header>

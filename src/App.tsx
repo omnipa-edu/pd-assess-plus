@@ -12,6 +12,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CommandPalette } from "./components/quick-actions/CommandPalette";
 import { KeyboardShortcuts } from "./components/quick-actions/KeyboardShortcuts";
 import { ThemeProvider } from "./components/theme/ThemeProvider";
+import { LayoutDensityProvider } from "./contexts/LayoutDensityContext";
 import { AuthProvider } from "./hooks/useAuth";
 
 // Lazy load routes for code splitting
@@ -72,6 +73,7 @@ const ButtonDefinitions = lazy(() => import("./pages/admin/ButtonDefinitions"));
 const ButtonSets = lazy(() => import("./pages/admin/ButtonSets"));
 const AdminHelp = lazy(() => import("./pages/admin/AdminHelp"));
 const SupervisorHelp = lazy(() => import("./pages/supervisor/SupervisorHelp"));
+const FeedbackRequests = lazy(() => import("./pages/supervisor/FeedbackRequests"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -97,6 +99,7 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
+          <LayoutDensityProvider>
           <TooltipProvider>
             <Toaster />
             <Sonner />
@@ -135,6 +138,7 @@ const App = () => (
                   <Route path="/supervisor/observations" element={<ObservationsList />} />
                   <Route path="/supervisor/observations/:id" element={<ObservationDetail />} />
                   <Route path="/supervisor/help" element={<SupervisorHelp />} />
+                  <Route path="/supervisor/feedback-requests" element={<FeedbackRequests />} />
                   
                   {/* NEW Admin Console Routes */}
                   <Route path="/admin" element={<AdminOverview />} />
@@ -176,6 +180,7 @@ const App = () => (
               </Suspense>
             </BrowserRouter>
           </TooltipProvider>
+          </LayoutDensityProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

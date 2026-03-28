@@ -8,6 +8,7 @@ import { EpaTrajectoryView } from '@/components/benchmarks/EpaTrajectoryView';
 import { CoachingCornerFeed } from '@/components/coaching/CoachingCornerFeed';
 import { GoalsDisplay } from '@/components/goals/GoalsDisplay';
 import { StreakDisplay } from '@/components/gamification/StreakDisplay';
+import { LayoutModeToggle } from '@/components/layout/LayoutModeToggle';
 import { LearningPlanCard } from '@/components/learningPlans/LearningPlanCard';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
@@ -19,6 +20,7 @@ import { DashboardGrid } from '@/components/dashboard/DashboardGrid';
 import { DashboardCustomizeSidebar } from '@/components/dashboard/DashboardCustomizeSidebar';
 import { CustomWidgetRenderer } from '@/components/dashboard/CustomWidgetRenderer';
 import { renderWidget } from '@/components/dashboard/widgets/registry';
+import { StudentRequestFeedbackCard } from '@/components/student/StudentRequestFeedbackCard';
 import { StudentFeedbackDigests } from '@/components/feedback/StudentFeedbackDigests';
 import { StudentResourceRecommendations } from '@/components/resources/StudentResourceRecommendations';
 import { Badge } from '@/components/ui/badge';
@@ -48,7 +50,7 @@ interface Assessment {
 }
 
 interface EPAAssessment extends Assessment {
-  epa_number: string;
+  epa_number: string | null;
   feedback: string;
   rating: string;
 }
@@ -148,12 +150,14 @@ const StudentDashboard = () => {
   const readinessData = useMemo(() => {
     if (epaAssessments.length === 0) return [];
     
-    const observations: EpaObservation[] = epaAssessments.map((a: EPAAssessment) => ({
-      epaCode: a.epa_number,
-      supervisorId: a.supervisor_id,
-      oscore: Number(a.rating) || null,
-      createdAt: a.created_at,
-    }));
+    const observations: EpaObservation[] = epaAssessments
+      .filter((a: EPAAssessment) => Boolean(a.epa_number))
+      .map((a: EPAAssessment) => ({
+        epaCode: a.epa_number,
+        supervisorId: a.supervisor_id,
+        oscore: Number(a.rating) || null,
+        createdAt: a.created_at,
+      }));
     
     const breakdowns = computeEpaReadiness(observations, DEFAULT_READINESS);
     return breakdowns.map((b) => ({
@@ -282,7 +286,8 @@ const StudentDashboard = () => {
             <h1 className="text-3xl font-bold">My Assessments</h1>
             <p className="text-muted-foreground">Welcome back, {profile?.full_name || 'Student'}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {!dashboardLayout.isEditing && <LayoutModeToggle />}
             {!dashboardLayout.isEditing && <NotificationCenter />}
             <DashboardEditControls
               isEditing={dashboardLayout.isEditing}
@@ -315,6 +320,8 @@ const StudentDashboard = () => {
             </Button>
           </div>
         </div>
+
+        {!dashboardLayout.isEditing && <StudentRequestFeedbackCard />}
 
         {/* Dashboard Customization Sidebar */}
         <DashboardCustomizeSidebar
