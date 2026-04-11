@@ -31,12 +31,19 @@ function isRetryableSchemaError(error: PostgrestError): boolean {
 function isRelationOrTableMissing(error: PostgrestError): boolean {
   const status = errorStatus(error);
   const m = (error.message ?? '').toLowerCase();
+  const code = error.code ?? '';
+
+  // Unknown column (often "… column … in the schema cache") — retry narrower SELECT, not "no table"
+  if (code === 'PGRST204') return false;
+  if (m.includes('column')) return false;
+
   return (
     status === 404 ||
-    error.code === '42P01' ||
+    code === '42P01' ||
+    code === 'PGRST205' ||
     (m.includes('relation') && m.includes('does not exist')) ||
-    m.includes('schema cache') ||
-    m.includes('could not find the table')
+    m.includes('could not find the table') ||
+    (m.includes('schema cache') && m.includes('table'))
   );
 }
 
