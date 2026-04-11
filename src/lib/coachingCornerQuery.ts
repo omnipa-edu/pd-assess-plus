@@ -19,21 +19,17 @@ function errorStatus(error: PostgrestError): number | undefined {
   return (error as PostgrestError & { status?: number }).status;
 }
 
-function isRetryableSchemaError(error: PostgrestError): boolean {
-  const status = errorStatus(error);
-  if (status === 400) return true;
-  if (error.code === 'PGRST204') return true;
-  const m = error.message ?? '';
-  if (m.includes('column') && m.toLowerCase().includes('does not exist')) return true;
-  return false;
+function errorText(error: PostgrestError): string {
+  const e = error as PostgrestError & { details?: string };
+  return `${error.message ?? ''} ${e.details ?? ''}`.toLowerCase();
 }
 
 function isRelationOrTableMissing(error: PostgrestError): boolean {
   const status = errorStatus(error);
-  const m = (error.message ?? '').toLowerCase();
+  const m = errorText(error);
   const code = error.code ?? '';
 
-  // Unknown column (often "… column … in the schema cache") — retry narrower SELECT, not "no table"
+  // Unknown column — retry narrower SELECT, not "no table"
   if (code === 'PGRST204') return false;
   if (m.includes('column')) return false;
 
@@ -89,7 +85,8 @@ function normalizeRow(r: Record<string, unknown>): CoachingCornerActiveRow {
  * Active coaching_corner rows, trying narrower SELECT lists when PostgREST returns 400 (unknown column).
  */
 export async function fetchCoachingCornerActiveRows(): Promise<CoachingCornerActiveRow[]> {
-  for (const selectList of ACTIVE_SELECT_ATTEMPTS) {
+  for (let i = 0; i < ACTIVE_SELECT_ATTEMPTS.length; i++) {
+    const selectList = ACTIVE_SELECT_ATTEMPTS[i];
     const { data, error } = await supabase
       .from('coaching_corner')
       .select(selectList)
@@ -102,17 +99,17 @@ export async function fetchCoachingCornerActiveRows(): Promise<CoachingCornerAct
     }
 
     if (error && isRelationOrTableMissing(error)) {
-      console.warn('coaching_corner unavailable (table or schema cache). Returning no rows.');
+      console.warn('coaching_corner unavailable (table missing or not exposed). Returning no rows.');
       return [];
     }
 
-    if (error && isRetryableSchemaError(error)) {
+    const hasMoreAttempts = i < ACTIVE_SELECT_ATTEMPTS.length - 1;
+    if (error && hasMoreAttempts) {
       continue;
     }
 
     if (error) {
       console.error('coaching_corner query failed:', error);
-      return [];
     }
   }
 
