@@ -15,6 +15,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { fetchCoachingCornerActiveRows } from '@/lib/coachingCornerQuery';
 
 export interface WBAActivity {
   // EPA assessments
@@ -258,91 +259,32 @@ export async function fetchCoachingCandidates(
   preferredTags?: string[]
 ): Promise<CoachingCandidate[]> {
   const now = new Date().toISOString();
-  
-  // Build the query with proper date filtering
-  // We need: (start_at IS NULL OR start_at <= now) AND (end_at IS NULL OR end_at >= now)
-  // Supabase PostgREST: Use filter() for complex conditions or fetch and filter in JS
-  // For now, we'll fetch all active items and filter in JavaScript to avoid query syntax issues
-  // Note: audience is a single value column, so we filter in JavaScript after fetching
-  const query = supabase
-    .from('coaching_corner')
-    .select('id, title, body, content_type, video_url, tags, priority, pinned, created_at, start_at, end_at, audience')
-    .eq('is_active', true);
+  const rows = await fetchCoachingCornerActiveRows();
 
-  const { data, error } = await query;
-
-  if (error) {
-    // Handle case where table doesn't exist or query syntax issue
-    const isTableNotFound = 
-      error.code === 'PGRST116' || 
-      error.status === 404 ||
-      error.message?.includes('relation') || 
-      error.message?.includes('does not exist') ||
-      error.message?.includes('not found');
-    
-    if (isTableNotFound) {
-      console.warn('coaching_corner table not found. Returning empty array.');
-      return [];
-    }
-    
-    // For 400 errors, try without the audience column in case it doesn't exist
-    if (error.status === 400) {
-      console.warn('Error with audience column, trying without it:', error);
-      const { data: fallbackData, error: fallbackError } = await supabase
-        .from('coaching_corner')
-        .select('id, title, body, content_type, video_url, tags, priority, pinned, created_at, start_at, end_at')
-        .eq('is_active', true);
-      
-      if (fallbackError) {
-        console.error('Error fetching coaching candidates (fallback also failed):', fallbackError);
-        return []; // Return empty array instead of throwing
-      }
-      
-      // Use fallback data and assume all items are for the requested audience
-      const candidates = ((fallbackData || []) as any[])
-        .filter((item: any) => {
-          const startValid = !item.start_at || new Date(item.start_at) <= new Date(now);
-          const endValid = !item.end_at || new Date(item.end_at) >= new Date(now);
-          return startValid && endValid;
-        })
-        .map(({ start_at, end_at, ...item }) => ({ ...item, audience: 'all' })) as CoachingCandidate[];
-      
-      return preferredTags && preferredTags.length > 0
-        ? candidates.filter(candidate => {
-            if (!candidate.tags || candidate.tags.length === 0) return false;
-            return preferredTags.some(tag => candidate.tags.includes(tag));
-          })
-        : candidates;
-    }
-    
-    console.error('Error fetching coaching candidates:', error);
-    return []; // Return empty array instead of throwing to prevent app crashes
-  }
-
-  // Filter by date range and audience in JavaScript
-  // Date: (start_at IS NULL OR start_at <= now) AND (end_at IS NULL OR end_at >= now)
-  // Audience: audience === 'all' OR audience matches the requested audience
-  const candidates = ((data || []) as any[])
-    .filter((item: any) => {
-      // Date filtering
+  const candidates: CoachingCandidate[] = rows
+    .filter((item) => {
       const startValid = !item.start_at || new Date(item.start_at) <= new Date(now);
       const endValid = !item.end_at || new Date(item.end_at) >= new Date(now);
-      
-      // Audience filtering
       const audienceValid = item.audience === 'all' || item.audience === audience;
-      
       return startValid && endValid && audienceValid;
     })
-    .map(({ start_at, end_at, audience: _audience, ...item }) => item) as CoachingCandidate[];
+    .map((item) => ({
+      id: item.id,
+      title: item.title,
+      body: item.body,
+      content_type: item.content_type,
+      video_url: item.video_url,
+      tags: item.tags ?? [],
+      priority: item.priority ?? 0,
+      pinned: item.pinned,
+      created_at: item.created_at,
+    }));
 
-  // If preferred tags are provided, filter candidates that match any tag
   if (preferredTags && preferredTags.length > 0) {
-    const matching = candidates.filter(candidate => {
+    const matching = candidates.filter((candidate) => {
       if (!candidate.tags || candidate.tags.length === 0) return false;
-      return preferredTags.some(tag => candidate.tags.includes(tag));
+      return preferredTags.some((tag) => candidate.tags.includes(tag));
     });
-    
-    // If we found matches, return them; otherwise fall back to all candidates
     return matching.length > 0 ? matching : candidates;
   }
 

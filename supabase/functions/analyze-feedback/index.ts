@@ -200,10 +200,11 @@ Important: Return ONLY valid JSON, no markdown formatting or additional text.`;
       userFriendlyMessage = 'Invalid response from AI service. Please try again.';
     }
     
+    const isDevelopment = Deno.env.get('DENO_ENV') === 'development';
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: userFriendlyMessage,
-        details: process.env.DENO_ENV === 'development' ? errorMessage : undefined
+        details: isDevelopment ? errorMessage : undefined,
       }),
       {
         status: 500,

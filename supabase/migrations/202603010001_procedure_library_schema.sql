@@ -72,6 +72,8 @@ CREATE INDEX IF NOT EXISTS idx_procedures_latest_version ON public.procedures(la
 
 ALTER TABLE public.procedure_versions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS procedure_versions_select ON public.procedure_versions;
+DROP POLICY IF EXISTS procedure_versions_admin ON public.procedure_versions;
 CREATE POLICY procedure_versions_select ON public.procedure_versions
   FOR SELECT USING (
     EXISTS (SELECT 1 FROM public.procedures p WHERE p.id = procedure_versions.procedure_id AND (p.status = 'active' OR public.has_role(auth.uid(), 'admin')))
@@ -101,6 +103,8 @@ CREATE INDEX IF NOT EXISTS idx_procedure_audit_logs_created_at ON public.procedu
 
 ALTER TABLE public.procedure_audit_logs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS procedure_audit_logs_admin_read ON public.procedure_audit_logs;
+DROP POLICY IF EXISTS procedure_audit_logs_insert ON public.procedure_audit_logs;
 CREATE POLICY procedure_audit_logs_admin_read ON public.procedure_audit_logs
   FOR SELECT USING (public.has_role(auth.uid(), 'admin'));
 CREATE POLICY procedure_audit_logs_insert ON public.procedure_audit_logs
@@ -126,6 +130,8 @@ CREATE INDEX IF NOT EXISTS idx_program_procedures_procedure ON public.program_pr
 
 ALTER TABLE public.program_procedures ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS program_procedures_select ON public.program_procedures;
+DROP POLICY IF EXISTS program_procedures_admin_supervisor ON public.program_procedures;
 CREATE POLICY program_procedures_select ON public.program_procedures
   FOR SELECT USING (
     public.has_role(auth.uid(), 'admin') OR public.has_role(auth.uid(), 'supervisor')
@@ -168,6 +174,11 @@ CREATE TRIGGER update_observations_updated_at
 
 ALTER TABLE public.observations ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS observations_learner_own ON public.observations;
+DROP POLICY IF EXISTS observations_supervisor ON public.observations;
+DROP POLICY IF EXISTS observations_supervisor_insert ON public.observations;
+DROP POLICY IF EXISTS observations_supervisor_update ON public.observations;
+DROP POLICY IF EXISTS observations_admin_all ON public.observations;
 CREATE POLICY observations_learner_own ON public.observations
   FOR SELECT USING (auth.uid() = learner_id);
 CREATE POLICY observations_supervisor ON public.observations
@@ -218,6 +229,8 @@ CREATE TRIGGER update_button_definitions_updated_at
 
 ALTER TABLE public.button_definitions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS button_definitions_admin ON public.button_definitions;
+DROP POLICY IF EXISTS button_definitions_read ON public.button_definitions;
 CREATE POLICY button_definitions_admin ON public.button_definitions
   FOR ALL USING (public.has_role(auth.uid(), 'admin'))
   WITH CHECK (public.has_role(auth.uid(), 'admin'));
@@ -244,6 +257,8 @@ CREATE TRIGGER update_button_sets_updated_at
 
 ALTER TABLE public.button_sets ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS button_sets_admin ON public.button_sets;
+DROP POLICY IF EXISTS button_sets_read ON public.button_sets;
 CREATE POLICY button_sets_admin ON public.button_sets
   FOR ALL USING (public.has_role(auth.uid(), 'admin'))
   WITH CHECK (public.has_role(auth.uid(), 'admin'));
@@ -263,6 +278,8 @@ CREATE TABLE IF NOT EXISTS public.button_set_items (
 
 ALTER TABLE public.button_set_items ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS button_set_items_admin ON public.button_set_items;
+DROP POLICY IF EXISTS button_set_items_read ON public.button_set_items;
 CREATE POLICY button_set_items_admin ON public.button_set_items
   FOR ALL USING (public.has_role(auth.uid(), 'admin'))
   WITH CHECK (public.has_role(auth.uid(), 'admin'));
@@ -282,6 +299,8 @@ CREATE TABLE IF NOT EXISTS public.procedure_button_set (
 
 ALTER TABLE public.procedure_button_set ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS procedure_button_set_admin ON public.procedure_button_set;
+DROP POLICY IF EXISTS procedure_button_set_read ON public.procedure_button_set;
 CREATE POLICY procedure_button_set_admin ON public.procedure_button_set
   FOR ALL USING (public.has_role(auth.uid(), 'admin'))
   WITH CHECK (public.has_role(auth.uid(), 'admin'));
@@ -301,6 +320,8 @@ CREATE TABLE IF NOT EXISTS public.program_procedure_button_set (
 
 ALTER TABLE public.program_procedure_button_set ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS program_procedure_button_set_admin_supervisor ON public.program_procedure_button_set;
+DROP POLICY IF EXISTS program_procedure_button_set_read ON public.program_procedure_button_set;
 CREATE POLICY program_procedure_button_set_admin_supervisor ON public.program_procedure_button_set
   FOR ALL USING (public.has_role(auth.uid(), 'admin') OR public.has_role(auth.uid(), 'supervisor'))
   WITH CHECK (public.has_role(auth.uid(), 'admin') OR public.has_role(auth.uid(), 'supervisor'));

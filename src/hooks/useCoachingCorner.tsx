@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/integrations/supabase/client';
 import { getAdaptiveCoachingItem } from '@/lib/adaptive-coaching';
+import { coachingCornerRelationMissing, fetchCoachingCornerActiveRows } from '@/lib/coachingCornerQuery';
 
 import { useAuth } from './useAuth';
 
@@ -50,41 +51,54 @@ export function useCoachingCorner() {
         allowedAudiences.add('learners');
       }
       
-      // Fetch active coaching items
-      // Note: Filter date range and audience in JavaScript to avoid PostgREST query syntax issues
-      const { data, error } = await supabase
-        .from('coaching_corner')
-        .select('id, title, body, content_type, video_url, tags, priority, pinned, created_at, start_at, end_at, audience, is_active')
-        .eq('is_active', true)
-        .order('pinned', { ascending: false })
-        .order('start_at', { ascending: false });
-      
-      if (error) {
-        console.error('Error fetching coaching corner:', error);
-        throw error;
-      }
-      
+      const rows = await fetchCoachingCornerActiveRows();
+
       // Filter by date range and audience: (start_at IS NULL OR start_at <= now) AND (end_at IS NULL OR end_at >= now)
       // AND (audience === 'all' OR audience is in allowedAudiences)
-      const dateFiltered = (data || []).filter((item: any) => {
+      const dateFiltered = rows.filter((item) => {
         const startValid = !item.start_at || new Date(item.start_at) <= new Date(now);
         const endValid = !item.end_at || new Date(item.end_at) >= new Date(now);
         const audienceValid = allowedAudiences.has(item.audience);
         return startValid && endValid && audienceValid;
       });
-      
+
       // Fetch dismissed items for this user
-      const { data: dismissedData } = await supabase
+      const { data: dismissedData, error: dismissalsError } = await supabase
         .from('coaching_corner_dismissals')
         .select('coaching_id')
         .eq('user_id', user.id);
-      
-      const dismissedIds = new Set((dismissedData || []).map(d => d.coaching_id));
+
+      let dismissedIds = new Set<string>();
+      if (!dismissalsError) {
+        dismissedIds = new Set((dismissedData || []).map((d) => d.coaching_id));
+      } else if (coachingCornerRelationMissing(dismissalsError)) {
+        /* dismissals table missing — show all coaching items */
+      } else {
+        console.error('Error fetching coaching dismissals:', dismissalsError);
+      }
       
       // Filter out dismissed items
-      const filtered = dateFiltered.filter(item => !dismissedIds.has(item.id));
-      
-      return filtered as CoachingItem[];
+      const filtered = dateFiltered.filter((item) => !dismissedIds.has(item.id));
+
+      return filtered.map(
+        (row): CoachingItem => ({
+          id: row.id,
+          created_by: row.created_by,
+          role_scope: row.role_scope,
+          audience: row.audience,
+          title: row.title,
+          content_type: row.content_type,
+          body: row.body ?? undefined,
+          video_url: row.video_url ?? undefined,
+          tags: row.tags,
+          priority: row.priority,
+          start_at: row.start_at,
+          end_at: row.end_at,
+          pinned: row.pinned,
+          is_active: row.is_active,
+          created_at: row.created_at,
+        })
+      );
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes
