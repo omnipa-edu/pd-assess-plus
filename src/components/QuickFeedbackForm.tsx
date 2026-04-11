@@ -43,7 +43,6 @@ export function QuickFeedbackForm({ associate, compactLayout }: QuickFeedbackFor
   const [optionalOpen, setOptionalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
-  const [recommendationOpenKey, setRecommendationOpenKey] = useState(0);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [aiUsage, setAIUsage] = useState({
     used_smart_feedback: false,
@@ -133,7 +132,6 @@ export function QuickFeedbackForm({ associate, compactLayout }: QuickFeedbackFor
 
       if (result.data?.id) {
         setAssessmentId(result.data.id);
-        setRecommendationOpenKey((k) => k + 1);
       }
 
       if (feedback && result.data?.id) {
@@ -296,7 +294,6 @@ export function QuickFeedbackForm({ associate, compactLayout }: QuickFeedbackFor
           supervisorId={user?.id || ""}
           associate={{ id: associate.id, name: associate.name }}
           assessmentId={assessmentId}
-          autoOpenKey={recommendationOpenKey}
         />
       </div>
     </SectionErrorBoundary>

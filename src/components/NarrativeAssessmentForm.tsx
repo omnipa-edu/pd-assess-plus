@@ -56,7 +56,6 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
   });
   const [submitting, setSubmitting] = useState(false);
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
-  const [recommendationOpenKey, setRecommendationOpenKey] = useState(0);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
   const { user } = useAuth();
@@ -229,7 +228,6 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
       if (result.error) throw result.error;
       if (!result.data) throw new Error('Failed to create assessment');
       setAssessmentId(result.data.id);
-      setRecommendationOpenKey((prev) => prev + 1);
 
       // Database trigger will automatically create CME session
       toast({
@@ -620,7 +618,6 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
         supervisorId={user?.id || ''}
         associate={{ id: associate.id, name: associate.name }}
         assessmentId={assessmentId}
-        autoOpenKey={recommendationOpenKey}
       />
       </div>
     </SectionErrorBoundary>

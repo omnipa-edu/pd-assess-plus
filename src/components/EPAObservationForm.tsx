@@ -54,7 +54,6 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
-  const [recommendationOpenKey, setRecommendationOpenKey] = useState(0);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [aiUsage, setAIUsage] = useState({
     used_smart_feedback: false,
@@ -232,7 +231,6 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
       if (result.error) throw result.error;
       if (result.data?.id) {
         setAssessmentId(result.data.id);
-        setRecommendationOpenKey((prev) => prev + 1);
       }
       
       // Database trigger will automatically create CME session
@@ -677,7 +675,6 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
             supervisorId={user?.id || ''}
             associate={{ id: associate.id, name: associate.name }}
             assessmentId={assessmentId}
-            autoOpenKey={recommendationOpenKey}
           />
         </div>
       )}

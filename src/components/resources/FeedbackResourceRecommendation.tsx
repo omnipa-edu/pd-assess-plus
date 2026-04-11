@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { Link2 } from 'lucide-react';
 
@@ -14,22 +14,14 @@ interface FeedbackResourceRecommendationProps {
     email?: string;
   };
   assessmentId?: string | null;
-  autoOpenKey?: number;
 }
 
 export function FeedbackResourceRecommendation({
   supervisorId,
   associate,
   assessmentId,
-  autoOpenKey = 0,
 }: FeedbackResourceRecommendationProps) {
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    if (autoOpenKey > 0 && assessmentId) {
-      setOpen(true);
-    }
-  }, [autoOpenKey, assessmentId]);
 
   return (
     <Card className="border-0 bg-gradient-card shadow-card">

@@ -53,7 +53,6 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
-  const [recommendationOpenKey, setRecommendationOpenKey] = useState(0);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [procedures, setProcedures] = useState<Array<{ id: string; code: string; title: string }>>([]);
   const [proceduresLoading, setProceduresLoading] = useState(true);
@@ -244,7 +243,6 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
       if (result.error) throw result.error;
       if (result.data?.id) {
         setAssessmentId(result.data.id);
-        setRecommendationOpenKey((prev) => prev + 1);
       }
 
       // Database trigger will automatically create CME session
@@ -670,7 +668,6 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
         supervisorId={user?.id || ''}
         associate={{ id: associate.id, name: associate.name }}
         assessmentId={assessmentId}
-        autoOpenKey={recommendationOpenKey}
       />
       </div>
     </SectionErrorBoundary>

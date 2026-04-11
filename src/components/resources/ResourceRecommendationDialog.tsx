@@ -309,7 +309,7 @@ export function ResourceRecommendationDialog({
                 {fixedStudent.name || fixedStudent.email}
               </div>
             ) : (
-              <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+              <Select modal={false} value={selectedStudentId} onValueChange={setSelectedStudentId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a learner" />
                 </SelectTrigger>
@@ -346,7 +346,7 @@ export function ResourceRecommendationDialog({
                 </div>
                 <div className="space-y-2">
                   <Label>Type</Label>
-                  <Select value={libraryType} onValueChange={(value) => setLibraryType(value as ResourceType | 'all')}>
+                  <Select modal={false} value={libraryType} onValueChange={(value) => setLibraryType(value as ResourceType | 'all')}>
                     <SelectTrigger>
                       <SelectValue placeholder="All types" />
                     </SelectTrigger>
@@ -362,7 +362,7 @@ export function ResourceRecommendationDialog({
                 </div>
                 <div className="space-y-2">
                   <Label>Level</Label>
-                  <Select value={libraryLevel} onValueChange={(value) => setLibraryLevel(value as ResourceLevel | 'all')}>
+                  <Select modal={false} value={libraryLevel} onValueChange={(value) => setLibraryLevel(value as ResourceLevel | 'all')}>
                     <SelectTrigger>
                       <SelectValue placeholder="All levels" />
                     </SelectTrigger>
@@ -458,6 +458,7 @@ export function ResourceRecommendationDialog({
                 <div className="space-y-2">
                   <Label>Type</Label>
                   <Select
+                    modal={false}
                     value={pasteForm.resourceType}
                     onValueChange={(value) => setPasteForm((prev) => ({ ...prev, resourceType: value as ResourceType }))}
                   >
@@ -495,6 +496,7 @@ export function ResourceRecommendationDialog({
                 <div className="space-y-2">
                   <Label>Level</Label>
                   <Select
+                    modal={false}
                     value={pasteForm.level}
                     onValueChange={(value) => setPasteForm((prev) => ({ ...prev, level: value as ResourceLevel }))}
                   >
@@ -517,6 +519,7 @@ export function ResourceRecommendationDialog({
                   <Label>Specialty tags</Label>
                   <div className="flex gap-2">
                     <Select
+                      modal={false}
                       value={pasteForm.selectedSpecialty}
                       onValueChange={(value) => setPasteForm((prev) => ({ ...prev, selectedSpecialty: value }))}
                     >
@@ -563,6 +566,7 @@ export function ResourceRecommendationDialog({
                   <Label>EPA tags</Label>
                   <div className="flex gap-2">
                     <Select
+                      modal={false}
                       value={pasteForm.selectedEpa}
                       onValueChange={(value) => setPasteForm((prev) => ({ ...prev, selectedEpa: value }))}
                     >
