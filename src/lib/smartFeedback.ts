@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 import { getCompetencyFramework } from "@/lib/ai/feedbackChain/framework";
+import { parseFunctionsInvokeError } from "@/lib/supabase/parseFunctionsInvokeError";
 import { extractRunId, runFeedbackAIChain } from "@/lib/ai/feedbackChain/run";
 import type { FeedbackAIChainResult } from "@/lib/ai/feedbackChain/types";
 
@@ -127,26 +128,27 @@ export async function analyzeSupervisorFeedback(
     }
 
     if (error) {
+      const fromBody = await parseFunctionsInvokeError(error);
+
       // Check for HTTP errors (500, etc.)
-      if (error.message?.includes('non-2xx status code') || error.message?.includes('500')) {
-        // Try to extract error message from the response
-        let errorMessage = 'The feedback analyzer encountered an error. This usually means the OpenAI API key is not configured. Please contact your administrator to set the OPENAI_API_KEY secret in Supabase Edge Functions.';
-        
-        // Try to get error details from various possible locations
-        const errorContext = (error as any).context;
-        if (errorContext?.body?.error) {
-          errorMessage = errorContext.body.error;
-        } else if (errorContext?.message) {
-          errorMessage = errorContext.message;
-        } else if (error.message) {
+      if (
+        error.message?.includes("non-2xx status code") ||
+        error.message?.includes("500") ||
+        fromBody
+      ) {
+        let errorMessage =
+          fromBody ||
+          "The feedback analyzer encountered an error. This usually means the OpenAI API key is not configured. Please contact your administrator to set the OPENAI_API_KEY secret in Supabase Edge Functions.";
+
+        if (!fromBody && error.message) {
           errorMessage = error.message;
         }
-        
-        // Provide helpful guidance for common issues
-        if (errorMessage.includes('OPENAI_API_KEY') || errorMessage.includes('not configured')) {
-          errorMessage = 'OpenAI API key is not configured in Supabase Edge Functions. Please contact your administrator to set the OPENAI_API_KEY secret in Project Settings → Edge Functions → Secrets.';
+
+        if (errorMessage.includes("OPENAI_API_KEY") || errorMessage.includes("not configured")) {
+          errorMessage =
+            "OpenAI API key is not configured in Supabase Edge Functions. Please contact your administrator to set the OPENAI_API_KEY secret in Project Settings → Edge Functions → Secrets.";
         }
-        
+
         throw new Error(errorMessage);
       }
       throw error;

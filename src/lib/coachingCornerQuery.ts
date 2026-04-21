@@ -15,6 +15,9 @@ const SELECT_MINIMAL =
 
 const ACTIVE_SELECT_ATTEMPTS = [SELECT_WITH_TAGS, SELECT_BASE, SELECT_MINIMAL] as const;
 
+/** PostgREST can return 400 if ORDER BY references a column missing from the exposed schema. */
+type ActiveOrderMode = 'pinned_start_at' | 'created_at' | 'none';
+
 function errorStatus(error: PostgrestError): number | undefined {
   return (error as PostgrestError & { status?: number }).status;
 }
@@ -85,35 +88,41 @@ function normalizeRow(r: Record<string, unknown>): CoachingCornerActiveRow {
  * Active coaching_corner rows, trying narrower SELECT lists when PostgREST returns 400 (unknown column).
  */
 export async function fetchCoachingCornerActiveRows(): Promise<CoachingCornerActiveRow[]> {
+  const orderModes: ActiveOrderMode[] = ['pinned_start_at', 'created_at', 'none'];
+  let lastError: PostgrestError | undefined;
+
   for (let i = 0; i < ACTIVE_SELECT_ATTEMPTS.length; i++) {
     const selectList = ACTIVE_SELECT_ATTEMPTS[i];
-    const { data, error } = await supabase
-      .from('coaching_corner')
-      .select(selectList)
-      .eq('is_active', true)
-      .order('pinned', { ascending: false })
-      .order('start_at', { ascending: false });
 
-    if (!error && data) {
-      return (data as Record<string, unknown>[]).map((row) => normalizeRow(row));
-    }
+    for (const orderMode of orderModes) {
+      let q = supabase.from('coaching_corner').select(selectList).eq('is_active', true);
 
-    if (error && isRelationOrTableMissing(error)) {
-      console.warn('coaching_corner unavailable (table missing or not exposed). Returning no rows.');
-      return [];
-    }
+      if (orderMode === 'pinned_start_at') {
+        q = q.order('pinned', { ascending: false }).order('start_at', { ascending: false });
+      } else if (orderMode === 'created_at') {
+        q = q.order('created_at', { ascending: false });
+      }
 
-    const hasMoreAttempts = i < ACTIVE_SELECT_ATTEMPTS.length - 1;
-    if (error && hasMoreAttempts) {
-      continue;
-    }
+      const { data, error } = await q;
+      if (error) {
+        lastError = error;
+      }
 
-    if (error) {
-      console.error('coaching_corner query failed:', error);
+      if (!error && data) {
+        return (data as Record<string, unknown>[]).map((row) => normalizeRow(row));
+      }
+
+      if (error && isRelationOrTableMissing(error)) {
+        console.warn('coaching_corner unavailable (table missing or not exposed). Returning no rows.');
+        return [];
+      }
     }
   }
 
-  console.warn('coaching_corner: all select fallbacks failed; returning no rows.');
+  if (lastError) {
+    console.error('coaching_corner query failed:', lastError);
+  }
+  console.warn('coaching_corner: all select/order fallbacks failed; returning no rows.');
   return [];
 }
 

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { parseFunctionsInvokeError } from "@/lib/supabase/parseFunctionsInvokeError";
 
 import type { FeedbackAIChainResult, FeedbackAIInputs } from "./types";
 
@@ -22,7 +23,8 @@ export async function runFeedbackAIChain(
   });
 
   if (error) {
-    throw error;
+    const detail = await parseFunctionsInvokeError(error);
+    throw detail ? new Error(detail) : error;
   }
 
   if (!data) {
