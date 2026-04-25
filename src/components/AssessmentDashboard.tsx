@@ -180,7 +180,6 @@ const AssessmentDashboard = ({ onBack, defaultTab = "quick-feedback" }: Assessme
           .select(`
             student_id,
             supervisor_id,
-            is_active,
             student:profiles!supervisor_student_assignments_student_id_fkey (
               id,
               full_name,
@@ -189,8 +188,7 @@ const AssessmentDashboard = ({ onBack, defaultTab = "quick-feedback" }: Assessme
               cohort_id
             )
           `)
-          .eq('supervisor_id', user.id)
-          .eq('is_active', true);
+          .eq('supervisor_id', user.id);
         
         // Check if table exists and has data
         if (!assignmentsError && assignments && assignments.length > 0) {
@@ -200,6 +198,7 @@ const AssessmentDashboard = ({ onBack, defaultTab = "quick-feedback" }: Assessme
           type AssignmentWithStudent = {
             student_id: string;
             supervisor_id: string;
+            is_active?: boolean;
             student: {
               id: string;
               full_name?: string;
@@ -209,7 +208,11 @@ const AssessmentDashboard = ({ onBack, defaultTab = "quick-feedback" }: Assessme
             };
           };
           
-          students = (assignments as AssignmentWithStudent[])
+          const activeAssignments = (assignments as AssignmentWithStudent[]).filter(
+            (assignment) => assignment?.is_active !== false
+          );
+
+          students = activeAssignments
             .filter((a) => a.student)
             .map((assignment) => ({
               id: assignment.student.id,
@@ -222,7 +225,7 @@ const AssessmentDashboard = ({ onBack, defaultTab = "quick-feedback" }: Assessme
 
           // Load supervisor names
           const supervisorIds = [...new Set(
-            assignments
+            activeAssignments
               .map((a: any) => a.supervisor_id)
               .filter(Boolean)
           )];
@@ -239,7 +242,7 @@ const AssessmentDashboard = ({ onBack, defaultTab = "quick-feedback" }: Assessme
 
             // Update students with supervisor names
             students = students.map((student, index) => {
-              const assignment = (assignments as AssignmentWithStudent[])[index];
+              const assignment = activeAssignments[index];
               if (assignment) {
                 const supervisorName = supervisorMap.get(assignment.supervisor_id) || DEFAULT_VALUES.SUPERVISOR.UNKNOWN;
                 return { ...student, supervisor: supervisorName };

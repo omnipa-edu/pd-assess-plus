@@ -19,6 +19,29 @@ interface AnalyzeFeedbackRequest {
   };
 }
 
+function mapOpenAIErrorToUserMessage(errorPayload: string): string {
+  const normalized = errorPayload.toLowerCase();
+
+  if (
+    normalized.includes("insufficient_quota") ||
+    normalized.includes("exceeded your current quota") ||
+    normalized.includes("billing_hard_limit_reached")
+  ) {
+    return "OpenAI returned insufficient quota for this API key. Please check OpenAI billing/usage limits and try again.";
+  }
+
+  if (
+    normalized.includes("invalid_api_key") ||
+    normalized.includes("incorrect api key") ||
+    normalized.includes("\"status\": 401") ||
+    normalized.includes("status 401")
+  ) {
+    return "The OpenAI API key configured for this project is invalid. Please update OPENAI_API_KEY in Supabase Edge Function secrets.";
+  }
+
+  return "Failed to analyze feedback with AI service. Please try again.";
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -147,7 +170,7 @@ Important: Return ONLY valid JSON, no markdown formatting or additional text.`;
     if (!response.ok) {
       const errorText = await response.text();
       console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${errorText}`);
+      throw new Error(mapOpenAIErrorToUserMessage(errorText));
     }
 
     const result = await response.json();
@@ -194,8 +217,6 @@ Important: Return ONLY valid JSON, no markdown formatting or additional text.`;
     let userFriendlyMessage = errorMessage;
     if (errorMessage.includes('OPENAI_API_KEY')) {
       userFriendlyMessage = 'OpenAI API key is not configured. Please contact your administrator.';
-    } else if (errorMessage.includes('OpenAI API error')) {
-      userFriendlyMessage = 'Failed to analyze feedback with AI service. Please try again.';
     } else if (errorMessage.includes('JSON')) {
       userFriendlyMessage = 'Invalid response from AI service. Please try again.';
     }

@@ -68,9 +68,13 @@ export function SmartFeedbackAssistant({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to analyze feedback";
       setError(errorMessage);
+      const toastDescription =
+        errorMessage && errorMessage !== "Failed to analyze feedback"
+          ? errorMessage
+          : "We couldn't load suggestions right now. Please try again, or continue writing your feedback as usual.";
       toast({
         title: "Analysis Failed",
-        description: "We couldn't load suggestions right now. Please try again, or continue writing your feedback as usual.",
+        description: toastDescription,
         variant: "destructive",
       });
     } finally {

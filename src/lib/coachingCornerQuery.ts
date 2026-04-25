@@ -13,7 +13,27 @@ const SELECT_BASE =
 const SELECT_MINIMAL =
   'id, created_by, role_scope, title, body, content_type, video_url, pinned, created_at, start_at, end_at, is_active';
 
-const ACTIVE_SELECT_ATTEMPTS = [SELECT_WITH_TAGS, SELECT_BASE, SELECT_MINIMAL] as const;
+const SELECT_NO_AUDIENCE =
+  'id, created_by, role_scope, title, body, content_type, video_url, tags, priority, pinned, created_at, start_at, end_at, is_active';
+
+const SELECT_NO_TAGS_PRIORITY =
+  'id, created_by, role_scope, title, body, content_type, video_url, pinned, created_at, start_at, end_at, audience, is_active';
+
+const SELECT_NO_TAGS_PRIORITY_NO_AUDIENCE =
+  'id, created_by, role_scope, title, body, content_type, video_url, pinned, created_at, start_at, end_at, is_active';
+
+const SELECT_LEGACY_NO_ACTIVE =
+  'id, created_by, role_scope, title, body, content_type, video_url, pinned, created_at, start_at, end_at';
+
+const ACTIVE_SELECT_ATTEMPTS = [
+  { select: SELECT_WITH_TAGS, hasIsActive: true },
+  { select: SELECT_BASE, hasIsActive: true },
+  { select: SELECT_MINIMAL, hasIsActive: true },
+  { select: SELECT_NO_TAGS_PRIORITY, hasIsActive: true },
+  { select: SELECT_NO_AUDIENCE, hasIsActive: true },
+  { select: SELECT_NO_TAGS_PRIORITY_NO_AUDIENCE, hasIsActive: true },
+  { select: SELECT_LEGACY_NO_ACTIVE, hasIsActive: false },
+] as const;
 
 /** PostgREST can return 400 if ORDER BY references a column missing from the exposed schema. */
 type ActiveOrderMode = 'pinned_start_at' | 'created_at' | 'none';
@@ -92,10 +112,13 @@ export async function fetchCoachingCornerActiveRows(): Promise<CoachingCornerAct
   let lastError: PostgrestError | undefined;
 
   for (let i = 0; i < ACTIVE_SELECT_ATTEMPTS.length; i++) {
-    const selectList = ACTIVE_SELECT_ATTEMPTS[i];
+    const attempt = ACTIVE_SELECT_ATTEMPTS[i];
 
     for (const orderMode of orderModes) {
-      let q = supabase.from('coaching_corner').select(selectList).eq('is_active', true);
+      let q = supabase.from('coaching_corner').select(attempt.select);
+      if (attempt.hasIsActive) {
+        q = q.eq('is_active', true);
+      }
 
       if (orderMode === 'pinned_start_at') {
         q = q.order('pinned', { ascending: false }).order('start_at', { ascending: false });

@@ -105,6 +105,9 @@ export async function analyzeSupervisorFeedback(
         return mapChainResultToSmartFeedback(chainResult, feedbackText.trim());
       } catch (chainError) {
         console.warn("Feedback AI chain failed, falling back", chainError);
+        if (isOpenAINonRetryableClientError(chainError)) {
+          return buildUnavailableAIResult(feedbackText.trim(), chainError);
+        }
       }
     }
 
@@ -117,14 +120,7 @@ export async function analyzeSupervisorFeedback(
 
     // Check for error in data first (sometimes Supabase returns error in data for 500 responses)
     if (data?.error) {
-      let errorMessage = data.error;
-      
-      // Provide helpful guidance for common issues
-      if (errorMessage.includes('OPENAI_API_KEY') || errorMessage.includes('not configured')) {
-        errorMessage = 'OpenAI API key is not configured in Supabase Edge Functions. Please contact your administrator to set the OPENAI_API_KEY secret in Project Settings → Edge Functions → Secrets.';
-      }
-      
-      throw new Error(errorMessage);
+      throw new Error(normalizeAIServiceErrorMessage(data.error));
     }
 
     if (error) {
@@ -144,10 +140,7 @@ export async function analyzeSupervisorFeedback(
           errorMessage = error.message;
         }
 
-        if (errorMessage.includes("OPENAI_API_KEY") || errorMessage.includes("not configured")) {
-          errorMessage =
-            "OpenAI API key is not configured in Supabase Edge Functions. Please contact your administrator to set the OPENAI_API_KEY secret in Project Settings → Edge Functions → Secrets.";
-        }
+        errorMessage = normalizeAIServiceErrorMessage(errorMessage);
 
         throw new Error(errorMessage);
       }
@@ -190,6 +183,86 @@ export async function analyzeSupervisorFeedback(
       ? error 
       : new Error('Failed to analyze feedback. Please try again.');
   }
+}
+
+/** When true, skip the analyze-feedback call (it would fail the same way). */
+function isOpenAINonRetryableClientError(error: unknown): boolean {
+  const message = stringifyUnknownError(error).toLowerCase();
+  return (
+    normalizedIncludesOpenAIAuthFailure(message) ||
+    message.includes("insufficient_quota") ||
+    message.includes("billing_hard_limit_reached") ||
+    message.includes("exceeded your current quota")
+  );
+}
+
+function stringifyUnknownError(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  return JSON.stringify(error || "");
+}
+
+function normalizedIncludesOpenAIAuthFailure(normalizedMessage: string): boolean {
+  return (
+    normalizedMessage.includes("invalid_api_key") ||
+    normalizedMessage.includes("incorrect api key") ||
+    normalizedMessage.includes("openai api error") ||
+    normalizedMessage.includes('"status": 401') ||
+    normalizedMessage.includes("status 401")
+  );
+}
+
+function buildUnavailableAIResult(feedbackText: string, cause?: unknown): SmartFeedbackResult {
+  const m = stringifyUnknownError(cause).toLowerCase();
+  let toneSummary =
+    "AI analysis is temporarily unavailable (OpenAI account or billing issue).";
+  let toneSuggestions =
+    "Continue writing behavior-based feedback. Ask an administrator to check OpenAI billing, usage limits, and the OPENAI_API_KEY secret.";
+
+  if (normalizedIncludesOpenAIAuthFailure(m)) {
+    toneSummary = "AI analysis is temporarily unavailable due to API credentials configuration.";
+    toneSuggestions =
+      "Continue documenting behavior-based feedback while an administrator updates the AI service credentials.";
+  } else if (m.includes("insufficient_quota") || m.includes("exceeded your current quota")) {
+    toneSummary = "AI analysis is temporarily unavailable: OpenAI reports insufficient quota for this API key.";
+    toneSuggestions =
+      "Add billing credits or raise usage limits in OpenAI, then retry. The app will keep working without AI suggestions.";
+  }
+
+  return {
+    improved_feedback: feedbackText,
+    vague_phrases: [],
+    coaching_prompts: [],
+    tone_summary: toneSummary,
+    tone_suggestions: toneSuggestions,
+  };
+}
+
+function normalizeAIServiceErrorMessage(message: string): string {
+  const normalized = message.toLowerCase();
+
+  if (
+    normalized.includes("incorrect api key") ||
+    normalized.includes("invalid_api_key") ||
+    normalized.includes('"status": 401') ||
+    normalized.includes("status 401")
+  ) {
+    return "The AI feedback service credentials are invalid. Please contact your administrator to update the OpenAI API key in Supabase Edge Function secrets.";
+  }
+
+  if (
+    normalized.includes("insufficient_quota") ||
+    normalized.includes("exceeded your current quota") ||
+    normalized.includes("billing_hard_limit_reached")
+  ) {
+    return "OpenAI returned insufficient quota for this API key. Add billing credits or raise limits in OpenAI, then retry.";
+  }
+
+  if (normalized.includes("openai_api_key") || normalized.includes("not configured")) {
+    return "OpenAI API key is not configured in Supabase Edge Functions. Please contact your administrator to set the OPENAI_API_KEY secret in Project Settings -> Edge Functions -> Secrets.";
+  }
+
+  return message;
 }
 
 function mapChainResultToSmartFeedback(
