@@ -471,11 +471,20 @@ const AssessmentDashboard = ({ onBack, defaultTab = "quick-feedback" }: Assessme
             </TabsList>
 
             <TabsContent value="quick-feedback" className="mt-6">
-              <QuickFeedbackForm associate={associate!} compactLayout={compactLayout} />
+              <QuickFeedbackForm
+                associate={associate!}
+                compactLayout={compactLayout}
+                onAnotherStudent={() => setSelectedAssociate(null)}
+                onBackToDashboard={onBack}
+              />
             </TabsContent>
 
             <TabsContent value="epa-observation" className="mt-6">
-              <EPAObservationForm associate={associate!} />
+              <EPAObservationForm
+                associate={associate!}
+                onAnotherStudent={() => setSelectedAssociate(null)}
+                onBackToDashboard={onBack}
+              />
             </TabsContent>
             
             <TabsContent value="direct-observation" className="mt-6 space-y-4">
@@ -503,7 +512,11 @@ const AssessmentDashboard = ({ onBack, defaultTab = "quick-feedback" }: Assessme
             </TabsContent>
             
             <TabsContent value="narrative" className="space-y-4">
-              <NarrativeAssessmentForm associate={associate!} />
+              <NarrativeAssessmentForm
+                associate={associate!}
+                onAnotherStudent={() => setSelectedAssociate(null)}
+                onBackToDashboard={onBack}
+              />
             </TabsContent>
 
             <TabsContent value="procedure-competency" className="mt-6 space-y-4">

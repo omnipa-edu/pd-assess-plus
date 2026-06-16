@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import VoiceRecorder from "@/components/VoiceRecorder";
-import { FeedbackResourceRecommendation } from "@/components/resources/FeedbackResourceRecommendation";
+import { FeedbackPostSubmitSection, type AssessmentNavigationProps } from "@/components/feedback/FeedbackPostSubmitSection";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,30 +30,36 @@ interface PhysicianAssociate {
   supervisor: string;
 }
 
-interface NarrativeAssessmentFormProps {
+interface NarrativeAssessmentFormProps extends AssessmentNavigationProps {
   associate: PhysicianAssociate;
 }
 
-const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) => {
-  const [formData, setFormData] = useState({
-    assessmentType: "",
-    date: "",
-    observationTimeMinutes: "",
-    feedbackTimeMinutes: "",
-    context: "",
-    performanceDescription: "",
-    strengths: "",
-    areasForGrowth: "",
-    specificExamples: "",
-    behavioralObservations: "",
-    clinicalReasoningComments: "",
-    communicationComments: "",
-    professionalismComments: "",
-    recommendationsForImprovement: "",
-    developmentPlan: "",
-    followUpRequired: "",
-    competenciesAddressed: [] as string[]
-  });
+const EMPTY_NARRATIVE_FORM = {
+  assessmentType: "",
+  date: "",
+  observationTimeMinutes: "",
+  feedbackTimeMinutes: "",
+  context: "",
+  performanceDescription: "",
+  strengths: "",
+  areasForGrowth: "",
+  specificExamples: "",
+  behavioralObservations: "",
+  clinicalReasoningComments: "",
+  communicationComments: "",
+  professionalismComments: "",
+  recommendationsForImprovement: "",
+  developmentPlan: "",
+  followUpRequired: "",
+  competenciesAddressed: [] as string[],
+};
+
+const NarrativeAssessmentForm = ({
+  associate,
+  onAnotherStudent,
+  onBackToDashboard,
+}: NarrativeAssessmentFormProps) => {
+  const [formData, setFormData] = useState(EMPTY_NARRATIVE_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -234,27 +240,6 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
         title: "Assessment Submitted Successfully",
         description: `Narrative assessment for ${associate.name} has been recorded. CME time has been automatically logged.`,
       });
-
-      // Reset form
-      setFormData({
-        assessmentType: "",
-        date: "",
-        observationTimeMinutes: "",
-        feedbackTimeMinutes: "",
-        context: "",
-        performanceDescription: "",
-        strengths: "",
-        areasForGrowth: "",
-        specificExamples: "",
-        behavioralObservations: "",
-        clinicalReasoningComments: "",
-        communicationComments: "",
-        professionalismComments: "",
-        recommendationsForImprovement: "",
-        developmentPlan: "",
-        followUpRequired: "",
-        competenciesAddressed: []
-      });
     } catch (error: unknown) {
       logger.error('Error submitting narrative assessment', error);
       toast({
@@ -267,6 +252,12 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
     }
   };
 
+  const handleMoreForSameStudent = () => {
+    setFormData(EMPTY_NARRATIVE_FORM);
+    setAssessmentId(null);
+    setValidationErrors({});
+  };
+
   if (submitting) {
     return <FormSkeleton fields={10} />;
   }
@@ -274,6 +265,17 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
   return (
     <SectionErrorBoundary sectionName="Narrative Assessment Form">
       <div className="space-y-6">
+      {assessmentId ? (
+        <FeedbackPostSubmitSection
+          assessmentId={assessmentId}
+          supervisorId={user?.id || ""}
+          associate={{ id: associate.id, name: associate.name }}
+          onMoreForSameStudent={handleMoreForSameStudent}
+          onAnotherStudent={onAnotherStudent}
+          onBackToDashboard={onBackToDashboard}
+        />
+      ) : (
+      <>
       {/* Assessment Context */}
       <Card className="border-0 bg-gradient-card shadow-card">
         <CardHeader>
@@ -613,12 +615,8 @@ const NarrativeAssessmentForm = ({ associate }: NarrativeAssessmentFormProps) =>
           </div>
         </CardContent>
       </Card>
-
-      <FeedbackResourceRecommendation
-        supervisorId={user?.id || ''}
-        associate={{ id: associate.id, name: associate.name }}
-        assessmentId={assessmentId}
-      />
+      </>
+      )}
       </div>
     </SectionErrorBoundary>
   );

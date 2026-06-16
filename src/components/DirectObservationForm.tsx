@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import VoiceRecorder from "@/components/VoiceRecorder";
-import { FeedbackResourceRecommendation } from "@/components/resources/FeedbackResourceRecommendation";
+import { FeedbackPostSubmitSection, type AssessmentNavigationProps } from "@/components/feedback/FeedbackPostSubmitSection";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,28 +29,34 @@ interface PhysicianAssociate {
   supervisor: string;
 }
 
-interface DirectObservationFormProps {
+interface DirectObservationFormProps extends AssessmentNavigationProps {
   associate: PhysicianAssociate;
 }
 
-const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
-  const [formData, setFormData] = useState({
-    activity: "",
-    setting: "",
-    date: "",
-    observationTimeMinutes: "",
-    feedbackTimeMinutes: "",
-    observationType: "",
-    oScore: "",
-    competenciesObserved: [] as string[],
-    technicalSkills: "",
-    communication: "",
-    professionalism: "",
-    clinicalReasoning: "",
-    narrative: "",
-    verbalFeedbackGiven: false,
-    associateResponse: ""
-  });
+const EMPTY_DIRECT_OBSERVATION_FORM = {
+  activity: "",
+  setting: "",
+  date: "",
+  observationTimeMinutes: "",
+  feedbackTimeMinutes: "",
+  observationType: "",
+  oScore: "",
+  competenciesObserved: [] as string[],
+  technicalSkills: "",
+  communication: "",
+  professionalism: "",
+  clinicalReasoning: "",
+  narrative: "",
+  verbalFeedbackGiven: false,
+  associateResponse: "",
+};
+
+const DirectObservationForm = ({
+  associate,
+  onAnotherStudent,
+  onBackToDashboard,
+}: DirectObservationFormProps) => {
+  const [formData, setFormData] = useState(EMPTY_DIRECT_OBSERVATION_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -250,25 +256,6 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
         title: "Assessment Submitted Successfully",
         description: `Direct observation for ${associate.name} has been recorded. CME time has been automatically logged.`,
       });
-
-      // Reset form
-      setFormData({
-        activity: "",
-        setting: "",
-        date: "",
-        observationTimeMinutes: "",
-        feedbackTimeMinutes: "",
-        observationType: "",
-        oScore: "",
-        competenciesObserved: [],
-        technicalSkills: "",
-        communication: "",
-        professionalism: "",
-        clinicalReasoning: "",
-        narrative: "",
-        verbalFeedbackGiven: false,
-        associateResponse: ""
-      });
     } catch (error: unknown) {
       logger.error('Error submitting direct observation', error);
       toast({
@@ -281,6 +268,12 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
     }
   };
 
+  const handleMoreForSameStudent = () => {
+    setFormData(EMPTY_DIRECT_OBSERVATION_FORM);
+    setAssessmentId(null);
+    setValidationErrors({});
+  };
+
   if (submitting) {
     return <FormSkeleton fields={8} />;
   }
@@ -288,6 +281,17 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
   return (
     <SectionErrorBoundary sectionName="Direct Observation Form">
       <div className="space-y-6">
+      {assessmentId ? (
+        <FeedbackPostSubmitSection
+          assessmentId={assessmentId}
+          supervisorId={user?.id || ""}
+          associate={{ id: associate.id, name: associate.name }}
+          onMoreForSameStudent={handleMoreForSameStudent}
+          onAnotherStudent={onAnotherStudent}
+          onBackToDashboard={onBackToDashboard}
+        />
+      ) : (
+      <>
       {/* Observation Setup */}
       <Card className="border-0 bg-gradient-card shadow-card">
         <CardHeader>
@@ -663,12 +667,8 @@ const DirectObservationForm = ({ associate }: DirectObservationFormProps) => {
           </div>
         </CardContent>
       </Card>
-
-      <FeedbackResourceRecommendation
-        supervisorId={user?.id || ''}
-        associate={{ id: associate.id, name: associate.name }}
-        assessmentId={assessmentId}
-      />
+      </>
+      )}
       </div>
     </SectionErrorBoundary>
   );

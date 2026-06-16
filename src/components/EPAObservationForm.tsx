@@ -15,7 +15,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import VoiceRecorder from "@/components/VoiceRecorder";
-import { FeedbackResourceRecommendation } from "@/components/resources/FeedbackResourceRecommendation";
+import { FeedbackPostSubmitSection, type AssessmentNavigationProps } from "@/components/feedback/FeedbackPostSubmitSection";
+import { INITIAL_AI_USAGE, resetAssessmentSubmissionState } from "@/components/feedback/assessmentFormReset";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,11 +33,15 @@ interface PhysicianAssociate {
   supervisor: string;
 }
 
-interface EPAObservationFormProps {
+interface EPAObservationFormProps extends AssessmentNavigationProps {
   associate: PhysicianAssociate;
 }
 
-const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
+const EPAObservationForm = ({
+  associate,
+  onAnotherStudent,
+  onBackToDashboard,
+}: EPAObservationFormProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     epaNumber: "",
@@ -55,10 +60,7 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
   const [submitting, setSubmitting] = useState(false);
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [aiUsage, setAIUsage] = useState({
-    used_smart_feedback: false,
-    smart_feedback_applied: false,
-  });
+  const [aiUsage, setAIUsage] = useState({ ...INITIAL_AI_USAGE });
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -263,27 +265,6 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
         title: "Assessment Submitted Successfully",
         description: `EPA observation for ${associate.name} has been recorded. CME time has been automatically logged.`,
       });
-
-      // Reset form
-      setFormData({
-        epaNumber: "",
-        setting: "",
-        date: "",
-        time: "",
-        observationTimeMinutes: "",
-        feedbackTimeMinutes: "",
-        oScore: "",
-        canmedsRoles: [],
-        narrative: "",
-        strengths: "",
-        areasForImprovement: "",
-        actionPlan: ""
-      });
-      setAIUsage({
-        used_smart_feedback: false,
-        smart_feedback_applied: false,
-      });
-      setCurrentStep(1);
     } catch (error: unknown) {
       logger.error('Error submitting EPA assessment', error);
       toast({
@@ -294,6 +275,25 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleMoreForSameStudent = () => {
+    setFormData({
+      epaNumber: "",
+      setting: "",
+      date: "",
+      time: "",
+      observationTimeMinutes: "",
+      feedbackTimeMinutes: "",
+      oScore: "",
+      canmedsRoles: [],
+      narrative: "",
+      strengths: "",
+      areasForImprovement: "",
+      actionPlan: "",
+    });
+    setCurrentStep(1);
+    resetAssessmentSubmissionState(setAssessmentId, setValidationErrors, setAIUsage);
   };
 
   const renderStep1 = () => (
@@ -666,17 +666,21 @@ const EPAObservationForm = ({ associate }: EPAObservationFormProps) => {
       </Card>
 
       {/* Form Steps */}
+      {assessmentId ? (
+        <FeedbackPostSubmitSection
+          assessmentId={assessmentId}
+          supervisorId={user?.id || ""}
+          associate={{ id: associate.id, name: associate.name }}
+          onMoreForSameStudent={handleMoreForSameStudent}
+          onAnotherStudent={onAnotherStudent}
+          onBackToDashboard={onBackToDashboard}
+        />
+      ) : (
+        <>
       {currentStep === 1 && renderStep1()}
       {currentStep === 2 && renderStep2()}
-      {currentStep === 3 && (
-        <div className="space-y-6">
-          {renderStep3()}
-          <FeedbackResourceRecommendation
-            supervisorId={user?.id || ''}
-            associate={{ id: associate.id, name: associate.name }}
-            assessmentId={assessmentId}
-          />
-        </div>
+      {currentStep === 3 && renderStep3()}
+        </>
       )}
       </div>
     </SectionErrorBoundary>

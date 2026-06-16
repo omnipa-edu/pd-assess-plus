@@ -1,8 +1,10 @@
 import { useState } from "react";
 
-import { ChevronDown, CheckCircle } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
-import { FeedbackResourceRecommendation } from "@/components/resources/FeedbackResourceRecommendation";
+import type { AssessmentNavigationProps } from "@/components/feedback/FeedbackPostSubmitSection";
+import { FeedbackPostSubmitSection } from "@/components/feedback/FeedbackPostSubmitSection";
+import { INITIAL_AI_USAGE, resetAssessmentSubmissionState } from "@/components/feedback/assessmentFormReset";
 import { SmartFeedbackField } from "@/components/feedback/SmartFeedbackField";
 import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
 import { Button } from "@/components/ui/button";
@@ -29,13 +31,18 @@ interface PhysicianAssociate {
   supervisor: string;
 }
 
-interface QuickFeedbackFormProps {
+interface QuickFeedbackFormProps extends AssessmentNavigationProps {
   associate: PhysicianAssociate;
   /** Larger tap targets and sticky submit when compact layout is on */
   compactLayout?: boolean;
 }
 
-export function QuickFeedbackForm({ associate, compactLayout }: QuickFeedbackFormProps) {
+export function QuickFeedbackForm({
+  associate,
+  compactLayout,
+  onAnotherStudent,
+  onBackToDashboard,
+}: QuickFeedbackFormProps) {
   const [narrative, setNarrative] = useState("");
   const [oScore, setOScore] = useState("");
   const [epaNumber, setEpaNumber] = useState<string | "">("");
@@ -44,10 +51,7 @@ export function QuickFeedbackForm({ associate, compactLayout }: QuickFeedbackFor
   const [submitting, setSubmitting] = useState(false);
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [aiUsage, setAIUsage] = useState({
-    used_smart_feedback: false,
-    smart_feedback_applied: false,
-  });
+  const [aiUsage, setAIUsage] = useState({ ...INITIAL_AI_USAGE });
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -174,12 +178,31 @@ export function QuickFeedbackForm({ associate, compactLayout }: QuickFeedbackFor
     }
   };
 
+  const handleMoreForSameStudent = () => {
+    setNarrative("");
+    setOScore("");
+    setEpaNumber("");
+    setClinicalSetting("");
+    setOptionalOpen(false);
+    resetAssessmentSubmissionState(setAssessmentId, setValidationErrors, setAIUsage);
+  };
+
   const padding = compactLayout ? "py-3 px-3 sm:py-6 sm:px-6" : "py-6 px-6";
   const radioItemClass = compactLayout ? "min-h-12 items-center py-2" : "";
 
   return (
     <SectionErrorBoundary name="QuickFeedbackForm">
       <div className={`mx-auto max-w-3xl space-y-6 ${padding}`}>
+        {assessmentId ? (
+          <FeedbackPostSubmitSection
+            assessmentId={assessmentId}
+            supervisorId={user?.id || ""}
+            associate={{ id: associate.id, name: associate.name }}
+            onMoreForSameStudent={handleMoreForSameStudent}
+            onAnotherStudent={onAnotherStudent}
+            onBackToDashboard={onBackToDashboard}
+          />
+        ) : (
         <Card className="border-0 bg-gradient-card shadow-card">
           <CardHeader>
             <CardTitle className="text-foreground">Quick feedback</CardTitle>
@@ -280,21 +303,7 @@ export function QuickFeedbackForm({ associate, compactLayout }: QuickFeedbackFor
             </div>
           </CardContent>
         </Card>
-
-        {assessmentId && (
-          <div className="flex items-start gap-2 rounded-lg border border-assessment-good/30 bg-green-50/50 p-3 dark:bg-green-950/20">
-            <CheckCircle className="mt-0.5 h-5 w-5 text-assessment-good" />
-            <p className="text-sm text-muted-foreground">
-              Assessment saved. You can attach resources for this learner below.
-            </p>
-          </div>
         )}
-
-        <FeedbackResourceRecommendation
-          supervisorId={user?.id || ""}
-          associate={{ id: associate.id, name: associate.name }}
-          assessmentId={assessmentId}
-        />
       </div>
     </SectionErrorBoundary>
   );
